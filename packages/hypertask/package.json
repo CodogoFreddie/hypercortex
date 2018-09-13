@@ -1,45 +1,45 @@
 {
-  "name": "@hypercortex/hypertask",
-  "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-eslint": "^9.0.0",
-    "babel-preset-freddie-ridell": "0.0.8",
-    "eslint": "^5.5.0",
-    "eslint-config-react-app": "^2.1.0",
-    "eslint-plugin-flowtype": "^2.50.0",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-jsx-a11y": "^6.1.1",
-    "eslint-plugin-react": "^7.11.1",
-    "prettier": "^1.14.2"
-  },
-  "babel": {
-    "presets": [
-      "freddie-ridell"
-    ]
-  },
-  "bin": {
-    "@hypercortex/hypertask": "./main.js"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "files": [
-    "/main.js"
-  ],
-  "prettier": {
-    "tabWidth": 4,
-    "trailingComma": "all",
-    "useTabs": true
-  },
-  "scripts": {
-    "build": "babel src --out-dir lib",
-    "format": "prettier --write src/**/*",
-    "watch": "babel src --out-dir lib --watch"
-  },
-  "dependencies": {
-    "@hypercortex/wrapper": "^undefined",
-    "hyperdb": "^3.5.0",
-    "random-access-memory": "^3.0.0",
-    "wrapper": "^0.1.0"
-  }
+	"name": "@hypercortex/hypertask",
+	"devDependencies": {
+		"babel-cli": "^6.26.0",
+		"babel-eslint": "^9.0.0",
+		"babel-preset-freddie-ridell": "0.0.8",
+		"eslint": "^5.5.0",
+		"eslint-config-react-app": "^2.1.0",
+		"eslint-plugin-flowtype": "^2.50.0",
+		"eslint-plugin-import": "^2.14.0",
+		"eslint-plugin-jsx-a11y": "^6.1.1",
+		"eslint-plugin-react": "^7.11.1",
+		"prettier": "^1.14.2"
+	},
+	"babel": {
+		"presets": [
+			"freddie-ridell"
+		]
+	},
+	"bin": {
+		"@hypercortex/hypertask": "./main.js"
+	},
+	"eslintConfig": {
+		"extends": "react-app"
+	},
+	"files": [
+		"/main.js"
+	],
+	"prettier": {
+		"tabWidth": 4,
+		"trailingComma": "all",
+		"useTabs": true
+	},
+	"scripts": {
+		"build": "babel src --out-dir lib",
+		"format": "prettier --write src/**/*",
+		"watch": "babel src --out-dir lib --watch"
+	},
+	"dependencies": {
+		"@hypercortex/wrapper": "^0.0.0",
+		"hyperdb": "^3.5.0",
+		"random-access-memory": "^3.0.0",
+		"wrapper": "^0.1.0"
+	}
 }
