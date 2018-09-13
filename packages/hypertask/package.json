@@ -1,5 +1,8 @@
 {
 	"name": "@hypercortex/hypertask",
+	"publishConfig": {
+		"access": "public"
+	},
 	"version": "0.0.2",
 	"devDependencies": {
 		"babel-cli": "^6.26.0",
@@ -38,6 +41,7 @@
 		"watch": "babel src --out-dir lib --watch"
 	},
 	"dependencies": {
+		"@hypercortex/wrapper": "^0.0.2",
 		"hyperdb": "^3.5.0",
 		"random-access-memory": "^3.0.0",
 		"wrapper": "^0.1.0"
