@@ -1,5 +1,6 @@
 {
 	"name": "@hypercortex/hypertask",
+	"version": "0.0.1",
 	"devDependencies": {
 		"babel-cli": "^6.26.0",
 		"babel-eslint": "^9.0.0",
@@ -37,7 +38,6 @@
 		"watch": "babel src --out-dir lib --watch"
 	},
 	"dependencies": {
-		"@hypercortex/wrapper": "^0.0.0",
 		"hyperdb": "^3.5.0",
 		"random-access-memory": "^3.0.0",
 		"wrapper": "^0.1.0"
