@@ -45,7 +45,7 @@ export const createReducer = conflictResolvers => (a, b) => {
 
 export const readyGate = db =>
 	new Promise((done, fail) => {
-		db.on("ready", done());
+		db.on("ready", done);
 	});
 
 export const getObj = R.curry(
