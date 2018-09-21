@@ -13,6 +13,15 @@ const formatTask = R.evolve({
 		toDate,
 		format("yy-MM-dd"),
 	),
+	recur: ({ n, period }) =>
+		n +
+		" " +
+		{
+			d: "days",
+			w: "weeks",
+			m: "months",
+			y: "years",
+		}[period],
 	score: n => n.toPrecision(2),
 });
 
@@ -64,11 +73,12 @@ const tableify = R.curry((columns, data) => {
 const hyperTaskTableify = tableify([
 	"score",
 	"key",
-	"id",
-	"title",
+	"description",
 	"due",
 	"wait",
 	"priority",
+	"tags",
+	"recur",
 ]);
 
 const generateUniqPrefixes = ids => {
@@ -178,6 +188,8 @@ const renderTable = async db => {
 	for (const id in ids) {
 		tasks[id].key = ids[id];
 	}
+
+	console.log(tasks);
 
 	const tasksSorted = R.pipe(
 		R.values,

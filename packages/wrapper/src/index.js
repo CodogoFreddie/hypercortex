@@ -34,7 +34,7 @@ const objectToBatch = (db, type, id) =>
 		R.append({
 			type: "put",
 			key: `data/${type}/${id}/modifiedBy`,
-			value: db.local.key.toString("hex"),
+			value: db.local.key.toString("base64"),
 		}),
 	);
 
@@ -79,7 +79,7 @@ export const setObj = R.curry(
 export const createObj = R.curry((db, type, id) =>
 	setObj(db, type, id, {
 		createdAt: new Date().toISOString(),
-		createdBy: db.local.key.toString("hex"),
+		createdBy: db.local.key.toString("base64"),
 	}),
 );
 

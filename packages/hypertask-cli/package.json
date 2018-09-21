@@ -43,6 +43,7 @@
   "dependencies": {
     "@hypercortex/hypertask": "0.0.2",
     "@hypercortex/wrapper": "^0.0.2",
+    "chrono-node": "^1.3.5",
     "date-fns": "^2.0.0-alpha.16",
     "env-paths": "^1.0.0",
     "hyperdb": "^3.5.0",
