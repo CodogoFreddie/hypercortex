@@ -25,17 +25,19 @@ const objectToBatch = (db, type, id) =>
 			}),
 		),
 
-		R.append({
-			type: "put",
-			key: `data/${type}/${id}/modifiedAt`,
-			value: new Date().toISOString(),
-		}),
+		R.concat([
+			{
+				type: "put",
+				key: `data/${type}/${id}/modifiedAt`,
+				value: new Date().toISOString(),
+			},
 
-		R.append({
-			type: "put",
-			key: `data/${type}/${id}/modifiedBy`,
-			value: db.local.key.toString("base64"),
-		}),
+			{
+				type: "put",
+				key: `data/${type}/${id}/modifiedBy`,
+				value: db.local.key.toString("base64"),
+			},
+		]),
 	);
 
 export const createReducer = conflictResolvers => (a, b) => {

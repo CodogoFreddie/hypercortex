@@ -4,15 +4,18 @@ import { format, toDate } from "date-fns/fp";
 
 import addScoreToTask from "./addScoreToTask";
 
+const formatDateTime = R.pipe(
+	toDate,
+	format("yy-MM-dd HH:mm"),
+);
+
 const formatTask = R.evolve({
-	due: R.pipe(
-		toDate,
-		format("yy-MM-dd"),
-	),
-	wait: R.pipe(
-		toDate,
-		format("yy-MM-dd"),
-	),
+	done: formatDateTime,
+	due: formatDateTime,
+	score: n => n.toPrecision(2),
+	start: formatDateTime,
+	stop: formatDateTime,
+	wait: formatDateTime,
 	recur: ({ n, period }) =>
 		n +
 		" " +
@@ -22,7 +25,6 @@ const formatTask = R.evolve({
 			m: "months",
 			y: "years",
 		}[period],
-	score: n => n.toPrecision(2),
 });
 
 const tableify = R.curry((columns, data) => {
@@ -54,16 +56,18 @@ const tableify = R.curry((columns, data) => {
 			"\u001b[0m",
 	];
 
-	let even = false;
+	let altLine = true;
 	for (const datum of data) {
 		const line = [];
 		for (const col of columns) {
 			line.push(("" + (datum[col] || "")).padEnd(columnWidths[col]));
 		}
 
-		even = !even;
+		altLine = !altLine;
 		lines.push(
-			even ? "\u001b[1m" + line.join(" ") + "\u001b[0m" : line.join(" "),
+			altLine
+				? "\u001b[1m" + line.join(" ") + "\u001b[0m"
+				: line.join(" "),
 		);
 	}
 
@@ -75,10 +79,11 @@ const hyperTaskTableify = tableify([
 	"key",
 	"description",
 	"due",
-	"wait",
 	"priority",
 	"tags",
 	"recur",
+	"done",
+	"start",
 ]);
 
 const generateUniqPrefixes = ids => {
@@ -170,7 +175,7 @@ const generateUniqPrefixes = ids => {
 	return prefixes;
 };
 
-const renderTable = async db => {
+const renderTable = async (db, filterFn = R.identity) => {
 	const tasks = {};
 	const getTask = getObj(db, "task");
 
@@ -189,10 +194,11 @@ const renderTable = async db => {
 		tasks[id].key = ids[id];
 	}
 
-	console.log(tasks);
-
 	const tasksSorted = R.pipe(
 		R.values,
+		R.reject(R.prop("wait")),
+		R.reject(R.prop("done")),
+		R.filter(filterFn),
 		R.sort(
 			R.descend(
 				R.pipe(

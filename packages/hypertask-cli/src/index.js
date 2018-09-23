@@ -6,15 +6,29 @@ import { readyGate, setObj } from "@hypercortex/wrapper";
 
 import renderTable from "./renderTable";
 import createNewTask from "./createNewTask";
+import modifyTasks from "./modifyTasks";
 
-console.log(envpaths("hypertask").data);
 const db = hyperdb(envpaths("hypertask").data, { valueEncoding: "json" });
 
-const commands = new Set(["add"]);
+const noop = () => {};
+const setPropToNow = prop => (db, _, filter) =>
+	modifyTasks(db, [`${prop}:${new Date().toISOString()}`], filter);
+const commandToFunction = {
+	add: createNewTask,
+	modify: modifyTasks,
+	done: setPropToNow("done"),
+	start: setPropToNow("start"),
+	stop: setPropToNow("stop"),
+};
 
 const partitionCommandsAndArgs = R.pipe(
 	R.slice(2, Infinity),
-	R.partition(x => commands.has(x)),
+	R.splitWhen(x => commandToFunction[x]),
+	([filter, [command, ...modifications]]) => ({
+		filter,
+		command,
+		modifications,
+	}),
 );
 
 const main = async db => {
@@ -22,20 +36,15 @@ const main = async db => {
 
 	console.log(`tasks for hypercortex://${db.key.toString("hex")} \n`);
 
-	const [[command], args] = partitionCommandsAndArgs(process.argv);
+	const { filter, command, modifications } = partitionCommandsAndArgs(
+		process.argv,
+	);
 
-	if (!command) {
-		await renderTable(db);
-		return;
-	}
+	const opperation = commandToFunction[command] || noop;
 
-	switch (command) {
-		case "add": {
-			await createNewTask(db, args);
-			await renderTable(db);
-			break;
-		}
-	}
+	await opperation(db, modifications, filter);
+
+	await renderTable(db);
 };
 
 main(db);

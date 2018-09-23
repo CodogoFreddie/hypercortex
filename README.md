@@ -12,3 +12,10 @@
     -   [1Hr] final confirm dialog
 -   [2Hr] `hyperdb` replication logic
 -   [1Hr] `hyperdb` reducer logic
+
+### Filtering
+
+there are really two types of filtering:
+
+-   Render filtering
+-   Modification filtering
