@@ -1,14 +1,15 @@
-import hyperdb from "hyperdb";
-import envpaths from "env-paths";
 import * as R from "ramda";
+import envpaths from "env-paths";
+import fs from "fs";
+import hyperdb from "hyperdb";
+import util from "util";
 
-import { readyGate, setObj } from "@hypercortex/wrapper";
+import { openDefaultDb, readyGate, setObj } from "@hypercortex/wrapper";
 
 import renderTable from "./renderTable";
 import createNewTask from "./createNewTask";
 import modifyTasks from "./modifyTasks";
-
-const db = hyperdb(envpaths("hypertask").data, { valueEncoding: "json" });
+import setupHyperDb from "./setupHyperDb";
 
 const noop = () => {};
 const setPropToNow = prop => (db, _, filter) =>
@@ -19,6 +20,7 @@ const commandToFunction = {
 	done: setPropToNow("done"),
 	start: setPropToNow("start"),
 	stop: setPropToNow("stop"),
+	hyper: setupHyperDb,
 };
 
 const partitionCommandsAndArgs = R.pipe(
@@ -31,10 +33,12 @@ const partitionCommandsAndArgs = R.pipe(
 	}),
 );
 
-const main = async db => {
+const main = async () => {
+	const db = await openDefaultDb("hypercortex");
+
 	await readyGate(db);
 
-	console.log(`tasks for hypercortex://${db.key.toString("hex")} \n`);
+	console.log(`tasks for hypercortex://${db.key.toString("hex")}\n`);
 
 	const { filter, command, modifications } = partitionCommandsAndArgs(
 		process.argv,
@@ -47,4 +51,8 @@ const main = async db => {
 	await renderTable(db);
 };
 
-main(db);
+try {
+	main();
+} catch (e) {
+	console.error(e);
+}

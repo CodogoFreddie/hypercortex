@@ -15,7 +15,7 @@ const fromPriority = modifyScore(
 );
 
 const fromDue = modifyScore(({ due }) =>
-	Math.pow(10, (new Date().getTime() - new Date(due).getTime()) / 604800000),
+	Math.pow(10, (new Date().getTime() - new Date(due).getTime()) / 60480000),
 );
 
 const addScoreToTask = R.pipe(

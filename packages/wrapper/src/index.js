@@ -1,4 +1,9 @@
 import * as R from "ramda";
+import crypto from "hypercore-crypto";
+import envpaths from "env-paths";
+import fs from "fs";
+import hyperdb from "hyperdb";
+import util from "util";
 
 const nodesToObj = path =>
 	R.pipe(
@@ -35,10 +40,44 @@ const objectToBatch = (db, type, id) =>
 			{
 				type: "put",
 				key: `data/${type}/${id}/modifiedBy`,
-				value: db.local.key.toString("base64"),
+				value: db.local.key.toString("hex"),
 			},
 		]),
 	);
+
+const readFile = util.promisify(fs.readFile);
+const writeFile = util.promisify(fs.writeFile);
+const rename = util.promisify(fs.rename);
+
+export const openDefaultDb = async name => {
+	try {
+		const publicKeyBuffer = await readFile(envpaths(name).config);
+		const publicKey = publicKeyBuffer.toString();
+		return hyperdb(
+			envpaths(name).data + "/" + publicKey,
+			Buffer.from(publicKey, "hex"),
+			{
+				valueEncoding: "json",
+			},
+		);
+	} catch (e) {
+		const db = hyperdb(envpaths(name).data + "/temp", {
+			valueEncoding: "json",
+		});
+
+		await readyGate(db);
+
+		const publicKey = db.key.toString("hex");
+
+		await rename(
+			envpaths(name).data + "/temp",
+			envpaths(name).data + "/" + publicKey,
+		);
+		await writeFile(envpaths(name).config, publicKey);
+
+		return openDefaultDb(name);
+	}
+};
 
 export const createReducer = conflictResolvers => (a, b) => {
 	console.log(a, b);
@@ -81,28 +120,21 @@ export const setObj = R.curry(
 export const createObj = R.curry((db, type, id) =>
 	setObj(db, type, id, {
 		createdAt: new Date().toISOString(),
-		createdBy: db.local.key.toString("base64"),
+		createdBy: db.local.key.toString("hex"),
 	}),
 );
 
-const readNextStreamChunk = stream =>
-	new Promise((done, fail) => {
-		stream.on("data", data => {
-			done(data);
-		});
-	});
-
 //TODO find a way to make this into a propper itterator
 export const getObjs = R.curry(async function*(db, type) {
-	const objs = await new Promise((done, fail) =>
+	const objs = await new Promise((done, fail) => {
 		db.list(
 			`data/${type}/`,
 			{
 				recursive: false,
 			},
 			(err, data) => (err ? fail(err) : done(data)),
-		),
-	);
+		);
+	});
 
 	for (const [{ key }] of objs) {
 		yield key.split("/")[2];

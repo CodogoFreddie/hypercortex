@@ -82,7 +82,6 @@ const hyperTaskTableify = tableify([
 	"priority",
 	"tags",
 	"recur",
-	"done",
 	"start",
 ]);
 
