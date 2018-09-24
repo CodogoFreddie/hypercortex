@@ -28,7 +28,8 @@
 		"extends": "react-app"
 	},
 	"files": [
-		"/main.js"
+		"/main.js",
+		"/lib"
 	],
 	"prettier": {
 		"tabWidth": 4,
