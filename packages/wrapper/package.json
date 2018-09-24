@@ -29,6 +29,7 @@
 	},
 	"files": [
 		"/main.js",
+		"/index.js",
 		"/lib"
 	],
 	"prettier": {
