@@ -21,7 +21,10 @@ const commandToFunction = {
 	start: setPropToNow("start"),
 	stop: setPropToNow("stop"),
 	hyper: setupHyperDb,
-	share: justReplicate,
+	share: justReplicate({
+		onConnect: ({ id, host }) =>
+			console.log(`connected to ${id.toString("hex")} on ${host}`),
+	}),
 };
 
 const partitionCommandsAndArgs = R.pipe(
@@ -40,20 +43,18 @@ const main = async () => {
 
 	await readyGate(db);
 
-	console.log(`tasks for hypercortex://${db.key.toString("hex")}\n`);
+	console.log(`hypercortex://${db.key.toString("hex")}\n`);
 
 	const { filter, command, modifications } = partitionCommandsAndArgs(
 		process.argv,
 	);
 
 	const opperation = commandToFunction[command] || noop;
-	console.log(command, commandToFunction);
 
 	await opperation(db, modifications, filter);
 
 	await renderTable(db);
 };
-console.log("foo");
 try {
 	main();
 } catch (e) {

@@ -10,18 +10,37 @@ const fromPriority = modifyScore(
 		({
 			H: 10,
 			M: 5,
-			L: 2,
+			L: -3,
 		}[priority] || 0),
 );
 
-const fromDue = modifyScore(({ due }) =>
-	Math.pow(10, (new Date().getTime() - new Date(due).getTime()) / 60480000),
+const fromDue = modifyScore(
+	({ due }) =>
+		10 *
+		Math.pow(
+			Math.E,
+			(new Date().getTime() - new Date(due).getTime()) / 864000000,
+		),
+);
+
+const fromTimelyOverDue = modifyScore(
+	({ due, tags, score }) =>
+		new Date().getTime() - new Date(due).getTime() > 0 &&
+		tags.includes("timely")
+			? 10
+			: 0,
+);
+
+const fromUrgent = modifyScore(
+	({ tags, score }) => (tags.includes("urgent") ? score : 0),
 );
 
 const addScoreToTask = R.pipe(
 	R.assoc("score", 0),
 	fromPriority,
 	fromDue,
+	fromTimelyOverDue,
+	fromUrgent,
 );
 
 export default addScoreToTask;

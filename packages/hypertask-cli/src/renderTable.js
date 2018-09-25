@@ -9,10 +9,17 @@ const formatDateTime = R.pipe(
 	format("yy-MM-dd HH:mm"),
 );
 
+const formatScore = R.pipe(
+	R.multiply(100),
+	x => Math.ceil(x),
+	R.multiply(1 / 100),
+	x => x.toPrecision(2),
+);
+
 const formatTask = R.evolve({
 	done: formatDateTime,
 	due: formatDateTime,
-	score: n => n.toPrecision(2),
+	score: formatScore,
 	start: formatDateTime,
 	stop: formatDateTime,
 	wait: formatDateTime,
