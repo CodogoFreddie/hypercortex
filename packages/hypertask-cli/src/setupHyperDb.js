@@ -53,18 +53,33 @@ const writeFile = util.promisify(fs.writeFile);
 
 const setupHyperDb = async (db, modifications, filter) => {
 	console.log(`your local key is "${db.local.key.toString("hex")}"`);
+	db.authorized(db.local.key, (err, authed) => {
+		if (authed) {
+			console.log("you are authorised to use this hypercortex");
+		} else {
+			console.log("you not are authorised to use this hypercortex");
+		}
+	});
 
 	const { set, auth } = parseModificationArgs(modifications);
 
 	if (set) {
-		console.log(Buffer.from(set, "hex").toString("hex"));
 		await writeFile(envpaths("hypercortex").config, set);
 		return;
 	}
 
 	if (auth) {
-		await new Promise(done => db.authorize(auth, done));
-		console.log("authorised");
+		await new Promise(done => db.authorize(Buffer.from(auth, "hex"), done));
+
+		const authed = await new Promise((done, fail) =>
+			db.authorized(Buffer.from(auth, "hex"), (err, auth) => {
+				err ? fail(err) : done(auth);
+			}),
+		);
+
+		if (authed) {
+			console.log(`authorised "${auth}"`);
+		}
 
 		return;
 	}
