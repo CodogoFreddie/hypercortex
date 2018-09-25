@@ -4,6 +4,8 @@ import envpaths from "env-paths";
 import fs from "fs";
 import hyperdb from "hyperdb";
 import util from "util";
+import discovery from "discovery-swarm";
+import swarmDefaults from "dat-swarm-defaults";
 
 const nodesToObj = path =>
 	R.pipe(
@@ -140,3 +142,37 @@ export const getObjs = R.curry(async function*(db, type) {
 		yield key.split("/")[2];
 	}
 });
+
+export const justReplicate = db => {
+	console.log("replicating", db.key.toString("hex"));
+
+	var swarm = discovery(swarmDefaults());
+
+	swarm.join(db.key.toString("hex"));
+
+	swarm.on("connection", (conn, info) => {
+		console.log("open connection to", info);
+
+		const key = db.local.key.toString("hex");
+
+		var r = db.replicate({ live: true });
+		conn.pipe(r).pipe(conn);
+		r.on("error", () => {});
+
+		//if (key) {
+		//conn.write(new Buffer(key, "hex"));
+		//conn.once("data", function(rkey) {
+		//remoteKey = rkey.toString("hex");
+		//conn.pause();
+		//cabal._addConnection(remoteKey);
+		//replicate();
+		//});
+		//} else {
+		//replicate();
+		//}
+		conn.once("error", () => {});
+		conn.once("end", () => {});
+	});
+
+	return new Promise(done => {});
+};

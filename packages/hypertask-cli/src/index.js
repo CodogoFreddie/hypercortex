@@ -4,7 +4,7 @@ import fs from "fs";
 import hyperdb from "hyperdb";
 import util from "util";
 
-import { openDefaultDb, readyGate, setObj } from "@hypercortex/wrapper";
+import { justReplicate, openDefaultDb, readyGate } from "@hypercortex/wrapper";
 
 import renderTable from "./renderTable";
 import createNewTask from "./createNewTask";
@@ -21,11 +21,13 @@ const commandToFunction = {
 	start: setPropToNow("start"),
 	stop: setPropToNow("stop"),
 	hyper: setupHyperDb,
+	share: justReplicate,
 };
 
 const partitionCommandsAndArgs = R.pipe(
 	R.slice(2, Infinity),
 	R.splitWhen(x => commandToFunction[x]),
+	R.when(R.pathEq([1, "length"], 0), R.prepend([])),
 	([filter, [command, ...modifications]]) => ({
 		filter,
 		command,
@@ -45,12 +47,13 @@ const main = async () => {
 	);
 
 	const opperation = commandToFunction[command] || noop;
+	console.log(command, commandToFunction);
 
 	await opperation(db, modifications, filter);
 
 	await renderTable(db);
 };
-
+console.log("foo");
 try {
 	main();
 } catch (e) {
