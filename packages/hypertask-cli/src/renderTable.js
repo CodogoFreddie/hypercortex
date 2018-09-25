@@ -1,6 +1,9 @@
 import * as R from "ramda";
-import { getObjs, getObj } from "@hypercortex/wrapper";
 import { format, toDate, formatRelative } from "date-fns/fp";
+
+import { getObjs, getObj } from "@hypercortex/wrapper";
+import createTableRenderer from "@hypercortex/render-table";
+import generateUniqPrefixes from "@hypercortex/uniq-prefixes";
 
 import addScoreToTask from "./addScoreToTask";
 
@@ -34,54 +37,7 @@ const formatTask = R.evolve({
 		}[period],
 });
 
-const tableify = R.curry((columns, data) => {
-	const columnWidths = data.reduce(
-		(widths, task) => ({
-			...widths,
-			...R.fromPairs(
-				R.toPairs(task).map(([key, value]) => [
-					key,
-					Math.max(("" + value).length, widths[key] || 0),
-				]),
-			),
-		}),
-		R.fromPairs(columns.map(key => [key, key.length])),
-	);
-
-	const lines = [
-		"\u001b[4m" +
-			columns
-				.map(
-					R.pipe(
-						col => col.padEnd(columnWidths[col]),
-						R.split(""),
-						R.over(R.lensIndex(0), R.toUpper),
-						R.join(""),
-					),
-				)
-				.join(" ") +
-			"\u001b[0m",
-	];
-
-	let altLine = true;
-	for (const datum of data) {
-		const line = [];
-		for (const col of columns) {
-			line.push(("" + (datum[col] || "")).padEnd(columnWidths[col]));
-		}
-
-		altLine = !altLine;
-		lines.push(
-			altLine
-				? "\u001b[1m" + line.join(" ") + "\u001b[0m"
-				: line.join(" "),
-		);
-	}
-
-	return lines.join("\n");
-});
-
-const hyperTaskTableify = tableify([
+const hyperTaskTableify = createTableRenderer([
 	"score",
 	"key",
 	"description",
@@ -91,95 +47,6 @@ const hyperTaskTableify = tableify([
 	"recur",
 	"start",
 ]);
-
-const generateUniqPrefixes = ids => {
-	const root = {
-		value: null,
-		children: {},
-	};
-
-	const insert = (root, key, value) => {
-		let node = root;
-		let indexLastChar = null;
-
-		for (const i in key) {
-			const char = key[i];
-			if (node.children[char]) {
-				node = node.children[char];
-			} else {
-				indexLastChar = i;
-				break;
-			}
-		}
-
-		if (indexLastChar != null) {
-			for (const char of key.slice(indexLastChar)) {
-				node.children[char] = {
-					value: null,
-					children: {},
-				};
-				node = node.children[char];
-			}
-		}
-		node.value = value;
-	};
-
-	const flatten = node => {
-		const countChildren = ({ children, value }, n = 0) => {
-			if (value) {
-				return n + 1;
-			} else if (children) {
-				return R.pipe(
-					R.values,
-					R.map(countChildren),
-					R.sum,
-				)(children);
-			} else {
-				return n;
-			}
-		};
-
-		const getOnlyChild = node => {
-			if (node.value) {
-				return node.value;
-			}
-			if (countChildren(node) === 1) {
-				return getOnlyChild(R.values(node.children)[0]);
-			}
-		};
-
-		if (countChildren(node) === 1) {
-			return {
-				value: getOnlyChild(node),
-				children: {},
-			};
-		} else {
-			return R.evolve({
-				children: R.map(flatten),
-			})(node);
-		}
-	};
-
-	ids.forEach(id => insert(root, id, id));
-
-	const flattenedTrie = flatten(root);
-
-	const prefixes = {};
-
-	const walkTrie = ({ children, value }, path = "") => {
-		if (value) {
-			prefixes[value] = path;
-		}
-
-		for (const char of R.keys(children)) {
-			walkTrie(children[char], path + char);
-		}
-	};
-
-	walkTrie(flattenedTrie);
-
-	return prefixes;
-};
 
 const renderTable = async (db, filterFn = R.identity) => {
 	const tasks = {};
