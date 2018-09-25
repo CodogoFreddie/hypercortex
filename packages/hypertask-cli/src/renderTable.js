@@ -1,12 +1,12 @@
 import * as R from "ramda";
 import { getObjs, getObj } from "@hypercortex/wrapper";
-import { format, toDate } from "date-fns/fp";
+import { format, toDate, formatRelative } from "date-fns/fp";
 
 import addScoreToTask from "./addScoreToTask";
 
 const formatDateTime = R.pipe(
 	toDate,
-	format("yy-MM-dd HH:mm"),
+	formatRelative(new Date()),
 );
 
 const formatScore = R.pipe(
