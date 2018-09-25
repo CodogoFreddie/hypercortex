@@ -10,6 +10,7 @@ import renderTable from "./renderTable";
 import createNewTask from "./createNewTask";
 import modifyTasks from "./modifyTasks";
 import setupHyperDb from "./setupHyperDb";
+import markAsDone from "./markAsDone";
 
 const noop = () => {};
 const setPropToNow = prop => (db, _, filter) =>
@@ -17,7 +18,7 @@ const setPropToNow = prop => (db, _, filter) =>
 const commandToFunction = {
 	add: createNewTask,
 	modify: modifyTasks,
-	done: setPropToNow("done"),
+	done: markAsDone,
 	start: setPropToNow("start"),
 	stop: setPropToNow("stop"),
 	hyper: setupHyperDb,
