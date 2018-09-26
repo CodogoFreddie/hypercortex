@@ -29,19 +29,13 @@ const renderTable = R.curry((columns, data) => {
 			"\u001b[0m",
 	];
 
-	let altLine = true;
 	for (const datum of data) {
 		const line = [];
 		for (const col of columns) {
 			line.push(("" + (datum[col] || "")).padEnd(columnWidths[col]));
 		}
 
-		altLine = !altLine;
-		lines.push(
-			altLine
-				? "\u001b[1m" + line.join(" ") + "\u001b[0m"
-				: line.join(" "),
-		);
+		lines.push(line.join(" "));
 	}
 
 	return lines.join("\n");

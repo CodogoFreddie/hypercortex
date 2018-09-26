@@ -35,8 +35,14 @@ const fromUrgent = modifyScore(
 	({ tags, score }) => (tags.includes("urgent") ? score : 0),
 );
 
+const fromAge = modifyScore(
+	({ createdAt }) =>
+		(new Date().getTime() - new Date(createdAt).getTime()) / 864000000,
+);
+
 const addScoreToTask = R.pipe(
 	R.assoc("score", 0),
+	fromAge,
 	fromPriority,
 	fromDue,
 	fromTimelyOverDue,

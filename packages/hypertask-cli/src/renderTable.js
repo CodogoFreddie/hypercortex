@@ -16,7 +16,7 @@ const formatScore = R.pipe(
 	R.multiply(100),
 	x => Math.ceil(x),
 	R.multiply(1 / 100),
-	x => x.toPrecision(2),
+	x => x.toPrecision(3),
 );
 
 const formatTask = R.evolve({
@@ -55,10 +55,7 @@ const renderTable = async (db, filterFn = R.identity) => {
 	for await (const id of getObjs(db, "task")) {
 		const rawTask = await getTask(id);
 
-		tasks[id] = R.pipe(
-			addScoreToTask,
-			formatTask,
-		)(rawTask);
+		tasks[id] = R.pipe(addScoreToTask)(rawTask);
 	}
 
 	const ids = generateUniqPrefixes(R.keys(tasks));
@@ -69,7 +66,7 @@ const renderTable = async (db, filterFn = R.identity) => {
 
 	const tasksSorted = R.pipe(
 		R.values,
-		R.reject(R.prop("wait")),
+		R.reject(({ wait }) => wait > new Date().toISOString()),
 		R.reject(R.prop("done")),
 		R.filter(filterFn),
 		R.sort(
@@ -80,6 +77,7 @@ const renderTable = async (db, filterFn = R.identity) => {
 				),
 			),
 		),
+		R.map(formatTask),
 	)(tasks);
 
 	const renderedString = hyperTaskTableify(tasksSorted);
