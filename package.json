@@ -36,7 +36,8 @@
 	"scripts": {
 		"build": "babel src --out-dir lib",
 		"format": "prettier --write src/**/*",
-		"watch": "babel src --out-dir lib --watch"
+		"watch": "babel src --out-dir lib --watch",
+		"pub": " lerna run build --parallel && lerna run format --parallel && lerna publish"
 	},
 	"name": "hypercortex",
 	"dependencies": {
