@@ -145,9 +145,10 @@ export const getObjs = R.curry(async function*(db, type) {
 
 export const justReplicate = R.curry((handlers, db) => {
 	console.log("replicating", db.key.toString("hex"));
+	console.log("on port 5472");
 
 	var swarm = discovery(swarmDefaults());
-
+	swarm.listen(5472);
 	swarm.join(db.key.toString("hex"));
 
 	swarm.on("connection", (conn, info) => {
