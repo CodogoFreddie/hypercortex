@@ -26,6 +26,10 @@ const formatTask = R.evolve({
 	start: formatDateTime,
 	stop: formatDateTime,
 	wait: formatDateTime,
+	tags: R.pipe(
+		R.map(x => `+${x}`),
+		R.join(" "),
+	),
 	recur: ({ n, period }) =>
 		n +
 		" " +
