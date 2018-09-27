@@ -34,10 +34,10 @@
 		"useTabs": true
 	},
 	"scripts": {
-		"build": "babel src --out-dir lib",
-		"format": "prettier --write src/**/*",
-		"watch": "babel src --out-dir lib --watch",
-		"pub": " lerna run build --parallel && lerna run format --parallel && lerna publish"
+		"build": "lerna run build --parallel",
+		"format": "lerna run format --parallel",
+		"watch": "lerna run watch --parallel --stream",
+		"pub": "npm run build && npm run format && && lerna publish"
 	},
 	"name": "hypercortex",
 	"dependencies": {
