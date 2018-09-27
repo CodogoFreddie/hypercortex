@@ -1,11 +1,11 @@
 import * as R from "ramda";
-import crypto from "hypercore-crypto";
 import envpaths from "env-paths";
 import fs from "fs";
 import hyperdb from "hyperdb";
 import util from "util";
 import discovery from "discovery-swarm";
 import swarmDefaults from "dat-swarm-defaults";
+import openport from "openport";
 
 const nodesToObj = path =>
 	R.pipe(
@@ -145,21 +145,23 @@ export const getObjs = R.curry(async function*(db, type) {
 
 export const justReplicate = R.curry((handlers, db) => {
 	console.log("replicating", db.key.toString("hex"));
-	console.log("on port 5472");
 
-	var swarm = discovery(swarmDefaults());
-	swarm.listen(5472);
-	swarm.join(db.key.toString("hex"));
+	openport({ startingPort: 15423 }, (err, port) => {
+		console.log(`on port ${port}`);
+		var swarm = discovery(swarmDefaults());
+		swarm.listen(port);
+		swarm.join(db.key.toString("hex"));
 
-	swarm.on("connection", (conn, info) => {
-		handlers.onConnect(info);
+		swarm.on("connection", (conn, info) => {
+			handlers.onConnect(info);
 
-		var r = db.replicate({ live: true });
-		conn.pipe(r).pipe(conn);
-		r.on("error", () => {});
+			var r = db.replicate({ live: true });
+			conn.pipe(r).pipe(conn);
+			r.on("error", () => {});
 
-		conn.once("error", () => {});
-		conn.once("end", () => {});
+			conn.once("error", () => {});
+			conn.once("end", () => {});
+		});
 	});
 
 	return new Promise(done => {});
