@@ -48,6 +48,8 @@ const hyperTaskTableify = createTableRenderer([
 	"start",
 ]);
 
+const defaultifyTask = R.pipe(R.over(R.lensProp("tags"), R.defaultTo([])));
+
 const renderTable = async (db, filterFn = R.identity) => {
 	const tasks = {};
 	const getTask = getObj(db, "task");
@@ -55,7 +57,10 @@ const renderTable = async (db, filterFn = R.identity) => {
 	for await (const id of getObjs(db, "task")) {
 		const rawTask = await getTask(id);
 
-		tasks[id] = R.pipe(addScoreToTask)(rawTask);
+		tasks[id] = R.pipe(
+			defaultifyTask,
+			addScoreToTask,
+		)(rawTask);
 	}
 
 	const ids = generateUniqPrefixes(R.keys(tasks));
