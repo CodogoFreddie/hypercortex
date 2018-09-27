@@ -41,5 +41,8 @@
 		"build": "babel src --out-dir lib",
 		"format": "prettier --write src/**/*",
 		"watch": "babel src --out-dir lib --watch"
+	},
+	"dependencies": {
+		"babel-runtime": "^6.26.0"
 	}
 }

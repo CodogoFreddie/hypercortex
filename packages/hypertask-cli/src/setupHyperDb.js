@@ -2,8 +2,6 @@ import * as R from "ramda";
 import crypto from "hypercore-crypto";
 import envpaths from "env-paths";
 import fs from "fs";
-import hyperdb from "hyperdb";
-import rimraf from "rimraf";
 import util from "util";
 
 import { readyGate } from "@hypercortex/wrapper";
@@ -52,6 +50,7 @@ const parseModificationArgs = R.pipe(
 const writeFile = util.promisify(fs.writeFile);
 
 const setupHyperDb = async (db, modifications, filter) => {
+	console.log(`your cortex is    "${db.key.toString("hex")}"`);
 	console.log(`your local key is "${db.local.key.toString("hex")}"`);
 	db.authorized(db.local.key, (err, authed) => {
 		if (authed) {

@@ -44,8 +44,6 @@ const main = async () => {
 
 	await readyGate(db);
 
-	console.log(`hypercortex://${db.key.toString("hex")}\n`);
-
 	const { filter, command, modifications } = partitionCommandsAndArgs(
 		process.argv,
 	);
