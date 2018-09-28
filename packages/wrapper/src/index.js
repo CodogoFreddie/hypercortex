@@ -13,35 +13,6 @@ const nodesToObj = path =>
 		R.fromPairs,
 	);
 
-const objectToBatch = (db, type, id) =>
-	R.pipe(
-		R.toPairs,
-		R.map(([key, value]) => ({
-			type: "put",
-			key,
-			value,
-		})),
-		R.map(
-			R.evolve({
-				key: key => `data/${type}/${id}/${key}`,
-			}),
-		),
-
-		R.concat([
-			{
-				type: "put",
-				key: `data/${type}/${id}/modifiedAt`,
-				value: new Date().toISOString(),
-			},
-
-			{
-				type: "put",
-				key: `data/${type}/${id}/modifiedBy`,
-				value: db.local.key.toString("hex"),
-			},
-		]),
-	);
-
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 const rename = util.promisify(fs.rename);
@@ -93,13 +64,11 @@ export const readyGate = db =>
 export const getObj = R.curry(
 	(db, type, id) =>
 		new Promise((done, fail) => {
-			const path = `data/${type}/${id}/`;
-			db.list(path, (err, nodes) => {
-				if (err) {
-					fail(err);
-				} else {
-					done(nodesToObj(path)(nodes));
-				}
+			const path = `data/${type}/${id}`;
+
+			db.get(path, (err, { value }) => {
+				console.log(value);
+				err ? fail(err) : done(value);
 			});
 		}),
 );
@@ -107,14 +76,21 @@ export const getObj = R.curry(
 export const setObj = R.curry(
 	(db, type, id, obj) =>
 		new Promise((done, fail) => {
-			const commands = objectToBatch(db, type, id)(obj);
-			db.batch(commands, (err, nodes) => {
-				if (err) {
-					return fail(err);
-				} else {
-					done(nodes);
-				}
-			});
+			db.put(
+				`data/${type}/${id}`,
+				{
+					...obj,
+					modifiedBy: db.local.key.toString("hex"),
+					modifiedAt: new Date().toISOString(),
+				},
+				(err, nodes) => {
+					if (err) {
+						return fail(err);
+					} else {
+						done(nodes);
+					}
+				},
+			);
 		}),
 );
 
