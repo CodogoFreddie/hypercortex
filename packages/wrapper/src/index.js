@@ -9,12 +9,7 @@ import openport from "openport";
 
 const nodesToObj = path =>
 	R.pipe(
-		R.map(
-			R.pipe(
-				R.nth(0),
-				({ key, value }) => [key.replace(path, ""), value],
-			),
-		),
+		R.map(R.pipe(({ key, value }) => [key.replace(path, ""), value])),
 		R.fromPairs,
 	);
 
@@ -60,6 +55,10 @@ export const openDefaultDb = async name => {
 			Buffer.from(publicKey, "hex"),
 			{
 				valueEncoding: "json",
+				reduce: (a, b) => {
+					console.log("REDUCING!!!", { a, b });
+					return a;
+				},
 			},
 		);
 	} catch (e) {
@@ -138,7 +137,7 @@ export const getObjs = R.curry(async function*(db, type) {
 		);
 	});
 
-	for (const [{ key }] of objs) {
+	for (const { key } of objs) {
 		yield key.split("/")[2];
 	}
 });
@@ -149,18 +148,21 @@ export const justReplicate = R.curry((handlers, db) => {
 	openport.find({ startingPort: 15423 }, (err, port) => {
 		console.log(`on port ${port}`);
 		var swarm = discovery(swarmDefaults());
+
 		swarm.listen(port);
 		swarm.join(db.key.toString("hex"));
 
 		swarm.on("connection", (conn, info) => {
 			handlers.onConnect(info);
 
-			var r = db.replicate({ live: true });
-			conn.pipe(r).pipe(conn);
-			r.on("error", () => {});
+			var r = db.replicate({ live: false });
+			r.on("data", () => console.log("r"));
+			conn.on("data", () => console.log("c"));
 
-			conn.once("error", () => {});
-			conn.once("end", () => {});
+			r.pipe(conn).pipe(r);
+
+			r.on("error", err => console.error("error", err));
+			r.on("end", () => console.log("end"));
 		});
 	});
 
