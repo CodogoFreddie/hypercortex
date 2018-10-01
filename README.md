@@ -13,9 +13,21 @@
 -   [2Hr] `hyperdb` replication logic
 -   [1Hr] `hyperdb` reducer logic
 
-### Filtering
+### Desired CLI API
 
-there are really two types of filtering:
+```bash
+#admin and config
+$ task setup [existing hypercortex key]
+$ task auth [other local hypercortex key]
+$ task share
 
--   Render filtering
--   Modification filtering
+#creation
+$ task add take out the trash +chores due:now
+$ task id modify wait:1d priority:H
+
+#workflow shortcuts
+$ task id start
+$ task id stop
+$ task id done
+$ task id delete
+```

@@ -11,6 +11,10 @@ import createNewTask from "./createNewTask";
 import modifyTasks from "./modifyTasks";
 import setupHyperDb from "./setupHyperDb";
 import markAsDone from "./markAsDone";
+import openDb from "./openDb";
+import replicate from "./replicate";
+import authOtherWriter from "./authOtherWriter";
+import addTelemetry from "./addTelemetry";
 
 const noop = () => {};
 const setPropToNow = prop => (db, _, filter) =>
@@ -22,10 +26,8 @@ const commandToFunction = {
 	start: setPropToNow("start"),
 	stop: setPropToNow("stop"),
 	hyper: setupHyperDb,
-	share: justReplicate({
-		onConnect: ({ id, host }) =>
-			console.log(`connected to ${id.toString("hex")} on ${host}`),
-	}),
+	share: db => replicate(db),
+	auth: authOtherWriter,
 };
 
 const partitionCommandsAndArgs = R.pipe(
@@ -40,9 +42,12 @@ const partitionCommandsAndArgs = R.pipe(
 );
 
 const main = async () => {
-	const db = await openDefaultDb("hypercortex");
+	const db = await openDb();
 
-	await readyGate(db);
+	await addTelemetry(db);
+
+	console.log(`loaded hypercortex:   "${db.key.toString("hex")}"`);
+	console.log(`with local key:       "${db.local.key.toString("hex")}"`);
 
 	const { filter, command, modifications } = partitionCommandsAndArgs(
 		process.argv,

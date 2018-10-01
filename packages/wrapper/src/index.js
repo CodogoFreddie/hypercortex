@@ -1,8 +1,4 @@
 import * as R from "ramda";
-import envpaths from "env-paths";
-import fs from "fs";
-import hyperdb from "hyperdb";
-import util from "util";
 import discovery from "discovery-swarm";
 import swarmDefaults from "dat-swarm-defaults";
 import openport from "openport";
@@ -47,49 +43,18 @@ const objectToBatch = (db, type, id) =>
 		]),
 	);
 
-const readFile = util.promisify(fs.readFile);
-const writeFile = util.promisify(fs.writeFile);
-const rename = util.promisify(fs.rename);
-
-export const openDefaultDb = async name => {
-	try {
-		const publicKeyBuffer = await readFile(envpaths(name).config);
-		const publicKey = publicKeyBuffer.toString();
-		return hyperdb(
-			envpaths(name).data + "/" + publicKey,
-			Buffer.from(publicKey, "hex"),
-			{
-				valueEncoding: "json",
-			},
-		);
-	} catch (e) {
-		const db = hyperdb(envpaths(name).data + "/temp", {
-			valueEncoding: "json",
-		});
-
-		await readyGate(db);
-
-		const publicKey = db.key.toString("hex");
-
-		await rename(
-			envpaths(name).data + "/temp",
-			envpaths(name).data + "/" + publicKey,
-		);
-		await writeFile(envpaths(name).config, publicKey);
-
-		return openDefaultDb(name);
-	}
-};
+export const isAuthorised = db =>
+	new Promise((done, fail) =>
+		db.authorized(
+			db.local.key,
+			(err, auth) => (err ? fail(err) : done(auth)),
+		),
+	);
 
 export const createReducer = conflictResolvers => (a, b) => {
 	console.log(a, b);
 	return a;
 };
-
-export const readyGate = db =>
-	new Promise((done, fail) => {
-		db.on("ready", done);
-	});
 
 export const getObj = R.curry(
 	(db, type, id) =>
@@ -105,19 +70,24 @@ export const getObj = R.curry(
 		}),
 );
 
-export const setObj = R.curry(
-	(db, type, id, obj) =>
-		new Promise((done, fail) => {
-			const commands = objectToBatch(db, type, id)(obj);
-			db.batch(commands, (err, nodes) => {
-				if (err) {
-					return fail(err);
-				} else {
-					done(nodes);
-				}
-			});
-		}),
-);
+export const setObj = R.curry(async (db, type, id, obj) => {
+	const isAuthed = await isAuthorised(db);
+	if (!isAuthed) {
+		console.log("not currently authed");
+		return;
+	}
+
+	return new Promise((done, fail) => {
+		const commands = objectToBatch(db, type, id)(obj);
+		db.batch(commands, (err, nodes) => {
+			if (err) {
+				return fail(err);
+			} else {
+				done(nodes);
+			}
+		});
+	});
+});
 
 export const createObj = R.curry((db, type, id) =>
 	setObj(db, type, id, {
