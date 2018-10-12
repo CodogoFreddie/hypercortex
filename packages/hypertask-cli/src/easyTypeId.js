@@ -1,6 +1,6 @@
 const chars = "fjdkslaghtyrueiwoqpnbmvcxz6574839201";
 
-const p = 0.1;
+const p = 0.04;
 
 const getEasyToTypeId = (n = 0, i = 0) => {
 	if (n) {
