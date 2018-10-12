@@ -1,5 +1,5 @@
 import * as R from "ramda";
-import { format, toDate, formatRelative } from "date-fns/fp";
+import { format, toDate, formatDistanceWithOptions } from "date-fns/fp";
 
 import { getObjs, getObj } from "@hypercortex/wrapper";
 import createTableRenderer from "@hypercortex/render-table";
@@ -9,7 +9,7 @@ import addScoreToTask from "./addScoreToTask";
 
 const formatDateTime = R.pipe(
 	toDate,
-	formatRelative(new Date()),
+	formatDistanceWithOptions({ addSuffix: true }, new Date()),
 );
 
 const formatScore = R.pipe(

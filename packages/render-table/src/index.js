@@ -14,23 +14,25 @@ const renderTable = R.curry((columns, data) => {
 		R.fromPairs(columns.map(key => [key, key.length])),
 	);
 
-	const lines = [
+	const header =
 		"\u001b[4m" +
-			columns
-				.map(
-					R.pipe(
-						col => col.padEnd(columnWidths[col]),
-						R.split(""),
-						R.over(R.lensIndex(0), R.toUpper),
-						R.join(""),
-					),
-				)
-				.join(" ") +
-			"\u001b[0m",
-	];
+		columns
+			.map(
+				R.pipe(
+					col => col.padEnd(columnWidths[col]),
+					R.split(""),
+					R.over(R.lensIndex(0), R.toUpper),
+					R.join(""),
+				),
+			)
+			.join(" ") +
+		"\u001b[0m";
+
+	const lines = [header];
 
 	for (const datum of data) {
 		const line = [];
+
 		for (const col of columns) {
 			line.push(("" + (datum[col] || "")).padEnd(columnWidths[col]));
 		}
