@@ -2,22 +2,24 @@ import * as R from "ramda";
 import envpaths from "env-paths";
 import fs from "fs";
 import hyperdb from "hyperdb";
-import util from "util";
 import inquirer from "inquirer";
 import jsonfile from "jsonfile";
 
 import replicate from "./replicate";
 
+const config = {
+	valueEncoding: "json",
+	reduce: (a, b) => (a.value.modifiedAt > b.value.modifiedAt ? a : b),
+};
+
 const openDb = async () => {
 	const { data: dataPath, config: configPath } = envpaths("hypercortex");
 
 	try {
-		//already initalised the db, load it and return
-		const config = await jsonfile.readFile(configPath);
+		const configFile = await jsonfile.readFile(configPath);
 
-		const db = hyperdb(dataPath, {
-			valueEncoding: "json",
-		});
+		//already initalised the db, load it and return
+		const db = hyperdb(dataPath, config);
 
 		await new Promise((done, fail) => {
 			db.on("ready", done);
@@ -40,9 +42,7 @@ const openDb = async () => {
 
 			console.log(`joining hypercortex   "${key}"`);
 
-			const db = hyperdb(dataPath, Buffer.from(key, "hex"), {
-				valueEncoding: "json",
-			});
+			const db = hyperdb(dataPath, Buffer.from(key, "hex"), config);
 
 			await new Promise((done, fail) => {
 				db.on("ready", done);
@@ -80,9 +80,7 @@ const openDb = async () => {
 			return db;
 		} else {
 			//create a new hypercortex
-			const db = hyperdb(dataPath, {
-				valueEncoding: "json",
-			});
+			const db = hyperdb(dataPath, config);
 
 			await new Promise((done, fail) => {
 				db.on("ready", done);

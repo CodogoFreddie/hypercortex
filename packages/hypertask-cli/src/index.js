@@ -15,6 +15,7 @@ import openDb from "./openDb";
 import replicate from "./replicate";
 import authOtherWriter from "./authOtherWriter";
 import addTelemetry from "./addTelemetry";
+import exportTasks from "./exportTasks";
 
 const noop = () => {};
 const setPropToNow = prop => (db, _, filter) =>
@@ -26,6 +27,7 @@ const commandToFunction = {
 	start: setPropToNow("start"),
 	stop: setPropToNow("stop"),
 	hyper: setupHyperDb,
+	export: exportTasks,
 	share: db => replicate(db),
 	auth: authOtherWriter,
 };

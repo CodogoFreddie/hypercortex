@@ -5,12 +5,7 @@ import openport from "openport";
 
 const nodesToObj = path =>
 	R.pipe(
-		R.map(
-			R.pipe(
-				R.nth(0),
-				({ key, value }) => [key.replace(path, ""), value],
-			),
-		),
+		R.map(({ key, value }) => [key.replace(path, ""), value.value]),
 		R.fromPairs,
 	);
 
@@ -25,22 +20,13 @@ const objectToBatch = (db, type, id) =>
 		R.map(
 			R.evolve({
 				key: key => `data/${type}/${id}/${key}`,
+				value: value => ({
+					value,
+					modifiedAt: new Date().toISOString(),
+					modifiedBy: db.local.key.toString("hex"),
+				}),
 			}),
 		),
-
-		R.concat([
-			{
-				type: "put",
-				key: `data/${type}/${id}/modifiedAt`,
-				value: new Date().toISOString(),
-			},
-
-			{
-				type: "put",
-				key: `data/${type}/${id}/modifiedBy`,
-				value: db.local.key.toString("hex"),
-			},
-		]),
 	);
 
 export const isAuthorised = db =>
@@ -50,11 +36,6 @@ export const isAuthorised = db =>
 			(err, auth) => (err ? fail(err) : done(auth)),
 		),
 	);
-
-export const createReducer = conflictResolvers => (a, b) => {
-	console.log(a, b);
-	return a;
-};
 
 export const getObj = R.curry(
 	(db, type, id) =>
@@ -108,31 +89,7 @@ export const getObjs = R.curry(async function*(db, type) {
 		);
 	});
 
-	for (const [{ key }] of objs) {
+	for (const { key } of objs) {
 		yield key.split("/")[2];
 	}
-});
-
-export const justReplicate = R.curry((handlers, db) => {
-	console.log("replicating", db.key.toString("hex"));
-
-	openport.find({ startingPort: 15423 }, (err, port) => {
-		console.log(`on port ${port}`);
-		var swarm = discovery(swarmDefaults());
-		swarm.listen(port);
-		swarm.join(db.key.toString("hex"));
-
-		swarm.on("connection", (conn, info) => {
-			handlers.onConnect(info);
-
-			var r = db.replicate({ live: true });
-			conn.pipe(r).pipe(conn);
-			r.on("error", () => {});
-
-			conn.once("error", () => {});
-			conn.once("end", () => {});
-		});
-	});
-
-	return new Promise(done => {});
 });
