@@ -1,0 +1,39 @@
+{
+  "name": "@hypercortex/hyperclip-cli",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-eslint": "^10.0.1",
+    "babel-preset-freddie-ridell": "0.0.8",
+    "eslint": "^5.7.0",
+    "eslint-config-react-app": "^3.0.4",
+    "eslint-plugin-flowtype": "^3.0.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-jsx-a11y": "^6.1.2",
+    "eslint-plugin-react": "^7.11.1",
+    "prettier": "^1.14.3"
+  },
+  "babel": {
+    "presets": [
+      "freddie-ridell"
+    ]
+  },
+  "bin": {
+    "@hypercortex/hyperclip-cli": "./main.js"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "files": [
+    "/main.js"
+  ],
+  "prettier": {
+    "tabWidth": 4,
+    "trailingComma": "all",
+    "useTabs": true
+  },
+  "scripts": {
+    "build": "babel src --out-dir lib",
+    "format": "prettier --write src/**/*",
+    "watch": "babel src --out-dir lib --watch"
+  }
+}
