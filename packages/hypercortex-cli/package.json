@@ -1,5 +1,31 @@
 {
   "name": "@hypercortex/hypercortex-cli",
+  "version": "0.4.0",
+  "description": "> TODO: description",
+  "author": "Freddie Ridell <freddie@codogo.io>",
+  "homepage": "",
+  "license": "ISC",
+  "main": "lib/hypercortex-cli.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "/main.js"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "hypergit://f1cf6b322f406aaa0b481268be2d068f7085c8b638d908b543801ec3ee8f99e3"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "build": "babel src --out-dir lib",
+    "format": "prettier --write src/**/*",
+    "watch": "babel src --out-dir lib --watch"
+  },
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-eslint": "^10.0.1",
@@ -23,24 +49,9 @@
   "eslintConfig": {
     "extends": "react-app"
   },
-  "files": [
-    "/main.js"
-  ],
   "prettier": {
     "tabWidth": 4,
     "trailingComma": "all",
     "useTabs": true
-  },
-  "scripts": {
-    "build": "babel src --out-dir lib",
-    "format": "prettier --write src/**/*",
-    "watch": "babel src --out-dir lib --watch"
-  },
-  "dependencies": {
-    "env-paths": "^1.0.0",
-    "hyperdb": "^3.5.0",
-    "inquirer": "^6.2.0",
-    "jsonfile": "^5.0.0",
-    "ramda": "^0.25.0"
   }
 }
