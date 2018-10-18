@@ -35,5 +35,12 @@
     "build": "babel src --out-dir lib",
     "format": "prettier --write src/**/*",
     "watch": "babel src --out-dir lib --watch"
+  },
+  "dependencies": {
+    "env-paths": "^1.0.0",
+    "hyperdb": "^3.5.0",
+    "inquirer": "^6.2.0",
+    "jsonfile": "^5.0.0",
+    "ramda": "^0.25.0"
   }
 }
