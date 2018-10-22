@@ -1,4 +1,5 @@
 import * as R from "ramda";
+import winSize from "window-size";
 
 const renderTable = R.curry((columns, data) => {
 	const columnWidths = data.reduce(
@@ -31,6 +32,10 @@ const renderTable = R.curry((columns, data) => {
 	const lines = [header];
 
 	for (const datum of data) {
+		if (lines.length > winSize.get().height - 3) {
+			return lines.join("\n");
+		}
+
 		const line = [];
 
 		for (const col of columns) {
