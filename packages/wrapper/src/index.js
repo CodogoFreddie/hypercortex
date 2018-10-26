@@ -4,9 +4,23 @@ import swarmDefaults from "dat-swarm-defaults";
 import openport from "openport";
 
 const nodesToObj = path =>
-	R.pipe(
-		R.map(({ key, value }) => [key.replace(path, ""), value.value]),
-		R.fromPairs,
+	R.reduce(
+		(acc, { key, value: { value, modifiedBy, modifiedAt } }) => (
+			console.log({ acc, key, value }),
+			{
+				...acc,
+
+				[key.replace(path, "")]: value,
+
+				...(acc.modifiedAt < modifiedAt
+					? {}
+					: {
+							modifiedAt,
+							modifiedBy,
+					  }),
+			}
+		),
+		{},
 	);
 
 const objectToBatch = (db, type, id) =>
