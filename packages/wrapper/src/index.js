@@ -5,21 +5,18 @@ import openport from "openport";
 
 const nodesToObj = path =>
 	R.reduce(
-		(acc, { key, value: { value, modifiedBy, modifiedAt } }) => (
-			console.log({ acc, key, value }),
-			{
-				...acc,
+		(acc, { key, value: { value, modifiedBy, modifiedAt } }) => ({
+			...acc,
 
-				[key.replace(path, "")]: value,
+			[key.replace(path, "")]: value,
 
-				...(acc.modifiedAt < modifiedAt
-					? {}
-					: {
-							modifiedAt,
-							modifiedBy,
-					  }),
-			}
-		),
+			...(acc.modifiedAt < modifiedAt
+				? {}
+				: {
+						modifiedAt,
+						modifiedBy,
+				  }),
+		}),
 		{},
 	);
 
