@@ -3,7 +3,7 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"version": "0.4.3",
+	"version": "0.4.4",
 	"devDependencies": {
 		"babel-cli": "^6.26.0",
 		"babel-eslint": "^9.0.0",
@@ -43,7 +43,7 @@
 		"watch": "babel src --out-dir lib --watch"
 	},
 	"dependencies": {
-		"@hypercortex/hypertask": "^0.4.3",
+		"@hypercortex/hypertask": "^0.4.4",
 		"@hypercortex/render-table": "^0.4.3",
 		"@hypercortex/uniq-prefixes": "^0.4.0",
 		"@hypercortex/wrapper": "^0.4.3",
