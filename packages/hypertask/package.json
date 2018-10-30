@@ -21,14 +21,10 @@
 			"freddie-ridell"
 		]
 	},
-	"bin": {
-		"@hypercortex/hypertask": "./main.js"
-	},
 	"eslintConfig": {
 		"extends": "react-app"
 	},
 	"files": [
-		"/main.js",
 		"/index.js",
 		"/lib"
 	],
