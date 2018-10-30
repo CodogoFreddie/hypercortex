@@ -7,12 +7,8 @@
   "license": "ISC",
   "main": "lib/hyperclip-cli.js",
   "directories": {
-    "lib": "lib",
-    "test": "__tests__"
   },
-  "files": [
-    "/main.js"
-  ],
+  "files": [ ],
   "publishConfig": {
     "access": "public"
   },
@@ -42,9 +38,6 @@
     "presets": [
       "freddie-ridell"
     ]
-  },
-  "bin": {
-    "@hypercortex/hyperclip-cli": "./main.js"
   },
   "eslintConfig": {
     "extends": "react-app"

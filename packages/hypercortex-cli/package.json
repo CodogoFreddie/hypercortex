@@ -44,7 +44,7 @@
     ]
   },
   "bin": {
-    "@hypercortex/hypercortex-cli": "./main.js"
+    "cortex": "./main.js"
   },
   "eslintConfig": {
     "extends": "react-app"

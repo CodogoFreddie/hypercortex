@@ -21,9 +21,6 @@
 			"freddie-ridell"
 		]
 	},
-	"bin": {
-		"@hypercortex/wrapper": "./main.js"
-	},
 	"eslintConfig": {
 		"extends": "react-app"
 	},
