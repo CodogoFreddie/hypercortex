@@ -36,8 +36,11 @@ const fromUrgent = modifyScore(
 );
 
 const fromAge = modifyScore(
-	({ modifiedAt }) =>
-		(new Date().getTime() - new Date(modifiedAt).getTime()) / 864000000,
+	({ modifiedAt, due }) =>
+		!!due
+			? 0
+			: (new Date().getTime() - new Date(modifiedAt).getTime()) /
+			  864000000,
 );
 
 const addScoreToTask = R.pipe(
