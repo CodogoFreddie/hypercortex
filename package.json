@@ -41,6 +41,7 @@
 	},
 	"name": "hypercortex",
 	"dependencies": {
-		"chrono-node": "^1.3.5"
+		"chrono-node": "^1.3.5",
+		"object-hash": "^1.3.1"
 	}
 }
