@@ -3,23 +3,25 @@ import hash from "object-hash";
 
 import easyTypeId from "@hypercortex/easy-type-id";
 
-const resolveNodeConflict = R.reduce((l, r) =>
-	l.value.modifiedAt > r.value.modifiedAt ? l : r,
+const resolveNodeConflict = R.reduce(
+	(l, r) => (l.value.modifiedAt > r.value.modifiedAt ? l : r),
+	{ value: { modifiedAt: "" } },
 );
 
 const createScalarHandlers = (type, scalars, db, id) =>
 	scalars.map(prop => ({
-		get [prop]() {
-			return new Promise((done, fail) =>
+		[`${prop}Get`]: () =>
+			new Promise((done, fail) =>
 				db.get(`/data/${type}/${id}/${prop}`, (err, dat) =>
 					err ? fail(err) : done(dat),
 				),
-			).then(resolveNodeConflict.value.value);
-		},
+			)
+				.then(resolveNodeConflict)
+				.then(R.path(["value", "value"])),
 
-		set [prop](value) {
+		[`${prop}Set`]: value => {
 			return new Promise((done, fail) =>
-				db.set(
+				db.put(
 					`/data/${type}/${id}/${prop}`,
 					{
 						modifiedAt: new Date().toISOString(),
@@ -34,41 +36,38 @@ const createScalarHandlers = (type, scalars, db, id) =>
 
 const createCollectionHandlers = (type, collections, db, id) => {
 	return collections.map(prop => ({
-		get [prop]() {
+		[`${prop}Get`]: () => {
 			return new Promise((done, fail) => {
 				db.list(`/data/${type}/${id}/${prop}/`, (err, dat) => {
 					err
 						? fail(err)
 						: done(
-								dat
-									.map(resolveNodeConflict)
-									.map(R.path(["value", "value"])),
+								R.pipe(
+									R.map(resolveNodeConflict),
+									R.map(R.path(["value", "value"])),
+								)(dat),
 						  );
 				});
 			});
 		},
 
-		set [prop](value) {
-			throw `error setting ${prop} on type ${type}: can not directly assign to collections, please use ${prop}Add(x), and ${prop}Remove(x)`;
-		},
-
-		[`${prop}Add`]: input => {
-			const key = hash(input);
+		[`${prop}Add`]: value => {
+			const key = hash(value);
 			return new Promise((done, fail) => {
-				db.set(
+				db.put(
 					`/data/${type}/${id}/${prop}/${key}`,
 					{
 						modifiedAt: new Date().toISOString(),
 						modifiedBy: db.local.key.toString("hex"),
-						input,
+						value,
 					},
 					(err, dat) => (err ? fail(err) : done(dat)),
 				);
 			});
 		},
 
-		[`${prop}Remove`]: input => {
-			const key = hash(input);
+		[`${prop}Remove`]: value => {
+			const key = hash(value);
 			return new Promise((done, fail) => {
 				db.del(`/data/${type}/${id}/${prop}/${key}`, (err, dat) =>
 					err ? fail(err) : done(dat),
@@ -79,7 +78,16 @@ const createCollectionHandlers = (type, collections, db, id) => {
 };
 
 const createObjecTypeWrapper = R.curry(
-	(type, { scalars, collections, relations: { one, many } }, db, id) =>
+	(
+		type,
+		{
+			scalars = [],
+			collections = [],
+			relations: { one = [], many = [] } = {},
+		},
+		db,
+		id,
+	) =>
 		Object.assign(
 			{
 				toObj: (depth = 0) => {},

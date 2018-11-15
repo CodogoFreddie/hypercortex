@@ -36,6 +36,7 @@
 	"scripts": {
 		"build": "lerna run build --parallel",
 		"format": "lerna run format --parallel",
+		"test": "lerna run test",
 		"watch": "lerna run watch --parallel --stream",
 		"pub": "npm run build && npm run format && lerna publish"
 	},

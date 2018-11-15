@@ -1,61 +1,56 @@
 {
-  "name": "@hypercortex/easy-type-id",
-  "version": "0.4.6",
-  "description": "Now I’m the model of a modern major general / The venerated Virginian veteran whose men are all / Lining up, to put me up on a pedestal / Writin’ letters to relatives / Embellishin’ my elegance and eloquence / But the elephant is in the room / The truth is in ya face when ya hear the British cannons go / BOOM",
-  "keywords": [],
-  "author": "Freddie Ridell <contact@freddieridell.com>",
-  "license": "ISC",
-  "main": "lib/easy-type-id.js",
-  "directories": {
-    "lib": "lib",
-    "test": "__tests__"
-  },
-  "files": [
-    "/main.js"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/CodogoFreddie/hypercortex.git"
-  },
-  "scripts": {
-    "test": "echo \"Error: run tests from root\" && exit 1",
-    "build": "babel src --out-dir lib",
-    "format": "prettier --write src/**/*",
-    "watch": "babel src --out-dir lib --watch"
-  },
-  "bugs": {
-    "url": "https://github.com/CodogoFreddie/hypercortex/issues"
-  },
-  "homepage": "https://github.com/CodogoFreddie/hypercortex#readme",
-  "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-eslint": "^10.0.1",
-    "babel-preset-freddie-ridell": "0.0.8",
-    "eslint": "^5.9.0",
-    "eslint-config-react-app": "^3.0.5",
-    "eslint-plugin-flowtype": "^3.2.0",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-jsx-a11y": "^6.1.2",
-    "eslint-plugin-react": "^7.11.1",
-    "prettier": "^1.15.2"
-  },
-  "babel": {
-    "presets": [
-      "freddie-ridell"
-    ]
-  },
-  "bin": {
-    "@hypercortex/easy-type-id": "./main.js"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "prettier": {
-    "tabWidth": 4,
-    "trailingComma": "all",
-    "useTabs": true
-  }
+	"name": "@hypercortex/easy-type-id",
+	"version": "0.4.6",
+	"description": "Now I’m the model of a modern major general / The venerated Virginian veteran whose men are all / Lining up, to put me up on a pedestal / Writin’ letters to relatives / Embellishin’ my elegance and eloquence / But the elephant is in the room / The truth is in ya face when ya hear the British cannons go / BOOM",
+	"keywords": [],
+	"author": "Freddie Ridell <contact@freddieridell.com>",
+	"license": "ISC",
+	"main": "./index.js",
+	"directories": {
+		"lib": "lib"
+	},
+	"files": [
+		"./main.js"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/CodogoFreddie/hypercortex.git"
+	},
+	"scripts": {
+		"build": "babel src --out-dir lib",
+		"format": "prettier --write src/**/*",
+		"watch": "babel src --out-dir lib --watch"
+	},
+	"bugs": {
+		"url": "https://github.com/CodogoFreddie/hypercortex/issues"
+	},
+	"homepage": "https://github.com/CodogoFreddie/hypercortex#readme",
+	"devDependencies": {
+		"babel-cli": "^6.26.0",
+		"babel-eslint": "^10.0.1",
+		"babel-preset-freddie-ridell": "0.0.8",
+		"eslint": "^5.9.0",
+		"eslint-config-react-app": "^3.0.5",
+		"eslint-plugin-flowtype": "^3.2.0",
+		"eslint-plugin-import": "^2.14.0",
+		"eslint-plugin-jsx-a11y": "^6.1.2",
+		"eslint-plugin-react": "^7.11.1",
+		"prettier": "^1.15.2"
+	},
+	"babel": {
+		"presets": [
+			"freddie-ridell"
+		]
+	},
+	"eslintConfig": {
+		"extends": "react-app"
+	},
+	"prettier": {
+		"tabWidth": 4,
+		"trailingComma": "all",
+		"useTabs": true
+	}
 }
