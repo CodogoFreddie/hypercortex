@@ -77,24 +77,25 @@ const createCollectionHandlers = (type, collections, db, id) => {
 	}));
 };
 
-const createObjecTypeWrapper = R.curry(
-	(
-		type,
-		{
-			scalars = [],
-			collections = [],
-			relations: { one = [], many = [] } = {},
+const createObjecTypeWrapper = (
+	type,
+	calculateScore = () => 1,
+	properties: { scalars = [], collections = [], relations: { one = [], many = [] } = {} },
+) => db => {
+	return {
+		obj: id =>
+			Object.assign(
+				{
+					toObj: (depth = 0) => {},
+				},
+				...createScalarHandlers(type, scalars, db, id),
+				...createCollectionHandlers(type, collections, db, id),
+			),
+		all: id => {
+			//build an index of scores, so that we can quickly return a sorted list"
+			return [];
 		},
-		db,
-		id,
-	) =>
-		Object.assign(
-			{
-				toObj: (depth = 0) => {},
-			},
-			...createScalarHandlers(type, scalars, db, id),
-			...createCollectionHandlers(type, collections, db, id),
-		),
-);
+	};
+};
 
 export default createObjecTypeWrapper;

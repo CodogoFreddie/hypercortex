@@ -1,11 +1,11 @@
 {
-	"name": "@hypercortex/create-object-type-wrapper",
+	"name": "@hypercortex/hypercortex-object",
 	"version": "0.4.6",
 	"description": "Now I’m the model of a modern major general / The venerated Virginian veteran whose men are all / Lining up, to put me up on a pedestal / Writin’ letters to relatives / Embellishin’ my elegance and eloquence / But the elephant is in the room / The truth is in ya face when ya hear the British cannons go / BOOM",
 	"keywords": [],
 	"author": "Freddie Ridell <contact@freddieridell.com>",
 	"license": "ISC",
-	"main": "lib/create-object-type-wrapper.js",
+	"main": "lib/hypercortex-object.js",
 	"directories": {
 		"lib": "lib",
 		"test": "__tests__"
@@ -49,7 +49,7 @@
 		]
 	},
 	"bin": {
-		"@hypercortex/create-object-type-wrapper": "./main.js"
+		"@hypercortex/hypercortex-object": "./main.js"
 	},
 	"eslintConfig": {
 		"extends": "react-app"
