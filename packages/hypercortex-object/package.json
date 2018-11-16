@@ -18,6 +18,7 @@
 	},
 	"scripts": {
 		"test": "jest src",
+		"test-dev": "jest src --watch --bail --runInBand",
 		"build": "babel src --out-dir lib",
 		"format": "prettier --write src/**/*",
 		"watch": "babel src --out-dir lib --watch"

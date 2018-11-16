@@ -19,20 +19,20 @@
                sortBy: tag => tag,
             }
          ],
-         relations: {
-            one: [
-               {
-                  name: "properties",
-                  resolver: propertiesSpecification,
-               }
-            ],
-            many: [
-               {
-                  name: "dependsOn",
-                        resolver: taskSpecification,
-               }
-            ]
-         }
+      }
+      relations: {
+         one: [
+            {
+               name: "properties",
+               resolver: propertiesSpecification,
+            }
+         ],
+         many: [
+            {
+               name: "dependsOn",
+                     resolver: taskSpecification,
+            }
+         ]
       }
    });
 
