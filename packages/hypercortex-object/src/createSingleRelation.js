@@ -16,7 +16,7 @@ const createSingleRelation = (type, relations, db, id) => {
 	return Object.assign(
 		{},
 		...relations.map(({ name, type, resolver }) => {
-			const createSubTypeObject = resolver(db)[type];
+			const createSubTypeObject = resolver()(db)[type];
 			return {
 				[`${name}Create`]: async () => {
 					const id = createID(16);

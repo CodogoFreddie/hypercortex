@@ -19,9 +19,14 @@ describe("scalars", () => {
 		relations: {
 			one: [
 				{
+					name: "selfLink",
+					type: "testObject",
+					resolver: () => testObjectSpecification,
+				},
+				{
 					name: "subType",
 					type: "subObject",
-					resolver: subObjectSpecification,
+					resolver: () => subObjectSpecification,
 				},
 			],
 		},
@@ -55,5 +60,15 @@ describe("scalars", () => {
 		const emptyObject = await obj.subTypeGet();
 
 		expect(emptyObject).toBe(null);
+	});
+
+	it("can create a subtype that is its own type", async () => {
+		const obj = objectTypeGenerator("root");
+
+		await obj.selfLinkCreate();
+
+		const createdSelfLink = await obj.selfLinkGet();
+
+		expect(createdSelfLink.idGet()).not.toBe("root");
 	});
 });

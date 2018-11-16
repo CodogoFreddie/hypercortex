@@ -8,7 +8,19 @@ describe("collections", () => {
 	let objectTypeGenerator;
 	const testObjectSpecification = wrapperGenerator({
 		type: "testObject",
-		properties: { collections: ["unsorted", "sorted"] },
+		properties: {
+			collections: [
+				"unsorted",
+				{
+					name: "sorted",
+					sortBy: x =>
+						x
+							.split("")
+							.reverse()
+							.join(""),
+				},
+			],
+		},
 	});
 
 	beforeEach(done => {
@@ -71,5 +83,18 @@ describe("collections", () => {
 		expect(storedValues).toContain("jam");
 		expect(storedValues).toContain("spam");
 		expect(storedValues).toContain("lamb");
+	});
+
+	it("can retrieve many values sorted", async () => {
+		const obj = objectTypeGenerator("id");
+
+		await obj.sortedAdd("ham");
+		await obj.sortedAdd("jam");
+		await obj.sortedAdd("spam");
+		await obj.sortedAdd("lamb");
+
+		const storedValues = await obj.sortedGet();
+
+		expect(storedValues).toEqual(["lamb", "ham", "jam", "spam"]);
 	});
 });
