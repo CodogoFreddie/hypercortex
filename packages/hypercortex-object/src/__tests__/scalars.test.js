@@ -6,16 +6,16 @@ import wrapperGenerator from "../index";
 describe("scalars", () => {
 	let db;
 	let objectTypeGenerator;
+	const testObjectSpecification = wrapperGenerator({
+		type: "testObject",
+		properties: { scalars: ["foo", "bar"] },
+	});
 
 	beforeEach(done => {
 		db = hyperdb(ram, { valueEncoding: "json" });
 
 		db.on("ready", () => {
-			objectTypeGenerator = wrapperGenerator(
-				"testObject",
-				{ scalars: ["foo", "bar"] },
-				db,
-			);
+			objectTypeGenerator = testObjectSpecification(db).testObject;
 
 			done();
 		});
