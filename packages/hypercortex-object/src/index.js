@@ -6,6 +6,7 @@ import createScalarHandlers from "./createScalarHandlers";
 import createCollectionHandlers from "./createCollectionHandlers";
 import createSingleRelation from "./createSingleRelation";
 import createGetAllOfObject from "./createGetAllOfObject";
+import createToObjectHandler from "./createToObjectHandler";
 
 const calculateScoreDefault = () => 1;
 const createObjecTypeWrapper = ({
@@ -14,19 +15,33 @@ const createObjecTypeWrapper = ({
 	properties: { scalars = [], collections = [] } = {},
 	relations: { one = [], many = [] } = {},
 }) => db => {
-	const getObject = id =>
-		Object.assign(
+	const getObject = id => {
+		const obj = Object.assign(
 			{
-				toObj: (depth = 0) => Promise.resolve({}),
-				fromObj: obj => Promise.resolve(),
+				toJsObject: depth => {
+					return createToObjectHandler(
+						id,
+						scalars,
+						collections,
+						one,
+						obj,
+						depth,
+					);
+				},
+				fromJsObject: obj => Promise.resolve(),
 				idGet: () => id,
 				typeGet: () => type,
-				scoreGet: () => calculateScore(getObject(id)),
+				scoreGet: () => {
+					return calculateScore(obj);
+				},
 			},
 			createScalarHandlers(type, scalars, db, id),
 			createCollectionHandlers(type, collections, db, id),
 			createSingleRelation(type, one, db, id),
 		);
+		return obj;
+	};
+
 	return {
 		[type]: getObject,
 		[`${type}All`]: createGetAllOfObject(type, db, getObject),
