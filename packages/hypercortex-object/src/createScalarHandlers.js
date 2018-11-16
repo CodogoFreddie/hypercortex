@@ -6,7 +6,7 @@ const createScalarHandlers = (type, scalars, db, id) =>
 	scalars.map(prop => ({
 		[`${prop}Get`]: () =>
 			new Promise((done, fail) =>
-				db.get(`/data/${type}/${id}/${prop}`, (err, dat) =>
+				db.get(`data/${type}/${id}/${prop}`, (err, dat) =>
 					err ? fail(err) : done(dat),
 				),
 			)
@@ -16,7 +16,7 @@ const createScalarHandlers = (type, scalars, db, id) =>
 		[`${prop}Set`]: value => {
 			return new Promise((done, fail) =>
 				db.put(
-					`/data/${type}/${id}/${prop}`,
+					`data/${type}/${id}/${prop}`,
 					{
 						modifiedAt: new Date().toISOString(),
 						modifiedBy: db.local.key.toString("hex"),

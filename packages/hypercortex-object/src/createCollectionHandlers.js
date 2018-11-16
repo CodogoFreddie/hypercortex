@@ -7,7 +7,7 @@ const createCollectionHandlers = (type, collections, db, id) => {
 	return collections.map(prop => ({
 		[`${prop}Get`]: () => {
 			return new Promise((done, fail) => {
-				db.list(`/data/${type}/${id}/${prop}/`, (err, dat) => {
+				db.list(`data/${type}/${id}/${prop}/`, (err, dat) => {
 					err
 						? fail(err)
 						: done(
@@ -24,7 +24,7 @@ const createCollectionHandlers = (type, collections, db, id) => {
 			const key = hash(value);
 			return new Promise((done, fail) => {
 				db.put(
-					`/data/${type}/${id}/${prop}/${key}`,
+					`data/${type}/${id}/${prop}/${key}`,
 					{
 						modifiedAt: new Date().toISOString(),
 						modifiedBy: db.local.key.toString("hex"),
@@ -38,7 +38,7 @@ const createCollectionHandlers = (type, collections, db, id) => {
 		[`${prop}Remove`]: value => {
 			const key = hash(value);
 			return new Promise((done, fail) => {
-				db.del(`/data/${type}/${id}/${prop}/${key}`, (err, dat) =>
+				db.del(`data/${type}/${id}/${prop}/${key}`, (err, dat) =>
 					err ? fail(err) : done(dat),
 				);
 			});

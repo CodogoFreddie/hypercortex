@@ -2,6 +2,7 @@ import * as R from "ramda";
 
 import createScalarHandlers from "./createScalarHandlers";
 import createCollectionHandlers from "./createCollectionHandlers";
+import resolveNodeConflict from "./resolveNodeConflict";
 
 const calculateScoreDefault = () => 1;
 const createObjecTypeWrapper = ({
@@ -14,7 +15,8 @@ const createObjecTypeWrapper = ({
 		Object.assign(
 			{
 				toObj: (depth = 0) => Promise.resolve({}),
-				fromObject: obj => Promise.resolve(),
+				fromObj: obj => Promise.resolve(),
+				idGet: () => id,
 			},
 			...createScalarHandlers(type, scalars, db, id),
 			...createCollectionHandlers(type, collections, db, id),
@@ -22,8 +24,23 @@ const createObjecTypeWrapper = ({
 	return {
 		[type]: getObject,
 		[`${type}All`]: () => {
-			//build an index of scores, so that we can quickly return a sorted list"
-			return [];
+			return new Promise((done, fail) => {
+				db.list(`data/${type}/`, { recursive: false }, (err, dat) => {
+					err
+						? fail(err)
+						: done(
+								dat.map(
+									R.pipe(
+										resolveNodeConflict,
+										R.prop("key"),
+										R.replace(`data/${type}/`, ""),
+										R.replace(/\/.+/, ""),
+										getObject,
+									),
+								),
+						  );
+				});
+			});
 		},
 	};
 };
