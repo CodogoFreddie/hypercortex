@@ -7,7 +7,6 @@ import wrapperGenerator from "../index";
 describe("toObject", () => {
 	let db;
 	let objectTypeGenerator;
-	let getAll;
 
 	const testObjectSpecification = wrapperGenerator({
 		type: "testObject",

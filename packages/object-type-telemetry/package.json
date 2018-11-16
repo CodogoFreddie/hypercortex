@@ -1,17 +1,12 @@
 {
-	"name": "@hypercortex/object-type-task",
+	"name": "@hypercortex/object-type-telemetry",
 	"version": "0.4.6",
-	"description": "Now I’m the model of a modern major general / The venerated Virginian veteran whose men are all / Lining up, to put me up on a pedestal / Writin’ letters to relatives / Embellishin’ my elegance and eloquence / But the elephant is in the room / The truth is in ya face when ya hear the British cannons go / BOOM",
-	"keywords": [],
 	"author": "Freddie Ridell <contact@freddieridell.com>",
 	"license": "ISC",
-	"main": "lib/object-type-task.js",
+	"main": "lib/index.js",
 	"directories": {
 		"lib": "lib"
 	},
-	"files": [
-		"/main.js"
-	],
 	"publishConfig": {
 		"access": "public"
 	},
@@ -44,9 +39,6 @@
 		"presets": [
 			"freddie-ridell"
 		]
-	},
-	"bin": {
-		"@hypercortex/object-type-task": "./main.js"
 	},
 	"eslintConfig": {
 		"extends": "react-app"
