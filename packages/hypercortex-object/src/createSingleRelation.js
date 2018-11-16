@@ -19,14 +19,22 @@ const createSingleRelation = (type, relations, db, id) => {
 			const createSubTypeObject = resolver(db)[type];
 			return {
 				[`${name}Create`]: async () => {
-					const id = createID();
+					const id = createID(16);
 					await helpers[`${name}Set`](id);
 					return createSubTypeObject(id);
 				},
 
 				[`${name}Get`]: async () => {
 					const id = await helpers[`${name}Get`]();
-					return createSubTypeObject(id);
+					if (id) {
+						return createSubTypeObject(id);
+					} else {
+						return null;
+					}
+				},
+
+				[`${name}Delete`]: async () => {
+					await helpers[`${name}Delete`]();
 				},
 			};
 		}),

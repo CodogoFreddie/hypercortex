@@ -1,5 +1,6 @@
 import hyperdb from "hyperdb";
 import ram from "random-access-memory";
+import * as R from "ramda";
 
 import wrapperGenerator from "../index";
 
@@ -10,7 +11,11 @@ describe("scalars", () => {
 
 	const testObjectSpecification = wrapperGenerator({
 		type: "testObject",
-		properties: { scalars: ["description"] },
+		calculateScore: async x => {
+			const i = await x.indexGet();
+			return i;
+		},
+		properties: { scalars: ["description", "index"] },
 	});
 
 	beforeEach(done => {
@@ -40,5 +45,29 @@ describe("scalars", () => {
 
 		expect(descriptions).toContain("foo's description");
 		expect(descriptions).toContain("bar's description");
+	});
+
+	it("will return a list that is sorted by the object's score", async () => {
+		for (const i in R.times(R.identity, 5)) {
+			const obj = objectTypeGenerator(`id_${i}`);
+
+			await obj.indexSet(i);
+			await obj.descriptionSet(`description ${i}`);
+			const i = await obj.indexGet();
+		}
+
+		const objects = await getAll();
+
+		const descriptions = await Promise.all(
+			[...objects].map(obj => obj.descriptionGet()),
+		);
+
+		expect(descriptions).toEqual([
+			"description 0",
+			"description 1",
+			"description 2",
+			"description 3",
+			"description 4",
+		]);
 	});
 });

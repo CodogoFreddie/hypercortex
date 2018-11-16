@@ -45,4 +45,15 @@ describe("scalars", () => {
 
 		expect(createdSubType.typeGet()).toBe("subObject");
 	});
+
+	it("can create and delete a subType", async () => {
+		const obj = objectTypeGenerator("root");
+
+		await obj.subTypeCreate();
+		await obj.subTypeDelete();
+
+		const emptyObject = await obj.subTypeGet();
+
+		expect(emptyObject).toBe(null);
+	});
 });
