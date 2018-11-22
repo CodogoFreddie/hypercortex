@@ -45,9 +45,6 @@
 			"freddie-ridell"
 		]
 	},
-	"bin": {
-		"@hypercortex/object-type-task": "./main.js"
-	},
 	"eslintConfig": {
 		"extends": "react-app"
 	},
