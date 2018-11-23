@@ -1,11 +1,19 @@
-import * as R from "ramda";
+#!env node
+
+import fs from "fs";
 import path from "path";
 import hyperdb from "hyperdb";
 import envpaths from "env-paths";
 import hyperswarm from "@hyperswarm/network";
 import net from "net";
+import { spawn } from "child_process";
+import mkdirp from "mkdirp";
+import lockfile from "proper-lockfile";
+import { promisify } from "util";
 
 import { rename, stat, getAPort, readyGate, createStateHandlers } from "./util";
+
+const mkdirpp = promisify(mkdirp);
 
 const getADb = async (type, key) => {
 	const {
@@ -40,8 +48,9 @@ const getADb = async (type, key) => {
 
 			const key = dbContainer.db.key.toString("hex");
 			const perminantFolder = path.join(dataFolderPath, key);
-			delete dbContainer.db;
+			//delete dbContainer.db;
 
+			await mkdirp(dataFolderPath);
 			await rename(tempFilePath, perminantFolder);
 
 			await setState({
@@ -83,6 +92,14 @@ const getADb = async (type, key) => {
 
 // if this module is called as an executable, startup a new hypercortex mirroring server that forms part of an always on mesh network to replicate the hypercortex
 export const main = async () => {
+	const { cache: cacheFolderPath } = envpaths(`hypercortex-server`);
+
+	await mkdirpp(path.join(cacheFolderPath, "hypercortex-server.lock"));
+
+	console.log("made");
+
+	lockfile.lockSync(path.join(cacheFolderPath, "hypercortex-server.lock"));
+
 	const [_, __, key] = process.argv;
 	const db = await getADb("server", key);
 
@@ -114,8 +131,15 @@ export const main = async () => {
 //if this module is included as a submodule, it returns a hyperdb instance that will replicate with the local hypercortex server untill they're both equal
 const dbKey = async key => {
 	const db = await getADb("client");
-	const scriptName = path.basename(__filename);
-	console.log({ scriptName });
+
+	const { localPort: serverLocalPort } = await createStateHandlers(
+		"server",
+	).getState();
+
+	const scriptName = __filename;
+	console.log(scriptName);
+
+	return db;
 };
 
 export default dbKey;
