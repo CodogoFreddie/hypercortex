@@ -22,23 +22,23 @@ const getADb = async (type, key) => {
 		temp: tempFilePath,
 	} = envpaths(`hypercortex-${type}`);
 
-	//console.log(`loading config from ${configFolderPath}`);
+	console.log(`loading config from ${configFolderPath}`);
 
 	const { getState, setState } = createStateHandlers(type);
 
 	const config = await getState();
 
 	if (!key) {
-		//console.log("no key provided");
+		console.log("no key provided");
 		if (config.lastUsedCortex) {
-			//console.log(
-			//`last used cortex was hypercortex://${
-			//config.lastUsedCortex
-			//}, opening`,
-			//);
+			console.log(
+				`last used cortex was hypercortex://${
+					config.lastUsedCortex
+				}, opening`,
+			);
 			return getADb(type, config.lastUsedCortex);
 		} else {
-			//console.log("no previously used cortex, creating a new one");
+			console.log("no previously used cortex, creating a new one");
 
 			const dbContainer = {
 				db: hyperdb(tempFilePath, { valueEncoding: "json" }),
@@ -57,8 +57,8 @@ const getADb = async (type, key) => {
 				lastUsedCortex: key,
 			});
 
-			//console.log(`created hypercortex://${key}`);
-			//console.log("opening");
+			console.log(`created hypercortex://${key}`);
+			console.log("opening");
 
 			return getADb(type, key);
 		}
@@ -66,10 +66,12 @@ const getADb = async (type, key) => {
 
 	const dbPath = path.join(dataFolderPath, key);
 
+	lockfile.lockSync(dbPath);
+
 	try {
 		await stat(dbPath);
-		//console.log("cortex exists");
-		//console.log(`opening hypercortex://${key}`);
+		console.log("cortex exists");
+		console.log(`opening hypercortex://${key}`);
 		const db = hyperdb(dbPath, {
 			valueEncoding: "json",
 		});
@@ -78,8 +80,8 @@ const getADb = async (type, key) => {
 
 		return db;
 	} catch (e) {
-		//console.log("cortex does not exist");
-		//console.log(`creating hypercortex://${key}`);
+		console.log("cortex does not exist");
+		console.log(`creating hypercortex://${key}`);
 		const db = hyperdb(dbPath, key, {
 			valueEncoding: "json",
 		});
@@ -92,20 +94,10 @@ const getADb = async (type, key) => {
 
 // if this module is called as an executable, startup a new hypercortex mirroring server that forms part of an always on mesh network to replicate the hypercortex
 export const main = async () => {
-	const { cache: cacheFolderPath } = envpaths(`hypercortex-server`);
-
-	await mkdirpp(path.join(cacheFolderPath, "hypercortex-server.lock"));
-
-	console.log("made");
-
-	lockfile.lockSync(path.join(cacheFolderPath, "hypercortex-server.lock"));
-
 	const [_, __, key] = process.argv;
 	const db = await getADb("server", key);
 
 	const localPort = await getAPort();
-
-	console.log(`${localPort};`);
 
 	net.createServer(socket => {
 		const stream = db.replicate({ live: false });
@@ -115,6 +107,8 @@ export const main = async () => {
 	await createStateHandlers("server").setState({
 		localPort,
 	});
+
+	console.log(`sharing cortex on local port ${localPort}`);
 
 	const swarm = hyperswarm({ ephemeral: false });
 	swarm.join(db.discoveryKey, {
@@ -126,18 +120,27 @@ export const main = async () => {
 		const stream = db.replicate({ live: false });
 		stream.pipe(socket).pipe(stream);
 	});
+
+	console.log("sharing cortex to global swarm");
 };
 
 //if this module is included as a submodule, it returns a hyperdb instance that will replicate with the local hypercortex server untill they're both equal
 const dbKey = async key => {
-	const db = await getADb("client");
+	const scriptName = path.join(__dirname, "..", "main.js");
+	console.log(`starting ${scriptName}`);
 
-	const { localPort: serverLocalPort } = await createStateHandlers(
-		"server",
-	).getState();
+	const options = {
+		slient: false,
+		detached: true,
+		stdio: ["inherit", "inherit", "inherit"],
+	};
 
-	const scriptName = __filename;
-	console.log(scriptName);
+	spawn("node", [scriptName], options).unref();
+
+	const [db, { localPort: serverLocalPort }] = await Promise.all([
+		await getADb("client"),
+		createStateHandlers("server").getState(),
+	]);
 
 	return db;
 };
