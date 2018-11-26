@@ -9,7 +9,9 @@ const createToObjectHandler = async (
 	depth = 0,
 ) => {
 	const pairs = await Promise.all([
-		...scalars.map(key => obj[`${key}Get`]().then(value => [key, value])),
+		...[...scalars, "score"].map(key =>
+			obj[`${key}Get`]().then(value => [key, value]),
+		),
 
 		...collections.map(collection => {
 			const key = collection.name || collection;
@@ -35,7 +37,10 @@ const createToObjectHandler = async (
 		}),
 	]);
 
-	return R.fromPairs(pairs);
+	return {
+		id,
+		...R.fromPairs(pairs),
+	};
 };
 
 export default createToObjectHandler;

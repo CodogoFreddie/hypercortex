@@ -1,4 +1,5 @@
 import * as R from "ramda";
+import os from "os";
 
 import getCortexDb from "@hypercortex/hypercortex-cli-client";
 import createTask from "@hypercortex/object-type-task";
@@ -15,7 +16,9 @@ const main = async () => {
 	const db = await getCortexDb();
 
 	const { task, taskAll } = createTask(db);
-	const { telemetry, telemetryAll } = createTelemetry(db);
+	const { telemetry } = createTelemetry(db);
+
+	telemetry(db.local.key.toString("hex")).nameSet(os.hostname());
 
 	const { filter, command, modifications } = partitionCommandsAndArgs(
 		commandToFunction,

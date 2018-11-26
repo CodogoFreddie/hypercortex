@@ -2,14 +2,16 @@ import * as R from "ramda";
 
 import getId from "@hypercortex/easy-type-id";
 
+import renderTable from "../util/renderTable";
+
 const add = async ({ filter, modifications, taskAll, task }) => {
-	const newTask = task(getId(16));
+	const newID = getId(16);
+	const newTask = task(newID);
 
 	for (const { prop, plus, minus } of modifications) {
 		if (prop) {
 			const [key] = R.keys(prop);
 			const [value] = R.values(prop);
-			console.log({ key, value, prop });
 			await newTask[`${key}Set`](value);
 		}
 
@@ -22,15 +24,14 @@ const add = async ({ filter, modifications, taskAll, task }) => {
 		}
 	}
 
-	const obj = await newTask.toJsObject();
-
-	console.log(obj);
-
 	const allTasks = await taskAll();
 
 	const allObjects = await Promise.all(allTasks.map(t => t.toJsObject()));
 
-	console.log(allObjects);
+	R.pipe(
+		R.map(R.when(R.propEq("id", newID), R.assoc("textColor", 2))),
+		renderTable,
+	)(allObjects);
 };
 
 export default add;

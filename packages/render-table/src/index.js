@@ -33,6 +33,7 @@ const renderTable = R.curry((columns, data) => {
 
 	const lines = [header];
 
+	let i = 0;
 	for (const datum of dataWeHaveSpaceToRender) {
 		const line = [];
 
@@ -40,7 +41,13 @@ const renderTable = R.curry((columns, data) => {
 			line.push(("" + (datum[col] || "")).padEnd(columnWidths[col]));
 		}
 
-		lines.push(line.join(" "));
+		const { textColor } = data[i++];
+
+		if (textColor) {
+			lines.push(`\u001b[1;3${textColor}m${line.join(" ")}\u001b[0m`);
+		} else {
+			lines.push(line.join(" "));
+		}
 	}
 
 	return lines.join("\n");
