@@ -5,4 +5,4 @@ packages/*/lib
 packages/*/lib/
 packages/*/lib/*
 **/lib
-.pijul
+.git
