@@ -16,39 +16,42 @@ import { rename, stat, getAPort, readyGate, createStateHandlers } from "./util";
 const mkdirpp = promisify(mkdirp);
 
 const getADb = async (type, key) => {
+	process.on(
+		"exit",
+		() => key && console.log(type, `closing hypercortex://${key}`),
+	);
+
 	const {
 		data: dataFolderPath,
 		config: configFolderPath,
 		temp: tempFilePath,
 	} = envpaths(`hypercortex-${type}`);
 
-	console.log(`loading config from ${configFolderPath}`);
+	console.log(type, `loading config from ${configFolderPath}`);
 
 	const { getState, setState } = createStateHandlers(type);
 
 	const config = await getState();
 
 	if (!key) {
-		console.log("no key provided");
+		console.log(type, "no key provided");
 		if (config.lastUsedCortex) {
 			console.log(
+				type,
 				`last used cortex was hypercortex://${
 					config.lastUsedCortex
 				}, opening`,
 			);
 			return getADb(type, config.lastUsedCortex);
 		} else {
-			console.log("no previously used cortex, creating a new one");
+			console.log(type, "no previously used cortex, creating a new one");
 
-			const dbContainer = {
-				db: hyperdb(tempFilePath, { valueEncoding: "json" }),
-			};
+			const db = hyperdb(tempFilePath, { valueEncoding: "json" });
 
-			await readyGate(dbContainer.db);
+			await readyGate(db);
 
-			const key = dbContainer.db.key.toString("hex");
+			const key = db.key.toString("hex");
 			const perminantFolder = path.join(dataFolderPath, key);
-			//delete dbContainer.db;
 
 			await mkdirp(dataFolderPath);
 			await rename(tempFilePath, perminantFolder);
@@ -57,8 +60,8 @@ const getADb = async (type, key) => {
 				lastUsedCortex: key,
 			});
 
-			console.log(`created hypercortex://${key}`);
-			console.log("opening");
+			console.log(type, `created hypercortex://${key}`);
+			console.log(type, "opening");
 
 			return getADb(type, key);
 		}
@@ -66,12 +69,22 @@ const getADb = async (type, key) => {
 
 	const dbPath = path.join(dataFolderPath, key);
 
-	lockfile.lockSync(dbPath);
+	console.log(type, `attempting to lock ${dbPath}`);
+
+	await mkdirpp(`${dbPath}.meta`);
+
+	try {
+		lockfile.lockSync(`${dbPath}.meta`);
+	} catch (e) {
+		console.log(type, `${dbPath} already seems to be open`);
+		console.error(type, e);
+		process.exit(0);
+	}
 
 	try {
 		await stat(dbPath);
-		console.log("cortex exists");
-		console.log(`opening hypercortex://${key}`);
+		console.log(type, "cortex exists");
+		console.log(type, `opening hypercortex://${key}`);
 		const db = hyperdb(dbPath, {
 			valueEncoding: "json",
 		});
@@ -80,8 +93,8 @@ const getADb = async (type, key) => {
 
 		return db;
 	} catch (e) {
-		console.log("cortex does not exist");
-		console.log(`creating hypercortex://${key}`);
+		console.log(type, "cortex does not exist");
+		console.log(type, `creating hypercortex://${key}`);
 		const db = hyperdb(dbPath, key, {
 			valueEncoding: "json",
 		});
@@ -100,8 +113,19 @@ export const main = async () => {
 	const localPort = await getAPort();
 
 	net.createServer(socket => {
-		const stream = db.replicate({ live: false });
-		stream.pipe(socket).pipe(stream);
+		try {
+			console.log("server", "got a connection");
+			const stream = db.replicate({ live: true });
+			stream.pipe(socket).pipe(stream);
+
+			[socket, stream].map(x =>
+				["error", "end"].map(event =>
+					x.on(event, e => console.log("server", event, e)),
+				),
+			);
+		} catch (e) {
+			console.log("server", "there was a problem");
+		}
 	}).listen(localPort);
 
 	await createStateHandlers("server").setState({
@@ -117,7 +141,7 @@ export const main = async () => {
 	});
 	swarm.on("connection", (socket, details) => {
 		console.log("new connection!", details);
-		const stream = db.replicate({ live: false });
+		const stream = db.replicate({ live: true });
 		stream.pipe(socket).pipe(stream);
 	});
 
@@ -126,21 +150,47 @@ export const main = async () => {
 
 //if this module is included as a submodule, it returns a hyperdb instance that will replicate with the local hypercortex server untill they're both equal
 const dbKey = async key => {
-	const scriptName = path.join(__dirname, "..", "main.js");
-	console.log(`starting ${scriptName}`);
-
-	const options = {
-		slient: false,
-		detached: true,
-		stdio: ["inherit", "inherit", "inherit"],
-	};
-
-	spawn("node", [scriptName], options).unref();
-
 	const [db, { localPort: serverLocalPort }] = await Promise.all([
 		await getADb("client"),
 		createStateHandlers("server").getState(),
 	]);
+
+	const client = new net.Socket();
+
+	try {
+		await new Promise((done, fail) => {
+			try {
+				client.on("error", fail);
+				client.connect(
+					serverLocalPort,
+					"localhost",
+					(err, dat) => (err ? fail(err) : done(dat)),
+				);
+			} catch (e) {
+				console.log("here", e);
+				fail(e);
+			}
+		});
+	} catch (e) {
+		console.log("no local server detected: starting one now!");
+		//spawn a server
+		const scriptName = path.join(__dirname, "..", "main.js");
+		spawn("node", [scriptName, db.key.toString("hex")], {
+			slient: false,
+			detached: true,
+			stdio: ["inherit", "inherit", "inherit"],
+		}).unref();
+
+		process.exit(0);
+	}
+
+	const stream = db.replicate({ live: false });
+	stream.pipe(client).pipe(stream);
+
+	stream.on("data", data =>
+		console.log("client", "data", data.toString("base64")),
+	);
+	stream.on("end", end => console.log("client", "end", end));
 
 	return db;
 };

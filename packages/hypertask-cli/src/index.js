@@ -7,6 +7,7 @@ import createTelemetry from "@hypercortex/object-type-telemetry";
 import partitionCommandsAndArgs from "./parseArgs";
 
 import add from "./commands/add";
+import basicDisplay from "./commands/basicDisplay";
 
 const commandToFunction = { add };
 
@@ -20,7 +21,12 @@ const main = async () => {
 		commandToFunction,
 	)(process.argv);
 
-	await commandToFunction[command]({ filter, modifications, taskAll, task });
+	await (commandToFunction[command] || basicDisplay)({
+		filter,
+		modifications,
+		taskAll,
+		task,
+	});
 };
 
 try {
