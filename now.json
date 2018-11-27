@@ -1,0 +1,10 @@
+{
+	"version": 2,
+	"alias": ["hyperdb-gateway.com", "www.hyperdb-gateway.com"],
+	"builds": [
+		{
+			"src": "lambdas/hyperdb-gateway.com/src/index.js",
+			"use": "@now/node"
+		}
+	]
+}

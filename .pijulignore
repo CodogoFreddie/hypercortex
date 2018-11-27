@@ -6,3 +6,4 @@ packages/*/lib/
 packages/*/lib/*
 **/lib
 .git
+lambdas/hyperdb-gateway.com/node_modules/
