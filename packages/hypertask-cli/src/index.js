@@ -9,9 +9,10 @@ import partitionCommandsAndArgs from "./parseArgs";
 
 import add from "./commands/add";
 import done from "./commands/done";
+import snooze from "./commands/snooze";
 import basicDisplay from "./commands/basicDisplay";
 
-const commandToFunction = { add, done };
+const commandToFunction = { add, done, snooze };
 
 const main = async () => {
 	const db = await getCortexDb();

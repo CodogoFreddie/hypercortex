@@ -32,13 +32,18 @@ const fromAge = modifyScore(({ modifiedAt, due }) =>
 		: (new Date().getTime() - new Date(modifiedAt).getTime()) / 864000000,
 );
 
+const fromSnooze = modifyScore(({ snooze }) =>
+	snooze > new Date().toISOString() ? -10 : 0,
+);
+
 const createTaskObject = createHypercortexObject({
 	type: "task",
 	calculateScore: async t => {
-		const [due, modifiedAt, tags] = await Promise.all([
+		const [due, modifiedAt, tags, snooze] = await Promise.all([
 			t.dueGet(),
 			t.modifiedAtGet(),
 			t.tagsGet(),
+			t.snoozeGet(),
 		]);
 
 		return R.pipe(
@@ -47,11 +52,13 @@ const createTaskObject = createHypercortexObject({
 			fromTimelyOverDue,
 			fromUrgent,
 			fromAge,
+			fromSnooze,
 			R.prop("score"),
 		)({
 			due,
 			modifiedAt,
 			tags,
+			snooze,
 		});
 	},
 	properties: {
@@ -61,6 +68,7 @@ const createTaskObject = createHypercortexObject({
 			"wait",
 			"recur",
 			"done",
+			"snooze",
 			"createdAt",
 			"modifiedAt",
 		],

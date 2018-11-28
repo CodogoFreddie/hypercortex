@@ -20,6 +20,7 @@ const formatTask = R.evolve({
 	done: formatDateTime,
 	due: formatDateTime,
 	score: formatScore,
+	snooze: formatDateTime,
 	start: formatDateTime,
 	stop: formatDateTime,
 	wait: formatDateTime,
@@ -45,6 +46,7 @@ const hyperTaskTableify = createTableRenderer([
 	"due",
 	"tags",
 	"recur",
+	"snooze",
 ]);
 
 const renderTable = R.pipe(
