@@ -1,48 +1,13 @@
 import * as R from "ramda";
 
-import getId from "@hypercortex/easy-type-id";
-
-import renderTable from "../util/renderTable";
-import parseDateTimeShortcut from "../util/parseDateTimeShortcut";
+import applyModificationsToObj from "../util/applyModificationsToObj";
 import getObjectsMatchingFilter from "../util/getObjectsMatchingFilter";
-
-const dateTimeProps = new Set(["due", "wait", "sleep", "snooze"]);
+import renderTable from "../util/renderTable";
 
 const modify = async ({ filter, modifications, taskAll, task }) => {
 	const modifyObjs = await getObjectsMatchingFilter(taskAll, task, filter);
 
-	console.log(modifications);
-
-	for (const task of modifyObjs) {
-		for (const { prop, plus, minus } of modifications) {
-			if (prop) {
-				const [key] = R.keys(prop);
-				const [value] = R.values(prop);
-
-				if (key === "description" && value.length === 0) {
-					continue;
-				}
-
-				if (value === null) {
-					await task[`${key}Set`](undefined);
-				} else {
-					if (dateTimeProps.has(key)) {
-						await task[`${key}Set`](parseDateTimeShortcut(value));
-					} else {
-						await task[`${key}Set`](value);
-					}
-				}
-			}
-
-			if (plus) {
-				await task.tagsAdd(plus);
-			}
-
-			if (minus) {
-				await task.tagsRemove(minus);
-			}
-		}
-	}
+	await Promise.all(modifyObjs.map(applyModificationsToObj(modifications)));
 
 	const modifyIds = await Promise.all(modifyObjs.map(t => t.idGet()));
 	const modifyIdsSet = new Set(modifyIds);
@@ -52,7 +17,7 @@ const modify = async ({ filter, modifications, taskAll, task }) => {
 
 	R.pipe(
 		R.map(
-			R.when(({ id }) => modifyIdsSet.has(id), R.assoc("textColor", 4)),
+			R.when(({ id }) => modifyIdsSet.has(id), R.assoc("textColor", 6)),
 		),
 		renderTable,
 	)(taskObjs);

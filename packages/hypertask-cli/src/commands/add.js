@@ -3,7 +3,7 @@ import * as R from "ramda";
 import getId from "@hypercortex/easy-type-id";
 
 import renderTable from "../util/renderTable";
-import parseDateTimeShortcut from "../util/parseDateTimeShortcut";
+import applyModificationsToObj from "../util/applyModificationsToObj";
 
 const dateTimeProps = new Set(["due", "wait", "sleep", "snooze"]);
 
@@ -11,25 +11,7 @@ const add = async ({ filter, modifications, taskAll, task }) => {
 	const newID = getId(16);
 	const newTask = task(newID);
 
-	for (const { prop, plus, minus } of modifications) {
-		if (prop) {
-			const [key] = R.keys(prop);
-			const [value] = R.values(prop);
-			if (dateTimeProps.has(key)) {
-				await newTask[`${key}Set`](parseDateTimeShortcut(value));
-			} else {
-				await newTask[`${key}Set`](value);
-			}
-		}
-
-		if (plus) {
-			await newTask.tagsAdd(plus);
-		}
-
-		if (minus) {
-			await newTask.tagsRemove(minus);
-		}
-	}
+	await applyModificationsToObj(modifications)(newTask);
 
 	const allTasks = await taskAll();
 

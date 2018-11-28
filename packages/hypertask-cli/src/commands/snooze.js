@@ -1,8 +1,6 @@
 import * as R from "ramda";
 import { addHours } from "date-fns/fp";
 
-import getId from "@hypercortex/easy-type-id";
-
 import renderTable from "../util/renderTable";
 import getObjectsMatchingFilter from "../util/getObjectsMatchingFilter";
 
