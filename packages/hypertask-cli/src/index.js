@@ -8,15 +8,21 @@ import createTelemetry from "@hypercortex/object-type-telemetry";
 import partitionCommandsAndArgs from "./parseArgs";
 
 import add from "./commands/add";
+import hyper from "./commands/hyper";
+import basicDisplay from "./commands/basicDisplay";
 import done from "./commands/done";
 import modify from "./commands/modify";
 import snooze from "./commands/snooze";
-import basicDisplay from "./commands/basicDisplay";
 
-const commandToFunction = { add, done, modify, snooze };
+const commandToFunction = { add, hyper, done, modify, snooze };
 
 const main = async () => {
 	const db = await getCortexDb();
+
+	console.log(
+		`cortex: "${db.key.toString("hex")}"
+local:  "${db.local.key.toString("hex")}"`,
+	);
 
 	const { task, taskAll } = createTask(db);
 	const { telemetry } = createTelemetry(db);
@@ -32,6 +38,7 @@ const main = async () => {
 		modifications,
 		taskAll,
 		task,
+		db,
 	});
 };
 

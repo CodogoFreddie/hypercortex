@@ -53,10 +53,19 @@ export const main = async () => {
 
 //if this module is included as a submodule, it returns a hyperdb instance that will replicate with the local hypercortex server untill they're both equal
 const dbKey = async key => {
+	if (key) {
+		await createStateHandlers("client").setState({
+			lastUsedCortex: key,
+		});
+		return;
+	}
+
 	const [db, { localPort: serverLocalPort }] = await Promise.all([
 		await getADb("client"),
 		createStateHandlers("server").getState(),
 	]);
+
+	console.log({ serverLocalPort });
 
 	const client = new net.Socket();
 
@@ -70,7 +79,6 @@ const dbKey = async key => {
 					(err, dat) => (err ? fail(err) : done(dat)),
 				);
 			} catch (e) {
-				//console.log("here", e);
 				fail(e);
 			}
 		});
