@@ -48,6 +48,15 @@ const hyperTaskTableify = createTableRenderer([
 ]);
 
 const renderTable = R.pipe(
+	R.filter(
+		R.complement(
+			R.either(
+				R.prop("done"),
+				({ wait }) => wait > new Date().toISOString(),
+			),
+		),
+	),
+
 	R.map(
 		R.pipe(
 			R.toPairs,
@@ -55,6 +64,17 @@ const renderTable = R.pipe(
 			R.fromPairs,
 		),
 	),
+
+	tasks => {
+		const ids = generateUniqPrefixes(tasks.map(R.prop("id")));
+
+		return tasks.map(({ id, ...rest }) => ({
+			id,
+			...rest,
+			key: ids[id],
+		}));
+	},
+
 	R.map(formatTask),
 	hyperTaskTableify,
 	console.log,

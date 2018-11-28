@@ -8,9 +8,10 @@ import createTelemetry from "@hypercortex/object-type-telemetry";
 import partitionCommandsAndArgs from "./parseArgs";
 
 import add from "./commands/add";
+import done from "./commands/done";
 import basicDisplay from "./commands/basicDisplay";
 
-const commandToFunction = { add };
+const commandToFunction = { add, done };
 
 const main = async () => {
 	const db = await getCortexDb();

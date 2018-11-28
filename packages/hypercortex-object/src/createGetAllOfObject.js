@@ -13,7 +13,7 @@ const sortObjects = async objs => {
 	);
 
 	return R.pipe(
-		R.sortBy(R.prop("score")),
+		R.sort(R.descend(R.prop("score"))),
 		R.map(R.prop("obj")),
 	)(objsWithScores);
 };

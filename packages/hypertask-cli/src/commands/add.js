@@ -3,6 +3,9 @@ import * as R from "ramda";
 import getId from "@hypercortex/easy-type-id";
 
 import renderTable from "../util/renderTable";
+import parseDateTimeShortcut from "../util/parseDateTimeShortcut";
+
+const dateTimeProps = new Set(["due", "wait", "sleep", "snooze"]);
 
 const add = async ({ filter, modifications, taskAll, task }) => {
 	const newID = getId(16);
@@ -12,7 +15,11 @@ const add = async ({ filter, modifications, taskAll, task }) => {
 		if (prop) {
 			const [key] = R.keys(prop);
 			const [value] = R.values(prop);
-			await newTask[`${key}Set`](value);
+			if (dateTimeProps.has(key)) {
+				await newTask[`${key}Set`](parseDateTimeShortcut(value));
+			} else {
+				await newTask[`${key}Set`](value);
+			}
 		}
 
 		if (plus) {

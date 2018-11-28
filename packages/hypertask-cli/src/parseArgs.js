@@ -52,9 +52,18 @@ const partitionCommandsAndArgs = commands =>
 			modifications,
 		}),
 		R.evolve({
-			filter: parseSaucies,
+			filter: R.pipe(
+				parseSaucies,
+				R.tap(
+					R.pipe(
+						R.nth(0),
+						console.log,
+					),
+				),
+			),
 			modifications: parseSaucies,
 		}),
+		R.tap(console.log),
 	);
 
 export default partitionCommandsAndArgs;
