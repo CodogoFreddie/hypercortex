@@ -55,6 +55,7 @@
 	"dependencies": {
 		"@hypercortex/easy-type-id": "^0.5.2-alpha.0",
 		"hyperdb": "^3.5.0",
+		"object-hash": "^1.3.1",
 		"random-access-memory": "^3.0.0"
 	}
 }
