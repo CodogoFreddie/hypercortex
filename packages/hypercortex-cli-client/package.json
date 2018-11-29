@@ -1,6 +1,6 @@
 {
 	"name": "@hypercortex/hypercortex-cli-client",
-	"version": "0.5.0-alpha.0",
+	"version": "0.5.1-alpha.0",
 	"author": "Freddie Ridell <contact@freddieridell.com>",
 	"homepage": "https://github.com/CodogoFreddie/hypercortex#readme",
 	"license": "ISC",
@@ -50,7 +50,7 @@
 		"useTabs": true
 	},
 	"dependencies": {
-		"@hypercortex/object-type-task": "^0.5.0-alpha.0",
+		"@hypercortex/object-type-task": "^0.5.1-alpha.0",
 		"@hyperswarm/network": "^0.0.4",
 		"env-paths": "^2.0.0",
 		"hyperdb": "^3.5.0",
