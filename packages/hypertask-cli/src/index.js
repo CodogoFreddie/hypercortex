@@ -5,13 +5,12 @@ import getCortexDb from "@hypercortex/hypercortex-cli-client";
 import createTask from "@hypercortex/object-type-task";
 import createTelemetry from "@hypercortex/object-type-telemetry";
 
-import partitionCommandsAndArgs from "./parseArgs";
-
 import add from "./commands/add";
-import hyper from "./commands/hyper";
 import basicDisplay from "./commands/basicDisplay";
 import done from "./commands/done";
+import hyper from "./commands/hyper";
 import modify from "./commands/modify";
+import partitionCommandsAndArgs from "./util/parseArgs";
 import snooze from "./commands/snooze";
 
 const commandToFunction = { add, hyper, done, modify, snooze };
