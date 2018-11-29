@@ -5,7 +5,7 @@
 	"keywords": [],
 	"author": "Freddie Ridell <contact@freddieridell.com>",
 	"license": "ISC",
-	"main": "lib/object-type-task.js",
+	"main": "./lib/index.js",
 	"directories": {
 		"lib": "lib"
 	},

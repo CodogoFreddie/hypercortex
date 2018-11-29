@@ -1,11 +1,10 @@
 {
 	"name": "@hypercortex/hypercortex-cli-client",
 	"version": "0.5.0-alpha.0",
-	"description": "> TODO: description",
 	"author": "Freddie Ridell <contact@freddieridell.com>",
 	"homepage": "https://github.com/CodogoFreddie/hypercortex#readme",
 	"license": "ISC",
-	"main": "/lib/index.js",
+	"main": "lib/index.js",
 	"directories": {
 		"lib": "lib"
 	},

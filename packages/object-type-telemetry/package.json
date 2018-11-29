@@ -3,7 +3,7 @@
 	"version": "0.5.0-alpha.0",
 	"author": "Freddie Ridell <contact@freddieridell.com>",
 	"license": "ISC",
-	"main": "lib/index.js",
+	"main": "./lib/index.js",
 	"directories": {
 		"lib": "lib"
 	},
