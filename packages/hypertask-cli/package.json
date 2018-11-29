@@ -3,7 +3,7 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"version": "0.5.2-alpha.0",
+	"version": "0.5.3-alpha.0",
 	"devDependencies": {
 		"babel-cli": "^6.26.0",
 		"babel-eslint": "^9.0.0",
@@ -43,13 +43,13 @@
 		"watch": "babel src --out-dir lib --watch"
 	},
 	"dependencies": {
-		"@hypercortex/easy-type-id": "^0.5.2-alpha.0",
-		"@hypercortex/hypercortex-cli-client": "^0.5.2-alpha.0",
+		"@hypercortex/easy-type-id": "^0.5.3-alpha.0",
+		"@hypercortex/hypercortex-cli-client": "^0.5.3-alpha.0",
 		"@hypercortex/hypertask": "^0.4.6",
-		"@hypercortex/object-type-task": "^0.5.2-alpha.0",
-		"@hypercortex/object-type-telemetry": "^0.5.2-alpha.0",
-		"@hypercortex/render-table": "^0.5.2-alpha.0",
-		"@hypercortex/uniq-prefixes": "^0.5.2-alpha.0",
+		"@hypercortex/object-type-task": "^0.5.3-alpha.0",
+		"@hypercortex/object-type-telemetry": "^0.5.3-alpha.0",
+		"@hypercortex/render-table": "^0.5.3-alpha.0",
+		"@hypercortex/uniq-prefixes": "^0.5.3-alpha.0",
 		"babel-runtime": "^6.26.0",
 		"chrono-node": "^1.3.5",
 		"dat-swarm-defaults": "^1.0.1",
