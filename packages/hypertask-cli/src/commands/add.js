@@ -11,7 +11,7 @@ const add = async ({ filter, modifications, taskAll, task }) => {
 	const newID = getId(16);
 	const newTask = task(newID);
 
-	await applyModificationsToObj(modifications)(newTask);
+	await applyModificationsToObj(modifications, taskAll)(newTask);
 
 	const allTasks = await taskAll();
 

@@ -7,7 +7,9 @@ import renderTable from "../util/renderTable";
 const modify = async ({ filter, modifications, taskAll, task }) => {
 	const modifyObjs = await getObjectsMatchingFilter(taskAll, task, filter);
 
-	await Promise.all(modifyObjs.map(applyModificationsToObj(modifications)));
+	await Promise.all(
+		modifyObjs.map(applyModificationsToObj(modifications, taskAll)),
+	);
 
 	const modifyIds = await Promise.all(modifyObjs.map(t => t.idGet()));
 	const modifyIdsSet = new Set(modifyIds);

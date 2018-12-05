@@ -4,7 +4,7 @@ import parseDateTimeShortcut, {
 } from "../util/parseDateTimeShortcut";
 const dateTimeProps = new Set(["due", "wait", "sleep", "snooze"]);
 
-const applyModificationsToObj = modifications => async task => {
+const applyModificationsToObj = (modifications, allTasks) => async task => {
 	for (const { prop, plus, minus } of modifications) {
 		if (prop) {
 			const [key] = R.keys(prop);
@@ -18,9 +18,16 @@ const applyModificationsToObj = modifications => async task => {
 				if (value === null) {
 					await task[`${key}Set`](undefined);
 				} else {
-					console.log({ key, value });
 					if (dateTimeProps.has(key)) {
-						await task[`${key}Set`](parseDateTimeShortcut(value));
+						const dateTimeValue = parseDateTimeShortcut(value);
+						if (typeof dateTimeValue === "function") {
+							const calculatedDateTimeValue = await dateTimeValue(
+								allTasks,
+							);
+							await task[`${key}Set`](calculatedDateTimeValue);
+						} else {
+							await task[`${key}Set`](dateTimeValue);
+						}
 					} else if (key === "recur") {
 						await task[`${key}Set`](parseRecur(value));
 					} else {
@@ -28,6 +35,7 @@ const applyModificationsToObj = modifications => async task => {
 					}
 				}
 			} catch (e) {
+				console.error(e);
 				console.error(`Error, ${key} doesn't seem to be a valid prop!`);
 			}
 		}
