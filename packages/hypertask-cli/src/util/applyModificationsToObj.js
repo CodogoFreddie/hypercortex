@@ -1,5 +1,7 @@
 import * as R from "ramda";
-import parseDateTimeShortcut from "../util/parseDateTimeShortcut";
+import parseDateTimeShortcut, {
+	parseRecur,
+} from "../util/parseDateTimeShortcut";
 const dateTimeProps = new Set(["due", "wait", "sleep", "snooze"]);
 
 const applyModificationsToObj = modifications => async task => {
@@ -12,14 +14,21 @@ const applyModificationsToObj = modifications => async task => {
 				continue;
 			}
 
-			if (value === null) {
-				await task[`${key}Set`](undefined);
-			} else {
-				if (dateTimeProps.has(key)) {
-					await task[`${key}Set`](parseDateTimeShortcut(value));
+			try {
+				if (value === null) {
+					await task[`${key}Set`](undefined);
 				} else {
-					await task[`${key}Set`](value);
+					console.log({ key, value });
+					if (dateTimeProps.has(key)) {
+						await task[`${key}Set`](parseDateTimeShortcut(value));
+					} else if (key === "recur") {
+						await task[`${key}Set`](parseRecur(value));
+					} else {
+						await task[`${key}Set`](value);
+					}
 				}
+			} catch (e) {
+				console.error(`Error, ${key} doesn't seem to be a valid prop!`);
 			}
 		}
 

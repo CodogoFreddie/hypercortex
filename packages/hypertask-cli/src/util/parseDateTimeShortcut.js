@@ -14,6 +14,8 @@ import {
 	startOfMonth,
 	startOfWeek,
 	startOfYear,
+	toDate,
+	getYear,
 } from "date-fns";
 
 const extractNumber = (adder, ref) =>
@@ -22,6 +24,12 @@ const extractNumber = (adder, ref) =>
 		R.head,
 		x => parseInt(x, 10),
 		x => adder(ref, x),
+	);
+
+const parseMonthDay = ref =>
+	R.pipe(
+		R.replace(/^/, getYear(ref)),
+		toDate,
 	);
 
 export const parseFrom = ref =>
@@ -40,6 +48,14 @@ export const parseFrom = ref =>
 		[R.test(/^sow$/), () => startOfWeek(ref)],
 		[R.test(/^soy$/), () => startOfYear(ref)],
 		[R.test(/^now$/), () => ref],
+		[
+			R.test(/^(\d{4}-)(\d{2})?(-\d{2})?$/),
+			R.pipe(
+				R.tap(console.log),
+				toDate,
+			),
+		],
+		[R.test(/^(\d{2})?(-\d{2})?$/), parseMonthDay(ref)],
 		[R.T, chrono.parseDate],
 	]);
 
