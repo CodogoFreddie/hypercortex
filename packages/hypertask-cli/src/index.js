@@ -1,7 +1,7 @@
 import * as R from "ramda";
 import os from "os";
 
-import getCortexDb from "@hypercortex/hypercortex-cli-client";
+import getCortexDb from "@hypercortex/cli-get-db";
 import createTask from "@hypercortex/object-type-task";
 import createTelemetry from "@hypercortex/object-type-telemetry";
 
@@ -18,10 +18,8 @@ const commandToFunction = { add, hyper, done, modify, snooze };
 const main = async () => {
 	const db = await getCortexDb();
 
-	console.log(
-		`cortex: "${db.key.toString("hex")}"
-local:  "${db.local.key.toString("hex")}"`,
-	);
+	console.log(`cortex: "${db.key.toString("hex")}"
+local:  "${db.local.key.toString("hex")}"`);
 
 	const { task, taskAll } = createTask(db);
 	const { telemetry } = createTelemetry(db);

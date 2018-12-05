@@ -43,9 +43,8 @@
 		"watch": "babel src --out-dir lib --watch"
 	},
 	"dependencies": {
+		"@hypercortex/cli-get-db": "^0.5.3",
 		"@hypercortex/easy-type-id": "^0.5.3",
-		"@hypercortex/hypercortex-cli-client": "^0.5.3",
-		"@hypercortex/hypertask": "^0.4.6",
 		"@hypercortex/object-type-task": "^0.5.3",
 		"@hypercortex/object-type-telemetry": "^0.5.3",
 		"@hypercortex/render-table": "^0.5.3",

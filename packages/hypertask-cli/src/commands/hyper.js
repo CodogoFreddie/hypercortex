@@ -1,6 +1,6 @@
 import * as R from "ramda";
 
-import getCortexDb from "@hypercortex/hypercortex-cli-client";
+import { setNewKey } from "@hypercortex/cli-get-db";
 
 const hyper = async ({ modifications, taskAll, db }) => {
 	const { set, auth } = R.pipe(
@@ -10,7 +10,7 @@ const hyper = async ({ modifications, taskAll, db }) => {
 	)(modifications);
 
 	if (set) {
-		await getCortexDb(set);
+		await setNewKey(set);
 		console.log(`changed hypercortex to "${set}"`);
 		process.exit(0);
 	}

@@ -26,7 +26,9 @@ const createLogger = () => {
 		transports: [new winston.transports.File({ filename: logPath })],
 	});
 
+	console.log(process.env.NODE_ENV);
 	if (process.env.NODE_ENV !== "production") {
+		console.log("daddy");
 		logger.add(
 			new winston.transports.Console({
 				format: winston.format.simple(),
