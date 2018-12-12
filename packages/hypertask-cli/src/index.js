@@ -4,6 +4,7 @@ import os from "os";
 import getCortexDb from "@hypercortex/cli-get-db";
 import createTask from "@hypercortex/object-type-task";
 import createTelemetry from "@hypercortex/object-type-telemetry";
+import { connect } from "@hypercortex/hypercortex-server";
 
 import add from "./commands/add";
 import basicDisplay from "./commands/basicDisplay";
@@ -17,6 +18,13 @@ const commandToFunction = { add, hyper, done, modify, snooze };
 
 const main = async () => {
 	const db = await getCortexDb();
+
+	const rStream = db.replicate({ live: false });
+
+	const socket = await connect(db.key.toString("hex"));
+
+	socket.pipe(rStream).pipe(socket);
+	//rStream.pipe(socket).pipe(rStream);
 
 	console.log(`cortex: "${db.key.toString("hex")}"
 local:  "${db.local.key.toString("hex")}"`);

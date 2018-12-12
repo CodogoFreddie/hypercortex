@@ -45,6 +45,7 @@
 	"dependencies": {
 		"@hypercortex/cli-get-db": "^0.5.3",
 		"@hypercortex/easy-type-id": "^0.5.3",
+		"@hypercortex/hypercortex-server": "^0.5.3",
 		"@hypercortex/object-type-task": "^0.5.3",
 		"@hypercortex/object-type-telemetry": "^0.5.3",
 		"@hypercortex/render-table": "^0.5.3",

@@ -26,9 +26,7 @@ const createLogger = () => {
 		transports: [new winston.transports.File({ filename: logPath })],
 	});
 
-	console.log(process.env.NODE_ENV);
 	if (process.env.NODE_ENV !== "production") {
-		console.log("daddy");
 		logger.add(
 			new winston.transports.Console({
 				format: winston.format.simple(),
@@ -44,7 +42,7 @@ const logger = createLogger();
 export const connect = async key => {
 	const client = new net.Socket();
 
-	console.log(`trying to get a connection for ${key}`);
+	console.log(`cli:  trying to get a connection for ${key}`);
 
 	try {
 		await new Promise((done, fail) => {
@@ -57,8 +55,7 @@ export const connect = async key => {
 		});
 	} catch (e) {
 		console.error(
-			"there doesn't seem to be a server running, trying to start one now",
-			e,
+			"cli:  there doesn't seem to be a server running, trying to start one now",
 		);
 
 		const scriptName = path.join(__dirname, "..", "main.js");
@@ -136,22 +133,22 @@ const onConnecitonToAnnounceServer = announceSocket => {
 				getAPort(),
 			]);
 
-			//logger.info(`setting up a replcation server for ${key}`);
-			//const replicationServer = net
-			//.createServer(replicationSocket => {
-			//logger.info(`recieved replication connection for ${key}`);
-			//const stream = db.replicate({ live: false });
-			//stream.pipe(replicationSocket).pipe(stream);
-			//replicationSocket.on("end", () =>
-			//replicationServer.close(),
-			//);
-			//replicationSocket.on("error", () =>
-			//replicationServer.close(),
-			//);
-			//})
-			//.listen(instancePort, () => {
-			//logger.info(`sharing ${key} @ localhost:${instancePort}`);
-			//});
+			logger.info(`setting up a replcation server for ${key}`);
+			const replicationServer = net
+				.createServer(replicationSocket => {
+					logger.info(`recieved replication connection for ${key}`);
+					const stream = db.replicate({ live: false });
+					stream.pipe(replicationSocket).pipe(stream);
+					replicationSocket.on("end", () =>
+						replicationServer.close(),
+					);
+					replicationSocket.on("error", () =>
+						replicationServer.close(),
+					);
+				})
+				.listen(instancePort, () => {
+					logger.info(`sharing ${key} @ localhost:${instancePort}`);
+				});
 
 			announceSocket.write(String(instancePort));
 		});
