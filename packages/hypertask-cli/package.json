@@ -62,6 +62,7 @@
 		"inquirer": "^6.2.0",
 		"jsonfile": "^5.0.0",
 		"openport": "^0.0.5",
-		"ramda": "^0.25.0"
+		"ramda": "^0.25.0",
+		"why-is-node-running": "^2.0.3"
 	}
 }

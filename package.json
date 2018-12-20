@@ -34,7 +34,7 @@
 		"useTabs": true
 	},
 	"scripts": {
-		"build": "lerna run build --parallel",
+		"build": "lerna run build --parallel --concurrency 4",
 		"format": "lerna run format --parallel",
 		"test": "lerna run test",
 		"watch": "lerna run watch --parallel --stream",

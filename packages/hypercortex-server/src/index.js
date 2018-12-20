@@ -76,6 +76,8 @@ export const connect = async key => {
 		client.write(key);
 	});
 
+	client.end();
+
 	const replicator = new net.Socket();
 
 	await new Promise((done, fail) => {
