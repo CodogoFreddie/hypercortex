@@ -3,12 +3,11 @@
 	"version": "0.5.6",
 	"author": "Freddie Ridell <contact@freddieridell.com>",
 	"license": "ISC",
-	"main": "./index.js",
+	"main": "./lib/index.js",
 	"directories": {
 		"lib": "lib"
 	},
 	"files": [
-		"./index.js",
 		"lib"
 	],
 	"publishConfig": {
