@@ -1,6 +1,6 @@
 {
 	"name": "@hypercortex/easy-type-id",
-	"version": "0.5.6",
+	"version": "0.5.7",
 	"author": "Freddie Ridell <contact@freddieridell.com>",
 	"license": "ISC",
 	"main": "./lib/index.js",
