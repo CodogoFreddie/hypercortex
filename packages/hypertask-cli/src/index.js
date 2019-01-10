@@ -23,15 +23,7 @@ const main = async () => {
 
 	const socket = await connect(db.key.toString("hex"));
 
-	rStream.on("close", () => console.log("rStream.close"));
-	rStream.on("end", () => console.log("rStream.end"));
-	rStream.on("finish", () => console.log("rStream.finish"));
-	socket.on("close", () => console.log("socket.close"));
-	socket.on("end", () => console.log("socket.end"));
-	socket.on("finish", () => console.log("socket.finish"));
-
 	socket.pipe(rStream).pipe(socket);
-	//rStream.pipe(socket).pipe(rStream);
 
 	console.log(`cortex: "${db.key.toString("hex")}"
 local:  "${db.local.key.toString("hex")}"`);

@@ -6,6 +6,7 @@ import openport from "openport";
 import path from "path";
 import { spawn } from "child_process";
 import winston from "winston";
+import forever from "forever-monitor";
 
 const DEFAULT_PORT = 51412;
 const getAPort = () =>
@@ -60,10 +61,8 @@ export const connect = async key => {
 
 		const scriptName = path.join(__dirname, "..", "main.js");
 		spawn("node", [scriptName], {
-			slient: false,
 			detached: true,
-			stdio: ["inherit", "inherit", "inherit"],
-		}).unref();
+		});
 
 		await new Promise(done => setTimeout(done, 1000));
 
