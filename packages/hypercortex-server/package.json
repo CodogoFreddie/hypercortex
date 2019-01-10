@@ -21,7 +21,7 @@
 	},
 	"scripts": {
 		"test": "echo \"Error: run tests from root\" && exit 1",
-		"build": "babel src --out-dir lib",
+		"build": "NODE_END=production babel src --out-dir lib",
 		"format": "prettier --write src/**/*",
 		"watch": "babel src --out-dir lib --watch"
 	},

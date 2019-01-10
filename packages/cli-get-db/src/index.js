@@ -22,6 +22,7 @@ const getDb = async () => {
 	const { config: configPath, temp: tempPath, data: dataPath } = envPaths(
 		"hypercortex-cli",
 	);
+
 	try {
 		const keyBuffer = await read(configPath);
 		const key = keyBuffer.toString();
@@ -58,6 +59,7 @@ const getDb = async () => {
 		}
 	} catch (e) {
 		await mkdirp(path.dirname(configPath));
+		console.log("trying to open", configPath, path.dirname(configPath));
 		closeSync(openSync(configPath, "w"));
 
 		return getDb();
