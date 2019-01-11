@@ -5,6 +5,7 @@ import net from "net";
 import openport from "openport";
 import path from "path";
 import { spawn } from "child_process";
+import fs from "fs";
 import winston from "winston";
 import forever from "forever-monitor";
 
@@ -59,10 +60,17 @@ export const connect = async key => {
 			"cli:  there doesn't seem to be a server running, trying to start one now",
 		);
 
+		const outLog = fs.openSync(path.resolve(logPath, "stdout.log"), "a");
+		const errLog = fs.openSync(path.resolve(logPath, "stderr.log"), "a");
+
+		console.log("logging to", path.resolve(logPath, "stdout.log"));
+
 		const scriptName = path.join(__dirname, "..", "main.js");
 		spawn("node", [scriptName], {
+			slient: false,
 			detached: true,
-		});
+			stdio: ["inherit", outLog, errLog],
+		}).unref();
 
 		await new Promise(done => setTimeout(done, 1000));
 
@@ -114,6 +122,7 @@ const getDb = async key => {
 			logger.info(`connected to peer in swarm for ${key}`);
 
 			const stream = db.replicate({ live: true });
+			stream.on("error", e => console.error("stream error", e));
 			stream.pipe(socket).pipe(stream);
 		});
 	}
@@ -158,10 +167,22 @@ const onConnecitonToAnnounceServer = announceSocket => {
 	}
 };
 
-export const main = async () => {
-	logger.info(`logging to ${logPath}`);
+export const main = () => {
+	//fuck your negativity
+	process
+		.on("unhandledRejection", (reason, p) => {
+			console.error(reason, "Unhandled Rejection at Promise", p);
+		})
+		.on("uncaughtException", err => {
+			console.error(err, "Uncaught Exception thrown");
+		});
 
-	net.createServer(onConnecitonToAnnounceServer).listen(DEFAULT_PORT, () => {
-		logger.info(`created anounce server at port ${DEFAULT_PORT}`);
-	});
+		logger.info(`logging to ${logPath}`);
+
+		net.createServer(onConnecitonToAnnounceServer).listen(
+			DEFAULT_PORT,
+			() => {
+				logger.info(`created anounce server at port ${DEFAULT_PORT}`);
+			},
+		);
 };
