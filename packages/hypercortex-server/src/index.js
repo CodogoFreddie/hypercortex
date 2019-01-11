@@ -7,7 +7,9 @@ import path from "path";
 import { spawn } from "child_process";
 import fs from "fs";
 import winston from "winston";
-import forever from "forever-monitor";
+import mkdirp from "mkdirp";
+
+const mkdirpp = promisify(mkdirp);
 
 const DEFAULT_PORT = 51412;
 const getAPort = () =>
@@ -25,7 +27,7 @@ const createLogger = () => {
 	const logger = winston.createLogger({
 		level: "info",
 		format: winston.format.json(),
-		transports: [new winston.transports.File({ filename: logPath })],
+		transports: [],
 	});
 
 	if (process.env.NODE_ENV !== "production") {
@@ -60,6 +62,7 @@ export const connect = async key => {
 			"cli:  there doesn't seem to be a server running, trying to start one now",
 		);
 
+		await mkdirpp(logPath);
 		const outLog = fs.openSync(path.resolve(logPath, "stdout.log"), "a");
 		const errLog = fs.openSync(path.resolve(logPath, "stderr.log"), "a");
 

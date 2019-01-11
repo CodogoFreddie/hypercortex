@@ -60,8 +60,6 @@
 		"@hyperswarm/network": "^0.0.4",
 		"chokidar": "^2.0.4",
 		"env-paths": "^2.0.0",
-		"forever": "^0.15.3",
-		"forever-monitor": "^1.7.1",
 		"hyperdb": "^3.5.0",
 		"jsonfile": "^5.0.0",
 		"mkdirp": "^0.5.1",
