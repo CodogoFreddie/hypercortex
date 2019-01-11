@@ -3,7 +3,7 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"version": "0.5.8",
+	"version": "0.5.9",
 	"devDependencies": {
 		"babel-cli": "^6.26.0",
 		"babel-eslint": "^9.0.0",
@@ -45,7 +45,7 @@
 	"dependencies": {
 		"@hypercortex/cli-get-db": "^0.5.4",
 		"@hypercortex/easy-type-id": "^0.5.7",
-		"@hypercortex/hypercortex-server": "^0.5.8",
+		"@hypercortex/hypercortex-server": "^0.5.9",
 		"@hypercortex/object-type-task": "^0.5.8",
 		"@hypercortex/object-type-telemetry": "^0.5.8",
 		"@hypercortex/render-table": "^0.5.8",
