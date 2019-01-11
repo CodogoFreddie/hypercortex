@@ -50,6 +50,7 @@
 		"@hypercortex/object-type-telemetry": "^0.5.8",
 		"@hypercortex/render-table": "^0.5.8",
 		"@hypercortex/uniq-prefixes": "^0.5.8",
+		"@hypercortex/hyperbuddy": "^0.0.3",
 		"babel-runtime": "^6.26.0",
 		"chrono-node": "^1.3.5",
 		"dat-swarm-defaults": "^1.0.1",

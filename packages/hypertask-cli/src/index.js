@@ -4,7 +4,7 @@ import os from "os";
 import getCortexDb from "@hypercortex/cli-get-db";
 import createTask from "@hypercortex/object-type-task";
 import createTelemetry from "@hypercortex/object-type-telemetry";
-import { connect } from "@hypercortex/hypercortex-server";
+import { connectToBuddy } from "@hypercortex/hyperbuddy";
 
 import add from "./commands/add";
 import basicDisplay from "./commands/basicDisplay";
@@ -21,6 +21,10 @@ const main = async () => {
 
 	const rStream = db.replicate({ live: false });
 
+	const socket = await connectToBuddy(db.key);
+
+	socket.pipe(rStream).pipe(socket);
+
 	await new Promise((done, fail) =>
 		db.put(
 			db.local.key.toString("hex") + "/lastAccesed",
@@ -28,10 +32,6 @@ const main = async () => {
 			(err, dat) => (err ? fail(err) : done(dat)),
 		),
 	);
-
-	const socket = await connect(db.key.toString("hex"));
-
-	socket.pipe(rStream).pipe(socket);
 
 	console.log(`cortex: "${db.key.toString("hex")}"
 local:  "${db.local.key.toString("hex")}"`);
