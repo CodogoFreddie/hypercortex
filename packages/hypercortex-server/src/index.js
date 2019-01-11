@@ -8,6 +8,7 @@ import { spawn } from "child_process";
 import fs from "fs";
 import winston from "winston";
 import mkdirp from "mkdirp";
+import { promisify } from "util";
 
 const mkdirpp = promisify(mkdirp);
 
