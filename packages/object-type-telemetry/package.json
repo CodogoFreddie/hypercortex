@@ -1,6 +1,6 @@
 {
 	"name": "@hypercortex/object-type-telemetry",
-	"version": "0.5.7",
+	"version": "0.5.8",
 	"author": "Freddie Ridell <contact@freddieridell.com>",
 	"license": "ISC",
 	"main": "./lib/index.js",
