@@ -21,6 +21,14 @@ const main = async () => {
 
 	const rStream = db.replicate({ live: false });
 
+	await new Promise((done, fail) =>
+		db.put(
+			db.local.key.toString("hex") + "/lastAccesed",
+			new Date().toISOString(),
+			(err, dat) => (err ? fail(err) : done(dat)),
+		),
+	);
+
 	const socket = await connect(db.key.toString("hex"));
 
 	socket.pipe(rStream).pipe(socket);
