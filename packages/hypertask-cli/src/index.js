@@ -1,10 +1,10 @@
+import whyRun from "why-is-node-running";
 import * as R from "ramda";
 import os from "os";
 
 import getCortexDb from "@hypercortex/cli-get-db";
 import createTask from "@hypercortex/object-type-task";
 import createTelemetry from "@hypercortex/object-type-telemetry";
-import { connectToBuddy } from "@hypercortex/hyperbuddy";
 
 import add from "./commands/add";
 import basicDisplay from "./commands/basicDisplay";
@@ -13,25 +13,12 @@ import hyper from "./commands/hyper";
 import modify from "./commands/modify";
 import partitionCommandsAndArgs from "./util/parseArgs";
 import snooze from "./commands/snooze";
+import share from "./commands/share";
 
-const commandToFunction = { add, hyper, done, modify, snooze };
+const commandToFunction = { add, hyper, done, modify, snooze, share };
 
 const main = async () => {
 	const db = await getCortexDb();
-
-	const rStream = db.replicate({ live: false });
-
-	const socket = await connectToBuddy(db.key);
-
-	socket.pipe(rStream).pipe(socket);
-
-	await new Promise((done, fail) =>
-		db.put(
-			db.local.key.toString("hex") + "/lastAccesed",
-			new Date().toISOString(),
-			(err, dat) => (err ? fail(err) : done(dat)),
-		),
-	);
 
 	console.log(`cortex: "${db.key.toString("hex")}"
 local:  "${db.local.key.toString("hex")}"`);
