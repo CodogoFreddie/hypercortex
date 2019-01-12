@@ -23,7 +23,7 @@ const parseSaucies = R.pipe(
 		R.cond([
 			[R.test(/^\+/), parsePlus],
 			[R.test(/^-/), parseMinus],
-			[R.test(/[a-z]:\w$/), parseProp],
+			[R.test(/[a-z]:\w+$/), parseProp],
 			[R.T, R.objOf("plain")],
 		]),
 	),
