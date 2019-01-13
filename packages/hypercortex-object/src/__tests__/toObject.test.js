@@ -49,6 +49,8 @@ Object {
   ],
   "description": "this is the description",
   "due": 2018,
+  "id": "id",
+  "score": 1,
   "tags": Array [
     "Tag2",
     "Tag1",

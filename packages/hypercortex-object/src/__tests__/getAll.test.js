@@ -11,11 +11,11 @@ describe("scalars", () => {
 
 	const testObjectSpecification = wrapperGenerator({
 		type: "testObject",
+		properties: { scalars: ["description", "index"] },
 		calculateScore: async x => {
 			const i = await x.indexGet();
 			return i;
 		},
-		properties: { scalars: ["description", "index"] },
 	});
 
 	beforeEach(done => {
@@ -53,7 +53,6 @@ describe("scalars", () => {
 
 			await obj.indexSet(i);
 			await obj.descriptionSet(`description ${i}`);
-			const i = await obj.indexGet();
 		}
 
 		const objects = await getAll();
@@ -63,11 +62,11 @@ describe("scalars", () => {
 		);
 
 		expect(descriptions).toEqual([
-			"description 0",
-			"description 1",
-			"description 2",
-			"description 3",
 			"description 4",
+			"description 3",
+			"description 2",
+			"description 1",
+			"description 0",
 		]);
 	});
 });

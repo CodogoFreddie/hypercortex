@@ -31,9 +31,7 @@ const createObjecTypeWrapper = ({
 				fromJsObject: obj => Promise.resolve(),
 				idGet: () => id,
 				typeGet: () => type,
-				scoreGet: () => {
-					return calculateScore(obj);
-				},
+				scoreGet: () => Promise.resolve(calculateScore(obj)),
 			},
 			createScalarHandlers(type, scalars, db, id),
 			createCollectionHandlers(type, collections, db, id),
