@@ -5,7 +5,11 @@ const share = ({ db }) => {
 
 	const swarm = hyperswarm({ ephemeral: true });
 	swarm.on("connection", (socket, { client, peer }) => {
-		client && console.log(`connected to peer ${peer.host}:${peer.port}`);
+		if (client) {
+			console.log(`connected to peer ${peer.host}:${peer.port}`);
+		} else {
+			console.log(`connected to someone`);
+		}
 
 		socket.pipe(db.replicate({ live: false })).pipe(socket);
 	});
