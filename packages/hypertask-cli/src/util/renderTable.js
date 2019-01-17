@@ -1,5 +1,5 @@
 import * as R from "ramda";
-import { format, toDate, formatDistanceWithOptions } from "date-fns/fp";
+import { toDate, formatDistanceWithOptions } from "date-fns/fp";
 
 import createTableRenderer from "@hypercortex/render-table";
 import generateUniqPrefixes from "@hypercortex/uniq-prefixes";
@@ -46,7 +46,6 @@ const hyperTaskTableify = createTableRenderer([
 	"due",
 	"tags",
 	"recur",
-	"snooze",
 ]);
 
 const renderTable = R.pipe(
@@ -55,6 +54,7 @@ const renderTable = R.pipe(
 			R.either(
 				R.prop("done"),
 				({ wait }) => wait > new Date().toISOString(),
+				({ snooze }) => snooze > new Date().toISOString(),
 			),
 		),
 	),
