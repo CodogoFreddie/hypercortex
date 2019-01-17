@@ -46,16 +46,17 @@ const hyperTaskTableify = createTableRenderer([
 	"due",
 	"tags",
 	"recur",
+	"snooze",
 ]);
 
 const renderTable = R.pipe(
 	R.filter(
 		R.complement(
-			R.either(
+			R.anyPass([
 				R.prop("done"),
 				({ wait }) => wait > new Date().toISOString(),
 				({ snooze }) => snooze > new Date().toISOString(),
-			),
+			]),
 		),
 	),
 
