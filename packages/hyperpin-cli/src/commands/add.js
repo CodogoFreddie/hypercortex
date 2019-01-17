@@ -11,7 +11,7 @@ const add = async (url, pin) => {
 	const newID = getId(16);
 	const newPin = pin(newID);
 
-	const response await fetch(url);
+	const response = await fetch(url);
 	const raw = await response.json();
 
 	const $ = cheerio.load(raw);
