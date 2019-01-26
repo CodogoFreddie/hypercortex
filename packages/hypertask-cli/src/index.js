@@ -1,4 +1,3 @@
-import whyRun from "why-is-node-running";
 import * as R from "ramda";
 import os from "os";
 
@@ -14,8 +13,17 @@ import modify from "./commands/modify";
 import partitionCommandsAndArgs from "./util/parseArgs";
 import snooze from "./commands/snooze";
 import share from "./commands/share";
+import deleteCommand from "./commands/delete";
 
-const commandToFunction = { add, hyper, done, modify, snooze, share };
+const commandToFunction = {
+	add,
+	hyper,
+	done,
+	modify,
+	snooze,
+	share,
+	delete: deleteCommand,
+};
 
 const main = async () => {
 	const db = await getCortexDb();
