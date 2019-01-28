@@ -1,22 +1,21 @@
-import hyperswarm from "@hyperswarm/network";
+import createSwarm from "hyperdiscovery";
 
 const share = ({ db }) => {
 	console.log("sharing hypercortex");
 
-	const swarm = hyperswarm({ ephemeral: true });
-	swarm.on("connection", (socket, { client, peer }) => {
-		if (client) {
-			console.log(`connected to peer ${peer.host}:${peer.port}`);
-		} else {
-			console.log(`connected to someone`);
-		}
+	const swarm = createSwarm(db, {
+		upload: true,
+		download: true,
+	});
 
-		socket.pipe(db.replicate({ live: false })).pipe(socket);
+	swarm.on("connection", function(peer, { host, port }) {
+		console.log(`connected to ${host}:${port}`);
+		swarm.on("close", function() {
+			console.log(`disconected from ${host}:${port}`);
+		});
 	});
-	swarm.join(db.discoveryKey, {
-		lookup: true,
-		announce: true,
-	});
+
+	console.log("started sharing");
 };
 
 export default share;

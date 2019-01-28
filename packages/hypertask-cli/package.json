@@ -59,6 +59,7 @@
 		"discovery-swarm": "^5.1.2",
 		"env-paths": "^1.0.0",
 		"hypercore-crypto": "^1.0.0",
+		"hyperdiscovery": "^8.0.0",
 		"inquirer": "^6.2.0",
 		"jsonfile": "^5.0.0",
 		"openport": "^0.0.5",
