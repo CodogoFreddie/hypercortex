@@ -13,6 +13,7 @@ import modify from "./commands/modify";
 import snooze from "./commands/snooze";
 import share from "./commands/share";
 import deleteCommand from "./commands/delete";
+import exportCommand from "./commands/export"
 
 import partitionCommandsAndArgs from "./util/parseArgs";
 
@@ -23,6 +24,7 @@ const commandToFunction = {
 	modify,
 	snooze,
 	share,
+	export: exportCommand,
 	delete: deleteCommand,
 };
 
