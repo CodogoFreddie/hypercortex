@@ -62,8 +62,11 @@
 		"hypercore-crypto": "^1.0.0",
 		"inquirer": "^6.2.0",
 		"jsonfile": "^5.0.0",
+		"node-fetch": "^2.3.0",
 		"openport": "^0.0.5",
 		"ramda": "^0.25.0",
-		"why-is-node-running": "^2.0.3"
+		"whatwg-fetch": "^3.0.0",
+		"why-is-node-running": "^2.0.3",
+		"window-size": "^1.1.1"
 	}
 }

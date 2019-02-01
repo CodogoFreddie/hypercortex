@@ -8,7 +8,12 @@ import createTelemetry from "@hypercortex/object-type-telemetry";
 
 import add from "./commands/add";
 
-const commandToFunction = { add, hyper, done, modify, snooze, share };
+global.fetch = require("node-fetch");
+
+const commandToFunction = {
+	add,
+	basicDisplay: () => {}
+};
 
 const main = async () => {
 	const db = await getCortexDb();
@@ -21,23 +26,9 @@ local:  "${db.local.key.toString("hex")}"`);
 
 	telemetry(db.local.key.toString("hex")).nameSet(os.hostname());
 
-	if(process.argv.length === 3){
-		await add(process.argv[2], pin);
-		return;
-	} else {
-		switch(process.argv[2]){
-			case "archive":
-				console.log(`should archive ${process.argv[3]}`);
-				return;
-			case "delete":
-				console.log(`should delete ${process.argv[3]}`);
-				return;
+	const command = process.argv.find( arg => Object.keys(commandToFunction).includes(arg) )
 
-			default: 
-				console.log(`unknown command "${(process.argv[2])}`);
-				return;
-		}
-	}
+	await (commandToFunction[command || "basicDisplay"]({pin, pinAll}, ...process.argv.slice(2)));
 };
 
 try {
