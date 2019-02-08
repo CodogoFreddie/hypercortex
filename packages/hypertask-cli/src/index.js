@@ -10,10 +10,11 @@ import basicDisplay from "./commands/basicDisplay";
 import done from "./commands/done";
 import hyper from "./commands/hyper";
 import modify from "./commands/modify";
-import partitionCommandsAndArgs from "./util/parseArgs";
 import snooze from "./commands/snooze";
 import share from "./commands/share";
 import deleteCommand from "./commands/delete";
+
+import partitionCommandsAndArgs from "./util/parseArgs";
 
 const commandToFunction = {
 	add,

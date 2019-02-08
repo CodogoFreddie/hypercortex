@@ -45,7 +45,7 @@ const partitionCommandsAndArgs = commands =>
 	R.pipe(
 		R.slice(2, Infinity),
 		R.splitWhen(x => commands[x]),
-		R.when(R.pathEq([1, "length"], 0), R.prepend([])),
+		R.when(R.pathEq([1, "length"], 0), R.append([])),
 		([filter, [command, ...modifications]]) => ({
 			filter,
 			command,
