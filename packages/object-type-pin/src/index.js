@@ -12,7 +12,7 @@ const createTelemetryObject = createHypercortexObject({
 			return 0;
 		}
 
-		return 10000000000000 - new Date(createdAt).getTime();
+		return new Date().getTime() - new Date(createdAt).getTime();
 	},
 	properties: {
 		scalars: [

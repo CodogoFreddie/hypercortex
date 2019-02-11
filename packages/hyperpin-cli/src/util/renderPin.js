@@ -2,6 +2,7 @@ import * as R from "ramda";
 import winSize from "window-size";
 
 const wrap = (width, prefix = "") => R.pipe(
+	R.defaultTo(""),
 	R.split(" "),
 	R.reduce(
 		([ head, ...tail], word) => {
@@ -32,6 +33,7 @@ const renderPin = async pin => {
 	const lines = [
 		"",
 		pinObj.id,
+		pinObj.score,
 		pinObj.url,
 		"",
 		wrap(width, "    ## ")(pinObj.title),

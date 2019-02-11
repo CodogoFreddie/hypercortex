@@ -21,7 +21,7 @@ const add = async ({pin}, _ ,url) => {
 	await newPin.descriptionSet($("meta[name='description']").attr("content"));
 	await newPin.iconSet($("link[rel='icon']").attr("sizes"));
 	await newPin.imageSet($("meta[property='og:image']").attr("content"));
-	await newPin.keywordsSet($("meta[name='keywords']").attr("content").split(",").slice(0, 5));
+	await newPin.keywordsSet(($("meta[name='keywords']").attr("content")||"").split(",").slice(0, 5));
 	await newPin.siteNameSet($("meta[property='og:site_name']").attr("content"));
 	await newPin.subjectSet($("meta[name='subject']").attr("content"));
 	await newPin.titleSet($("title").text());

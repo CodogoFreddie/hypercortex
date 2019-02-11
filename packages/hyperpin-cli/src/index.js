@@ -7,12 +7,13 @@ import createPin from "@hypercortex/object-type-pin";
 import createTelemetry from "@hypercortex/object-type-telemetry";
 
 import add from "./commands/add";
+import basicDisplay from "./commands/basicDisplay";
 
 global.fetch = require("node-fetch");
 
 const commandToFunction = {
 	add,
-	basicDisplay: () => {}
+	basicDisplay,
 };
 
 const main = async () => {
