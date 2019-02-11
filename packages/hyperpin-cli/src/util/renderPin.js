@@ -27,20 +27,25 @@ const renderPin = async pin => {
 	const { width } = winSize.get();
 	const lines = [
 		"",
-		pinObj.id,
+		`\u001b[0;36m${pinObj.id}\u001b[0m`,
+
 		pinObj.score,
-		pinObj.url,
+
 		`added: ${formatDistanceWithOptions(
 			{ addSuffix: true },
 			new Date(),
 			pinObj.createdAt,
 		)}`,
-		"",
-		wrap(width, "    ## ")(pinObj.title),
-		wrap(width, "    > ")(pinObj.description),
-	];
 
-	return lines.join("\n");
+		`\u001b[0;34m${pinObj.url}\u001b[0m`,
+
+		wrap(width, "    ## ")(pinObj.title),
+
+		pinObj.description &&
+			`\u001b[0;33m${wrap(width, "    > ")(pinObj.description)}\u001b[0m`,
+	].filter(Boolean);
+
+	return "\n" + lines.join("\n");
 };
 
 export default renderPin;
