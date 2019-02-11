@@ -8,12 +8,14 @@ import createTelemetry from "@hypercortex/object-type-telemetry";
 
 import add from "./commands/add";
 import basicDisplay from "./commands/basicDisplay";
+import deleteCommand from "./commands/delete";
 
 global.fetch = require("node-fetch");
 
 const commandToFunction = {
 	add,
 	basicDisplay,
+	delete: deleteCommand,
 };
 
 const main = async () => {
