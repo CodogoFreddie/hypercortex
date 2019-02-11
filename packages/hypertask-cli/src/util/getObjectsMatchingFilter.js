@@ -1,6 +1,11 @@
 import * as R from "ramda";
 
-const getObjectsMatchingFilter = async (taskAll, task, filter, safe = false) => {
+const getObjectsMatchingFilter = async (
+	taskAll,
+	task,
+	filter,
+	safe = false,
+) => {
 	const ids = R.pipe(
 		R.find(R.path(["prop", "description"])),
 		R.path(["prop", "description"]),
@@ -17,23 +22,26 @@ const getObjectsMatchingFilter = async (taskAll, task, filter, safe = false) => 
 
 	const tasks = await taskAll();
 
-	if(ids.size === 0 && filterTags.length === 0 && safe){
-		return tasks
+	if (ids.size === 0 && filterTags.length === 0 && safe) {
+		return tasks;
 	}
 
 	const taskObjs = await Promise.all(
-		tasks.map( (t) => 
+		tasks.map(t =>
 			Promise.all([t.idGet(), t.tagsGet()]).then(([id, tags]) => {
-				if(ids.has(id) || R.intersection(tags, filterTags).length > 0){
-					return  t
+				if (
+					ids.has(id) ||
+					R.intersection(tags, filterTags).length > 0
+				) {
+					return t;
 				} else {
-					return false
+					return false;
 				}
-			})
-		)
+			}),
+		),
 	).then(R.filter(Boolean));
 
-	return taskObjs
+	return taskObjs;
 };
 
 export default getObjectsMatchingFilter;
