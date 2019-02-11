@@ -1,5 +1,6 @@
 import * as R from "ramda";
 import winSize from "window-size";
+import { formatDistanceWithOptions } from "date-fns/fp";
 
 const wrap = (width, prefix = "") =>
 	R.pipe(
@@ -29,6 +30,11 @@ const renderPin = async pin => {
 		pinObj.id,
 		pinObj.score,
 		pinObj.url,
+		`added: ${formatDistanceWithOptions(
+			{ addSuffix: true },
+			new Date(),
+			pinObj.createdAt,
+		)}`,
 		"",
 		wrap(width, "    ## ")(pinObj.title),
 		wrap(width, "    > ")(pinObj.description),
