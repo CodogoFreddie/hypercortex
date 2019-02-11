@@ -29,8 +29,6 @@ const renderPin = async pin => {
 		"",
 		`\u001b[0;36m${pinObj.id}\u001b[0m`,
 
-		pinObj.score,
-
 		`added: ${formatDistanceWithOptions(
 			{ addSuffix: true },
 			new Date(),
