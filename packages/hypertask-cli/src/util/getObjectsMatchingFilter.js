@@ -12,7 +12,6 @@ const getObjectsMatchingFilter = async (
 		R.defaultTo(""),
 		R.split(" "),
 		R.filter(R.length),
-		x => new Set(x),
 	)(filter);
 
 	const filterTags = R.pipe(
@@ -22,7 +21,7 @@ const getObjectsMatchingFilter = async (
 
 	const tasks = await taskAll();
 
-	if (ids.size === 0 && filterTags.length === 0 && safe) {
+	if (ids.length === 0 && filterTags.length === 0 && safe) {
 		return tasks;
 	}
 
@@ -30,7 +29,7 @@ const getObjectsMatchingFilter = async (
 		tasks.map(t =>
 			Promise.all([t.idGet(), t.tagsGet()]).then(([id, tags]) => {
 				if (
-					ids.has(id) ||
+					ids.some(idPrefix => id.startsWith(idPrefix)) ||
 					R.intersection(tags, filterTags).length > 0
 				) {
 					return t;
