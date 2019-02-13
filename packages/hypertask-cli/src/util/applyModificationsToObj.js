@@ -1,10 +1,13 @@
 import * as R from "ramda";
+
 import parseDateTimeShortcut, {
 	parseRecur,
 } from "../util/parseDateTimeShortcut";
+
 const dateTimeProps = new Set(["due", "wait", "sleep", "snooze"]);
 
 const applyModificationsToObj = (modifications, allTasks) => async task => {
+
 	for (const { prop, plus, minus } of modifications) {
 		if (prop) {
 			const [key] = R.keys(prop);

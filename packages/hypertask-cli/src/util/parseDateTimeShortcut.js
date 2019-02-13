@@ -24,6 +24,8 @@ import {
 	getYear,
 } from "date-fns";
 
+import calculatePresure from "../util/calculatePresure"
+
 const extractNumber = (adder, ref) =>
 	R.pipe(
 		R.match(/\d+/),
@@ -66,6 +68,13 @@ const nextFree = (discriminator, incrementer, ref) => async taskAll => {
 	return reduced.toISOString();
 };
 
+const nextPresure = (ref) => async taskAll => {
+	const presure = await calculatePresure(taskAll);
+	const newDate = addHours(toDate(ref), presure)
+
+	return newDate
+};
+
 export const parseFrom = ref =>
 	R.cond([
 		[R.test(/^\d+h$/), extractNumber(addHours, ref)],
@@ -89,6 +98,7 @@ export const parseFrom = ref =>
 		[R.test(/^free.y$/), () => nextFree(isSameYear, addYears, ref)],
 		[R.test(/^(\d{4}-)(\d{2})?(-\d{2})?$/), toDate],
 		[R.test(/^(\d{2})?(-\d{2})?$/), parseMonthDay(ref)],
+		[R.test(/soon/), () => nextPresure(ref)],
 		[R.T, chrono.parseDate],
 	]);
 
