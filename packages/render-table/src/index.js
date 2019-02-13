@@ -2,7 +2,7 @@ import * as R from "ramda";
 import winSize from "window-size";
 
 const renderTable = R.curry((columns, data) => {
-	const dataWeHaveSpaceToRender = data.slice(0, winSize.get().height - 3);
+	const dataWeHaveSpaceToRender = data.slice(0, winSize.get().height - 4);
 
 	const columnWidths = dataWeHaveSpaceToRender.reduce(
 		(widths, task) => ({
