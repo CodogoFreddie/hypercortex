@@ -24,7 +24,7 @@ import {
 	getYear,
 } from "date-fns";
 
-import calculatePresure from "../util/calculatePresure"
+import calculatePresure from "../util/calculatePresure";
 
 const extractNumber = (adder, ref) =>
 	R.pipe(
@@ -68,11 +68,11 @@ const nextFree = (discriminator, incrementer, ref) => async taskAll => {
 	return reduced.toISOString();
 };
 
-const nextPresure = (ref) => async taskAll => {
+const nextPresure = ref => async taskAll => {
 	const presure = await calculatePresure(taskAll);
-	const newDate = addHours(toDate(ref), presure)
+	const newDate = addHours(toDate(ref), presure);
 
-	return newDate
+	return newDate;
 };
 
 export const parseFrom = ref =>
