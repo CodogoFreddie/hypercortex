@@ -7,6 +7,7 @@ import createPin from "@hypercortex/object-type-pin";
 import createTelemetry from "@hypercortex/object-type-telemetry";
 
 import add from "./commands/add";
+import archive from "./commands/archive";
 import basicDisplay from "./commands/basicDisplay";
 import deleteCommand from "./commands/delete";
 
@@ -16,6 +17,7 @@ const commandToFunction = {
 	add,
 	basicDisplay,
 	delete: deleteCommand,
+	archive,
 };
 
 const main = async () => {

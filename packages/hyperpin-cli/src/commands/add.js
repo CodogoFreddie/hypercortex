@@ -33,6 +33,7 @@ const add = async ({ pin }, _, url) => {
 	);
 	await newPin.subjectSet($("meta[name='subject']").attr("content"));
 	await newPin.titleSet($("title").text());
+	await newPin.archivedSet(false);
 
 	const renderedPin = await renderPin(newPin);
 	console.log(renderedPin);

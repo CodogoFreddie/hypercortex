@@ -7,6 +7,11 @@ const basicDisplay = async ({ pinAll }) => {
 	const { height } = winSize.get();
 
 	for (const pin of await pinAll()) {
+		const archived = await pin.archivedGet();
+		if (archived) {
+			continue;
+		}
+
 		const renderedPin = await renderPin(pin);
 		linesPrinted = linesPrinted + renderedPin.split("\n").length;
 		if (linesPrinted <= height) {
