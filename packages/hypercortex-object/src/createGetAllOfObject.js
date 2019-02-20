@@ -7,13 +7,14 @@ const sortObjects = async objs => {
 		objs.map(obj =>
 			obj.scoreGet().then(score => ({
 				obj,
-				score,
+				score: Number.isNaN(score) ? Number.POSITIVE_INFINITY : score,
 			})),
 		),
 	);
 
 	return R.pipe(
 		R.sort(R.descend(R.prop("score"))),
+		R.tap( R.map( ({ score, }) => console.log(score))),
 		R.map(R.prop("obj")),
 	)(objsWithScores);
 };
