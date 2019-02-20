@@ -1,6 +1,6 @@
 {
 	"name": "@hypercortex/object-type-pin",
-	"version": "0.6.6",
+	"version": "0.6.7",
 	"author": "Freddie Ridell <contact@freddieridell.com>",
 	"license": "ISC",
 	"main": "./lib/index.js",
@@ -52,6 +52,6 @@
 		"useTabs": true
 	},
 	"dependencies": {
-		"@hypercortex/hypercortex-object": "^0.6.6"
+		"@hypercortex/hypercortex-object": "^0.6.7"
 	}
 }
