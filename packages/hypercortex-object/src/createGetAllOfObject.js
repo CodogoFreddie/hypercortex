@@ -14,7 +14,6 @@ const sortObjects = async objs => {
 
 	return R.pipe(
 		R.sort(R.descend(R.prop("score"))),
-		R.tap( R.map( ({ score, }) => console.log(score))),
 		R.map(R.prop("obj")),
 	)(objsWithScores);
 };
