@@ -14,7 +14,7 @@ const basicDisplay = async ({ pinAll }) => {
 
 		const renderedPin = await renderPin(pin);
 		linesPrinted = linesPrinted + renderedPin.split("\n").length;
-		if (linesPrinted <= height) {
+		if (linesPrinted <= height - 2) {
 			console.log(renderedPin);
 		} else {
 			return;

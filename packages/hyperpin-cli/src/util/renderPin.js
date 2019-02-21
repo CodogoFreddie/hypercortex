@@ -37,7 +37,7 @@ const renderPin = async pin => {
 
 		`\u001b[0;34m${pinObj.url}\u001b[0m`,
 
-		wrap(width, "    ## ")(pinObj.title),
+		pinObj.title && wrap(width, "    ## ")(pinObj.title),
 
 		pinObj.description &&
 			`\u001b[0;33m${wrap(width, "    > ")(pinObj.description)}\u001b[0m`,
