@@ -3,7 +3,7 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"version": "0.6.7",
+	"version": "0.6.9",
 	"devDependencies": {
 		"babel-cli": "^6.26.0",
 		"babel-eslint": "^9.0.0",
@@ -47,8 +47,8 @@
 		"@hypercortex/easy-type-id": "^0.6.6",
 		"@hypercortex/hyperbuddy": "^0.0.3",
 		"@hypercortex/hypercortex-server": "^0.5.10",
-		"@hypercortex/object-type-task": "^0.6.7",
-		"@hypercortex/object-type-telemetry": "^0.6.7",
+		"@hypercortex/object-type-task": "^0.6.9",
+		"@hypercortex/object-type-telemetry": "^0.6.9",
 		"@hypercortex/render-table": "^0.6.6",
 		"@hypercortex/uniq-prefixes": "^0.6.6",
 		"babel-runtime": "^6.26.0",
