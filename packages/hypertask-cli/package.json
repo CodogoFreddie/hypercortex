@@ -54,7 +54,7 @@
 		"babel-runtime": "^6.26.0",
 		"chrono-node": "^1.3.5",
 		"dat-swarm-defaults": "^1.0.1",
-		"date-fns": "^2.0.0-alpha.16",
+		"date-fns": "2.0.0-alpha.16",
 		"directory-exists": "^2.0.1",
 		"discovery-swarm": "^5.1.2",
 		"env-paths": "^1.0.0",
