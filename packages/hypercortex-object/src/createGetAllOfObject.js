@@ -21,19 +21,23 @@ const sortObjects = async objs => {
 const createGetAllOfObject = (type, db, getObject) => () => {
 	return new Promise((done, fail) => {
 		db.list(`data/${type}/`, { recursive: false }, (err, dat) => {
-			err
-				? fail(err)
-				: sortObjects(
-						dat.map(
-							R.pipe(
-								resolveNodeConflict,
-								R.prop("key"),
-								R.replace(`data/${type}/`, ""),
-								R.replace(/\/.+/, ""),
-								getObject,
-							),
-						),
-				  ).then(done);
+			if (err) {
+				return fail(err);
+			}
+
+			const ids = R.pipe(
+				R.map(
+					R.pipe(
+						resolveNodeConflict,
+						R.prop("key"),
+						R.replace(`data/${type}/`, ""),
+						R.replace(/\/.+/, ""),
+					),
+				),
+				R.uniq,
+			)(dat);
+
+			return sortObjects(ids.map(getObject)).then(done);
 		});
 	});
 };
