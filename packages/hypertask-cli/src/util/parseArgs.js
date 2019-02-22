@@ -11,6 +11,7 @@ const parseMinus = R.pipe(
 );
 
 const parseProp = R.pipe(
+	R.replace("_", " "),
 	R.split(":"),
 	R.over(R.lensIndex(1), x => x || null),
 	x => [x],
@@ -23,7 +24,7 @@ const parseSaucies = R.pipe(
 		R.cond([
 			[R.test(/^\+/), parsePlus],
 			[R.test(/^-/), parseMinus],
-			[R.test(/[a-z]:[\w-]+$/), parseProp],
+			[R.test(/[a-z]:[\w ]+$/), parseProp],
 			[R.T, R.objOf("plain")],
 		]),
 	),
