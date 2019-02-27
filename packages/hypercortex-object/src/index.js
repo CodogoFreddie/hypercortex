@@ -6,6 +6,7 @@ import createSingleRelation from "./createSingleRelation";
 import createGetAllOfObject from "./createGetAllOfObject";
 import createToObjectHandler from "./createToObjectHandler";
 import createDeleteHandler from "./createDeleteHandler";
+import createModifiedAtHandler from "./createModifiedAtHandler";
 
 const calculateScoreDefault = () => 1;
 const createObjecTypeWrapper = ({
@@ -33,6 +34,7 @@ const createObjecTypeWrapper = ({
 				scoreGet: () => Promise.resolve(calculateScore(obj)),
 			},
 			createDeleteHandler(type, db, id),
+			createModifiedAtHandler(type, db, id),
 			createScalarHandlers(type, scalars, db, id),
 			createCollectionHandlers(type, collections, db, id),
 			createSingleRelation(type, one, db, id),

@@ -70,7 +70,6 @@ const createTaskObject = createHypercortexObject({
 			"done",
 			"snooze",
 			"createdAt",
-			"modifiedAt",
 		],
 		collections: ["tags"],
 	},
