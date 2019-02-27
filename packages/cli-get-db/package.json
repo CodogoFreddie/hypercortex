@@ -25,7 +25,8 @@
     "test": "echo \"Error: run tests from root\" && exit 1",
     "build": "babel src --out-dir lib",
     "format": "prettier --write src/**/*",
-    "watch": "babel src --out-dir lib --watch"
+    "watch": "babel src --out-dir lib --watch",
+    "clean": "rm -rf lib"
   },
   "bugs": {
     "url": "https://github.com/CodogoFreddie/hypercortex/issues"

@@ -2,7 +2,6 @@ import * as R from "ramda";
 
 import createID from "@hypercortex/easy-type-id";
 
-import resolveNodeConflict from "./resolveNodeConflict";
 import createScalarHandlers from "./createScalarHandlers";
 
 const createSingleRelation = (type, relations, db, id) => {

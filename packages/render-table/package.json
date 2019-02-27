@@ -1,47 +1,48 @@
 {
-	"name": "@hypercortex/render-table",
-	"publishConfig": {
-		"access": "public"
-	},
-	"main": "./index.js",
-	"version": "0.6.6",
-	"devDependencies": {
-		"babel-cli": "^6.26.0",
-		"babel-eslint": "^10.0.0",
-		"babel-preset-freddie-ridell": "0.0.8",
-		"eslint": "^5.6.0",
-		"eslint-config-react-app": "^2.1.0",
-		"eslint-plugin-flowtype": "^2.50.1",
-		"eslint-plugin-import": "^2.14.0",
-		"eslint-plugin-jsx-a11y": "^6.1.1",
-		"eslint-plugin-react": "^7.11.1",
-		"prettier": "^1.14.3"
-	},
-	"babel": {
-		"presets": [
-			"freddie-ridell"
-		]
-	},
-	"eslintConfig": {
-		"extends": "react-app"
-	},
-	"files": [
-		"/main.js",
-		"/index.js",
-		"/lib"
-	],
-	"prettier": {
-		"tabWidth": 4,
-		"trailingComma": "all",
-		"useTabs": true
-	},
-	"scripts": {
-		"build": "babel src --out-dir lib",
-		"format": "prettier --write src/**/*",
-		"watch": "babel src --out-dir lib --watch"
-	},
-	"dependencies": {
-		"babel-runtime": "^6.26.0",
-		"window-size": "^1.1.1"
-	}
+  "name": "@hypercortex/render-table",
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./index.js",
+  "version": "0.6.6",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-eslint": "^10.0.0",
+    "babel-preset-freddie-ridell": "0.0.8",
+    "eslint": "^5.6.0",
+    "eslint-config-react-app": "^2.1.0",
+    "eslint-plugin-flowtype": "^2.50.1",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-jsx-a11y": "^6.1.1",
+    "eslint-plugin-react": "^7.11.1",
+    "prettier": "^1.14.3"
+  },
+  "babel": {
+    "presets": [
+      "freddie-ridell"
+    ]
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "files": [
+    "/main.js",
+    "/index.js",
+    "/lib"
+  ],
+  "prettier": {
+    "tabWidth": 4,
+    "trailingComma": "all",
+    "useTabs": true
+  },
+  "scripts": {
+    "build": "babel src --out-dir lib",
+    "format": "prettier --write src/**/*",
+    "watch": "babel src --out-dir lib --watch",
+    "clean": "rm -rf lib"
+  },
+  "dependencies": {
+    "babel-runtime": "^6.26.0",
+    "window-size": "^1.1.1"
+  }
 }

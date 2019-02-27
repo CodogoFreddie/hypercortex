@@ -18,6 +18,17 @@ export const setNewKey = async key => {
 	await write(configPath, key);
 };
 
+const reduce = (l, r) => {
+	if (!l.value) {
+		return r;
+	}
+
+	if (!r.value) {
+		return l;
+	}
+	return l.value.modifiedAt > r.value.modifiedAt ? l : r;
+};
+
 const getDb = async () => {
 	const { config: configPath, temp: tempPath, data: dataPath } = envPaths(
 		"hypercortex-cli",
@@ -43,6 +54,7 @@ const getDb = async () => {
 			await statp(path.join(dataPath, key));
 			const db = hyperdb(path.join(dataPath, key), {
 				valueEncoding: "json",
+				reduce,
 			});
 			await new Promise(done => db.on("ready", done));
 			return db;
@@ -52,6 +64,7 @@ const getDb = async () => {
 				Buffer.from(key, "hex"),
 				{
 					valueEncoding: "json",
+					reduce,
 				},
 			);
 			await new Promise(done => db.on("ready", done));

@@ -1,7 +1,5 @@
 import * as R from "ramda";
 
-import resolveNodeConflict from "./resolveNodeConflict";
-
 const sortObjects = async objs => {
 	const objsWithScores = await Promise.all(
 		objs.map(obj =>
@@ -25,19 +23,19 @@ const createGetAllOfObject = (type, db, getObject) => () => {
 				return fail(err);
 			}
 
-			const ids = R.pipe(
+			R.pipe(
 				R.map(
 					R.pipe(
-						resolveNodeConflict,
 						R.prop("key"),
 						R.replace(`data/${type}/`, ""),
 						R.replace(/\/.+/, ""),
 					),
 				),
 				R.uniq,
+				R.map(getObject),
+				sortObjects,
+				done,
 			)(dat);
-
-			return sortObjects(ids.map(getObject)).then(done);
 		});
 	});
 };

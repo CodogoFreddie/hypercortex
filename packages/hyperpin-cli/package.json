@@ -1,72 +1,73 @@
 {
-	"name": "@hypercortex/hyperpin-cli",
-	"publishConfig": {
-		"access": "public"
-	},
-	"version": "0.6.11",
-	"devDependencies": {
-		"babel-cli": "^6.26.0",
-		"babel-eslint": "^9.0.0",
-		"babel-preset-freddie-ridell": "0.0.8",
-		"eslint": "^5.5.0",
-		"eslint-config-react-app": "^2.1.0",
-		"eslint-plugin-flowtype": "^2.50.0",
-		"eslint-plugin-import": "^2.14.0",
-		"eslint-plugin-jsx-a11y": "^6.1.1",
-		"eslint-plugin-react": "^7.11.1",
-		"prettier": "^1.14.2"
-	},
-	"babel": {
-		"presets": [
-			"freddie-ridell"
-		]
-	},
-	"bin": {
-		"pin": "./main.js"
-	},
-	"eslintConfig": {
-		"extends": "react-app"
-	},
-	"files": [
-		"/main.js",
-		"/index.js",
-		"/lib"
-	],
-	"prettier": {
-		"tabWidth": 4,
-		"trailingComma": "all",
-		"useTabs": true
-	},
-	"scripts": {
-		"build": "babel src --out-dir lib",
-		"format": "prettier --write src/**/*",
-		"watch": "babel src --out-dir lib --watch"
-	},
-	"dependencies": {
-		"@hypercortex/cli-get-db": "^0.6.6",
-		"@hypercortex/easy-type-id": "^0.6.6",
-		"@hypercortex/hyperbuddy": "^0.0.3",
-		"@hypercortex/hypercortex-server": "^0.5.10",
-		"@hypercortex/object-type-pin": "^0.6.9",
-		"@hypercortex/object-type-telemetry": "^0.6.9",
-		"@hypercortex/render-table": "^0.6.6",
-		"@hypercortex/uniq-prefixes": "^0.6.6",
-		"babel-runtime": "^6.26.0",
-		"cheerio": "^1.0.0-rc.2",
-		"chrono-node": "^1.3.5",
-		"dat-swarm-defaults": "^1.0.1",
-		"date-fns": "2.0.0-alpha.16",
-		"directory-exists": "^2.0.1",
-		"discovery-swarm": "^5.1.2",
-		"env-paths": "^1.0.0",
-		"hypercore-crypto": "^1.0.0",
-		"inquirer": "^6.2.0",
-		"jsonfile": "^5.0.0",
-		"node-fetch": "^2.3.0",
-		"openport": "^0.0.5",
-		"ramda": "^0.25.0",
-		"whatwg-fetch": "^3.0.0",
-		"why-is-node-running": "^2.0.3",
-		"window-size": "^1.1.1"
-	}
+  "name": "@hypercortex/hyperpin-cli",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "0.6.11",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-eslint": "^9.0.0",
+    "babel-preset-freddie-ridell": "0.0.8",
+    "eslint": "^5.5.0",
+    "eslint-config-react-app": "^2.1.0",
+    "eslint-plugin-flowtype": "^2.50.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-jsx-a11y": "^6.1.1",
+    "eslint-plugin-react": "^7.11.1",
+    "prettier": "^1.14.2"
+  },
+  "babel": {
+    "presets": [
+      "freddie-ridell"
+    ]
+  },
+  "bin": {
+    "pin": "./main.js"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "files": [
+    "/main.js",
+    "/index.js",
+    "/lib"
+  ],
+  "prettier": {
+    "tabWidth": 4,
+    "trailingComma": "all",
+    "useTabs": true
+  },
+  "scripts": {
+    "build": "babel src --out-dir lib",
+    "format": "prettier --write src/**/*",
+    "watch": "babel src --out-dir lib --watch",
+    "clean": "rm -rf lib"
+  },
+  "dependencies": {
+    "@hypercortex/cli-get-db": "^0.6.6",
+    "@hypercortex/easy-type-id": "^0.6.6",
+    "@hypercortex/hyperbuddy": "^0.0.3",
+    "@hypercortex/hypercortex-server": "^0.5.10",
+    "@hypercortex/object-type-pin": "^0.6.9",
+    "@hypercortex/object-type-telemetry": "^0.6.9",
+    "@hypercortex/render-table": "^0.6.6",
+    "@hypercortex/uniq-prefixes": "^0.6.6",
+    "babel-runtime": "^6.26.0",
+    "cheerio": "^1.0.0-rc.2",
+    "chrono-node": "^1.3.5",
+    "dat-swarm-defaults": "^1.0.1",
+    "date-fns": "2.0.0-alpha.16",
+    "directory-exists": "^2.0.1",
+    "discovery-swarm": "^5.1.2",
+    "env-paths": "^1.0.0",
+    "hypercore-crypto": "^1.0.0",
+    "inquirer": "^6.2.0",
+    "jsonfile": "^5.0.0",
+    "node-fetch": "^2.3.0",
+    "openport": "^0.0.5",
+    "ramda": "^0.25.0",
+    "whatwg-fetch": "^3.0.0",
+    "why-is-node-running": "^2.0.3",
+    "window-size": "^1.1.1"
+  }
 }

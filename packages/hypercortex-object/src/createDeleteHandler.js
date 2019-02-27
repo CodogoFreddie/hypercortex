@@ -8,21 +8,29 @@ const createDeleteHandler = (type, db, id) => ({
 				{
 					recursive: true,
 				},
-				(err, dat) =>
-					err
-						? fail(err)
-						: done(dat.map(R.nth(0)).map(R.prop("key"))),
+				(err, dat) => (err ? fail(err) : done(dat.map(R.prop("key")))),
 			);
-		}).then(keys =>
-			Promise.all(
-				keys.map(
-					key =>
-						new Promise((done, fail) => {
-							db.del(key, err => (err ? fail(err) : done()));
-						}),
-				),
-			).then(() => keys),
-		),
-});
+		})
+			.then(keys =>
+				Promise.all(
+					keys.map(
+						key =>
+							new Promise((done, fail) => {
+								db.del(key, err => (err ? fail(err) : done()));
+							}),
+					),
+				).then(() => keys),
+			)
+			.then(keys =>
+				Promise.all(
+					keys.map(
+						key =>
+							new Promise((done, fail) => {
+								db.del(key, err => (err ? fail(err) : done()));
+							}),
+					),
+				).then(() => keys),
+			)
+})
 
-export default createDeleteHandler;
+export default createDeleteHandler

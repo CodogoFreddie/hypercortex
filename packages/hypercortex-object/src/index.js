@@ -1,7 +1,5 @@
 import * as R from "ramda";
 
-import resolveNodeConflict from "./resolveNodeConflict";
-
 import createScalarHandlers from "./createScalarHandlers";
 import createCollectionHandlers from "./createCollectionHandlers";
 import createSingleRelation from "./createSingleRelation";

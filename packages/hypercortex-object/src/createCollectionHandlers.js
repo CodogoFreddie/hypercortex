@@ -1,8 +1,6 @@
 import * as R from "ramda";
 import hash from "object-hash";
 
-import resolveNodeConflict from "./resolveNodeConflict";
-
 const createCollectionHandlers = (type, collections, db, id) =>
 	Object.assign(
 		{},
@@ -27,7 +25,6 @@ const createCollectionHandlers = (type, collections, db, id) =>
 								? fail(err)
 								: done(
 										R.pipe(
-											R.map(resolveNodeConflict),
 											R.map(R.path(["value", "value"])),
 											shouldSort
 												? R.sortBy(sortBy)

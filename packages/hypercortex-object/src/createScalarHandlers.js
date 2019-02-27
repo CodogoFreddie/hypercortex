@@ -1,7 +1,5 @@
 import * as R from "ramda";
 
-import resolveNodeConflict from "./resolveNodeConflict";
-
 const createScalarHandlers = (type, scalars, db, id) =>
 	Object.assign(
 		{},
@@ -12,7 +10,6 @@ const createScalarHandlers = (type, scalars, db, id) =>
 						err ? fail(err) : done(dat),
 					),
 				)
-					.then(resolveNodeConflict)
 					.then(R.path(["value", "value"])),
 
 			[`${prop}Set`]: value => {
