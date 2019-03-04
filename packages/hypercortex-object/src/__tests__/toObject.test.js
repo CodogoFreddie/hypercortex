@@ -17,7 +17,7 @@ describe("toObject", () => {
 	});
 
 	beforeEach(done => {
-		db = hyperdb(ram, { valueEncoding: "json" });
+		db = hyperdb(ram, { valueEncoding: "json", reduce: a => a });
 
 		db.on("ready", () => {
 			const { testObject, testObjectAll } = testObjectSpecification(db);

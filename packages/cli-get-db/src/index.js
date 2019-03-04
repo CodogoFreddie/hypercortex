@@ -18,7 +18,29 @@ export const setNewKey = async key => {
 	await write(configPath, key);
 };
 
+const idsIKnowIHaveDeleted = ["dm", "kb"];
 const reduce = (l, r) => {
+	for (const id of idsIKnowIHaveDeleted) {
+		if (l.key.startsWith(`data/task/${id}`)) {
+			console.error(`${id} detected!, how did it get back here?!?!`);
+			console.error(
+				l.key
+					.split("/")
+					.slice(2)
+					.join("\t"),
+				l.deleted,
+				r.deleted,
+			);
+		}
+	}
+
+	if (l.deleted) {
+		return l;
+	}
+	if (r.deleted) {
+		return r;
+	}
+
 	if (!l.value) {
 		return r;
 	}
@@ -26,7 +48,12 @@ const reduce = (l, r) => {
 	if (!r.value) {
 		return l;
 	}
+
 	return l.value.modifiedAt > r.value.modifiedAt ? l : r;
+};
+
+const map = node => {
+	return node;
 };
 
 const getDb = async () => {
@@ -38,7 +65,11 @@ const getDb = async () => {
 		const keyBuffer = await read(configPath);
 		const key = keyBuffer.toString();
 		if (!key) {
-			const db = hyperdb(tempPath);
+			const db = hyperdb(tempPath, {
+				valueEncoding: "json",
+				reduce,
+				map,
+			});
 			await new Promise(done => db.on("ready", done));
 
 			const key = db.key.toString("hex");
@@ -55,6 +86,7 @@ const getDb = async () => {
 			const db = hyperdb(path.join(dataPath, key), {
 				valueEncoding: "json",
 				reduce,
+				map,
 			});
 			await new Promise(done => db.on("ready", done));
 			return db;
@@ -65,6 +97,7 @@ const getDb = async () => {
 				{
 					valueEncoding: "json",
 					reduce,
+					map,
 				},
 			);
 			await new Promise(done => db.on("ready", done));

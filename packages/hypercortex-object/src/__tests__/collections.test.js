@@ -24,7 +24,7 @@ describe("collections", () => {
 	});
 
 	beforeEach(done => {
-		db = hyperdb(ram, { valueEncoding: "json" });
+		db = hyperdb(ram, { valueEncoding: "json", reduce: a => a });
 
 		db.on("ready", () => {
 			objectTypeGenerator = testObjectSpecification(db).testObject;

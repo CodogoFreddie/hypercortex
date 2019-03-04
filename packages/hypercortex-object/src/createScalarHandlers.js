@@ -28,8 +28,10 @@ const createScalarHandlers = (type, scalars, db, id) =>
 
 			[`${prop}Delete`]: value => {
 				return new Promise((done, fail) =>
-					db.del(`data/${type}/${id}/${prop}`, (err, dat) =>
-						err ? fail(err) : done(dat),
+					db.put(
+						`data/${type}/${id}/${prop}`,
+						null,
+						(err, dat) => (err ? fail(err) : done(dat)),
 					),
 				);
 			},
