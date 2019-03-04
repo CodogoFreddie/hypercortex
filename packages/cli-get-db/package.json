@@ -1,6 +1,6 @@
 {
   "name": "@hypercortex/cli-get-db",
-  "version": "0.6.13",
+  "version": "0.6.15",
   "description": "lets you get the same db each time",
   "author": "Freddie Ridell <contact@freddieridell.com>",
   "homepage": "https://github.com/CodogoFreddie/hypercortex#readme",
