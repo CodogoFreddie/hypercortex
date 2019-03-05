@@ -18,21 +18,21 @@ export const setNewKey = async key => {
 	await write(configPath, key);
 };
 
-const idsIKnowIHaveDeleted = ["dm", "kb"];
 const reduce = (l, r) => {
-	for (const id of idsIKnowIHaveDeleted) {
-		if (l.key.startsWith(`data/task/${id}`)) {
-			console.error(`${id} detected!, how did it get back here?!?!`);
-			console.error(
-				l.key
-					.split("/")
-					.slice(2)
-					.join("\t"),
-				l.deleted,
-				r.deleted,
-			);
-		}
-	}
+	//const idsIKnowIHaveDeleted = ["dm", "kb"];
+	//for (const id of idsIKnowIHaveDeleted) {
+	//if (l.key.startsWith(`data/task/${id}`)) {
+	//console.error(`${id} detected!, how did it get back here?!?!`);
+	//console.error(
+	//l.key
+	//.split("/")
+	//.slice(2)
+	//.join("\t"),
+	//l.deleted,
+	//r.deleted,
+	//);
+	//}
+	//}
 
 	if (l.deleted) {
 		return l;
