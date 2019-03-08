@@ -1,6 +1,6 @@
 {
   "name": "@hypercortex/object-type-task",
-  "version": "0.6.15",
+  "version": "0.6.17",
   "keywords": [],
   "author": "Freddie Ridell <contact@freddieridell.com>",
   "license": "ISC",
@@ -54,6 +54,6 @@
     "useTabs": true
   },
   "dependencies": {
-    "@hypercortex/hypercortex-object": "^0.6.15"
+    "@hypercortex/hypercortex-object": "^0.6.17"
   }
 }
