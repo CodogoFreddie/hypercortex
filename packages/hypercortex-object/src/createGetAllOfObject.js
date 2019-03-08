@@ -24,8 +24,13 @@ const createGetAllOfObject = (type, db, getObject) => () => {
 			}
 
 			R.pipe(
+				R.reject(R.prop("deleted")),
 				R.map(
 					R.pipe(
+						//R.tap( x => {
+							//if(x.key.includes("task/ow")){
+								//console.log("found", x.key, x.deleted, x)
+							//}}),
 						R.prop("key"),
 						R.replace(`data/${type}/`, ""),
 						R.replace(/\/.+/, ""),

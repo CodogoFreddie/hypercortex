@@ -37,9 +37,9 @@
 		"build": "lerna run build --parallel --concurrency 4",
 		"format": "lerna run format --parallel",
 		"test": "lerna run test",
-		"clean": "lerna run clean",
+		"clean": "lerna run clean --parallel",
 		"watch": "lerna run watch --parallel --stream",
-		"pub": "npm run build && npm run format && lerna publish"
+		"pub": "npm run clean && npm run build && npm run format && lerna publish"
 	},
 	"name": "hypercortex",
 	"dependencies": {
