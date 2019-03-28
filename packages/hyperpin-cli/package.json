@@ -49,6 +49,7 @@
     "prepushOnly": "npm run format && && npm run test && npm run build"
   },
   "dependencies": {
+    "@babel/runtime": "^7.4.2",
     "@hypercortex/cli-get-db": "^0.6.16",
     "@hypercortex/easy-type-id": "^0.6.13",
     "@hypercortex/hyperbuddy": "^0.0.3",

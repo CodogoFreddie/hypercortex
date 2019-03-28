@@ -61,6 +61,7 @@
     "useTabs": true
   },
   "dependencies": {
+    "@babel/runtime": "^7.4.2",
     "env-paths": "^2.0.0",
     "hyperdb": "^3.5.0",
     "mkdirp": "^0.5.1"

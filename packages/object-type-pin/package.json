@@ -60,6 +60,7 @@
     "useTabs": true
   },
   "dependencies": {
+    "@babel/runtime": "^7.4.2",
     "@hypercortex/hypercortex-object": "^0.6.17"
   },
   "description": "> TODO: description"

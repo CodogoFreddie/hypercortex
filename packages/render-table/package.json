@@ -47,6 +47,7 @@
     "prepushOnly": "npm run format && && npm run test && npm run build"
   },
   "dependencies": {
+    "@babel/runtime": "^7.4.2",
     "babel-runtime": "^6.26.0",
     "window-size": "^1.1.1"
   },
