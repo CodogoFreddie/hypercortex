@@ -27,6 +27,7 @@
 		"build": "lerna run build --parallel --concurrency 4",
 		"format": "lerna run format --parallel",
 		"test": "lerna run test",
+		"test_watch": "lerna run test_watch --parallel --stream",
 		"clean": "lerna run clean --parallel",
 		"watch": "lerna run watch --parallel --stream",
 		"pub": "npm run clean && npm run build && npm run format && lerna publish"

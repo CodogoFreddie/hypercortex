@@ -25,8 +25,6 @@
     "format": "prettier --write src/**/*",
     "watch": "NODE_ENV=staging babel src --out-dir lib --watch",
     "clean": "rm -rf lib",
-    "test": "NODE_ENV=test jest --coverage true src test",
-    "test_watch": "NODE_ENV=test jest src test --watch --bail --runInBand",
     "prepushOnly": "npm run format && && npm run test && npm run build"
   },
   "bugs": {
