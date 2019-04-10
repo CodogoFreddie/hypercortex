@@ -9,18 +9,18 @@ describe("query", () => {
 
 	describe("plus tags", () => {
 		it("parses one", () => {
-			const response = parseCliArgs(["+foo"]);
+			const response = parseCliArgs(["modify","+foo"]);
 
 			expect(response).toMatchObject({
-				query: [{ plusTag: "foo" }],
+				mutation: [{ plusTag: "foo" }],
 			});
 		});
 
 		it("parses many", () => {
-			const response = parseCliArgs(["+foo", "+bar", "+baz"]);
+			const response = parseCliArgs(["modify","+foo", "+bar", "+baz"]);
 
 			expect(response).toMatchObject({
-				query: [
+				mutation: [
 					{ plusTag: "foo" },
 					{ plusTag: "bar" },
 					{ plusTag: "baz" },
@@ -31,18 +31,18 @@ describe("query", () => {
 
 	describe("minus tags", () => {
 		it("parses one", () => {
-			const response = parseCliArgs(["-foo"]);
+			const response = parseCliArgs(["modify","-foo"]);
 
 			expect(response).toMatchObject({
-				query: [{ minusTag: "foo" }],
+				mutation: [{ minusTag: "foo" }],
 			});
 		});
 
 		it("parses many", () => {
-			const response = parseCliArgs(["-foo", "-bar", "-baz"]);
+			const response = parseCliArgs(["modify","-foo", "-bar", "-baz"]);
 
 			expect(response).toMatchObject({
-				query: [
+				mutation: [
 					{ minusTag: "foo" },
 					{ minusTag: "bar" },
 					{ minusTag: "baz" },
@@ -53,18 +53,18 @@ describe("query", () => {
 
 	describe("strings", () => {
 		it("parses one", () => {
-			const response = parseCliArgs(["foo"]);
+			const response = parseCliArgs(["modify","foo"]);
 
 			expect(response).toMatchObject({
-				query: [{ string: "foo" }],
+				mutation: [{ string: "foo" }],
 			});
 		});
 
 		it("parses many", () => {
-			const response = parseCliArgs(["foo", "bar", "baz"]);
+			const response = parseCliArgs(["modify","foo", "bar", "baz"]);
 
 			expect(response).toMatchObject({
-				query: [
+				mutation: [
 					{ string: "foo" },
 					{ string: "bar" },
 					{ string: "baz" },
@@ -75,18 +75,18 @@ describe("query", () => {
 
 	describe("props", () => {
 		it("parses one", () => {
-			const response = parseCliArgs(["foo:bar"]);
+			const response = parseCliArgs(["modify","foo:bar"]);
 
 			expect(response).toMatchObject({
-				query: [{ prop: { foo: "bar" } }],
+				mutation: [{ prop: { foo: "bar" } }],
 			});
 		});
 
 		it("parses many", () => {
-			const response = parseCliArgs(["foo:bar", "baz:qux", "a:b"]);
+			const response = parseCliArgs(["modify","foo:bar", "baz:qux", "a:b"]);
 
 			expect(response).toMatchObject({
-				query: [
+				mutation: [
 					{ prop: { foo: "bar" } },
 					{ prop: { baz: "qux" } },
 					{ prop: { a: "b" } },
@@ -96,7 +96,7 @@ describe("query", () => {
 	});
 
 	it("parses a complex array of arguments", () => {
-		const response = parseCliArgs([
+		const response = parseCliArgs(["modify",
 			"due:now",
 			"recur:2d",
 			"+chores",
@@ -109,7 +109,7 @@ describe("query", () => {
 		]);
 
 		expect(response).toMatchObject({
-			query: [
+			mutation: [
 				{ prop: { due: "now" } },
 				{ prop: { recur: "2d" } },
 				{ plusTag: "chores" },
