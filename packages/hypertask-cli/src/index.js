@@ -16,6 +16,7 @@ import deleteCommand from "./commands/delete";
 import exportCommand from "./commands/export"
 
 import partitionCommandsAndArgs from "./util/parseArgs";
+import logTime from "./util/profileTime";
 
 const commandToFunction = {
 	add,
@@ -29,7 +30,9 @@ const commandToFunction = {
 };
 
 const main = async () => {
+	logTime("start");
 	const db = await getCortexDb();
+	logTime("gotDb");
 
 	console.log(`cortex: "${db.key.toString("hex")}"
 local:  "${db.local.key.toString("hex")}"`);
@@ -43,6 +46,7 @@ local:  "${db.local.key.toString("hex")}"`);
 		commandToFunction,
 	)(process.argv);
 
+	logTime("startCommand");
 	await (commandToFunction[command] || basicDisplay)({
 		filter,
 		modifications,
@@ -50,6 +54,7 @@ local:  "${db.local.key.toString("hex")}"`);
 		task,
 		db,
 	});
+	logTime("end");
 };
 
 try {
