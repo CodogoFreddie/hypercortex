@@ -5,6 +5,7 @@ import os from "os";
 import getCortexDb from "@hypercortex/cli-get-db";
 import createPin from "@hypercortex/object-type-pin";
 import createTelemetry from "@hypercortex/object-type-telemetry";
+import createParseCliArgs from "@hypercortex/parse-cli-args";
 
 import add from "./commands/add";
 import archive from "./commands/archive";
@@ -20,6 +21,8 @@ const commandToFunction = {
 	archive,
 };
 
+const parseCliArgs = createParseCliArgs(Object.keys(commandToFunction));
+
 const main = async () => {
 	const db = await getCortexDb();
 
@@ -29,11 +32,15 @@ local:  "${db.local.key.toString("hex")}"`);
 	const { pin, pinAll } = createPin(db);
 	const { telemetry } = createTelemetry(db);
 
-	telemetry(db.local.key.toString("hex")).nameSet(os.hostname());
+	const { query, command, mutation } = 
+	console.log(JSON.stringify(parseCliArgs(process.argv.slice(2)), null, 2));
+	
 
-	const command = process.argv.find( arg => Object.keys(commandToFunction).includes(arg) )
+	//telemetry(db.local.key.toString("hex")).nameSet(os.hostname());
 
-	await (commandToFunction[command || "basicDisplay"]({pin, pinAll}, ...process.argv.slice(2)));
+	//const command = process.argv.find( arg => Object.keys(commandToFunction).includes(arg) )
+
+	//await (commandToFunction[command || "basicDisplay"]({pin, pinAll}, ...process.argv.slice(2)));
 };
 
 try {

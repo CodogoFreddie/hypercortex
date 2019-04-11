@@ -25,7 +25,7 @@ const parseArg = R.cond([
 
 const parseArgs = R.map(parseArg);
 
-export default commands =>
+const parseCliArgs = commands =>
 	R.pipe(
 		R.splitWhen(arg => commands.includes(arg)),
 		([query, [command, ...mutation]]) => ({
@@ -37,4 +37,5 @@ export default commands =>
 			query: parseArgs,
 			mutation: parseArgs,
 		}),
-	);
+   );
+export default parseCliArgs;
