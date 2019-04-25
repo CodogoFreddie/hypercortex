@@ -1,0 +1,13 @@
+cortex: "b5b2432eb26648556c1e50281f50d4b91e7fca2a343d52c368d347d4324f04ca"
+local:  "b77da6edec2aa8ae51ff3c8dc584c40da51a9c3ae7aacf80e882c4d589167a95"
+Unhandled Rejection at: TypeError: Cannot read property 'get' of undefined
+    at R.curry (/Users/freddieridell/Documents/hypercortex/packages/render-table/lib/index.js:21:69)
+    at /Users/freddieridell/Documents/hypercortex/packages/render-table/node_modules/ramda/src/internal/_curryN.js:37:27
+    at /Users/freddieridell/Documents/hypercortex/packages/render-table/node_modules/ramda/src/internal/_arity.js:10:19
+    at /Users/freddieridell/Documents/hypercortex/packages/hypertask-cli/node_modules/ramda/src/internal/_pipe.js:3:14
+    at /Users/freddieridell/Documents/hypercortex/packages/hypertask-cli/node_modules/ramda/src/internal/_pipe.js:3:27
+    at /Users/freddieridell/Documents/hypercortex/packages/hypertask-cli/node_modules/ramda/src/internal/_arity.js:10:19
+    at /Users/freddieridell/Documents/hypercortex/packages/hypertask-cli/node_modules/ramda/src/internal/_pipe.js:3:14
+    at /Users/freddieridell/Documents/hypercortex/packages/hypertask-cli/node_modules/ramda/src/internal/_arity.js:10:19
+    at basicDisplay (/Users/freddieridell/Documents/hypercortex/packages/hypertask-cli/lib/commands/basicDisplay.js:34:54)
+    at process._tickCallback (internal/process/next_tick.js:68:7)

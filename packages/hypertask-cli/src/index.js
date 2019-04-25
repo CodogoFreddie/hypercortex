@@ -4,6 +4,7 @@ import os from "os";
 import getCortexDb from "@hypercortex/cli-get-db";
 import createTask from "@hypercortex/object-type-task";
 import createTelemetry from "@hypercortex/object-type-telemetry";
+import profilePromise, { printStamps } from "@hypercortex/profile-timestamp";
 
 import add from "./commands/add";
 import basicDisplay from "./commands/basicDisplay";
@@ -13,7 +14,7 @@ import modify from "./commands/modify";
 import snooze from "./commands/snooze";
 import share from "./commands/share";
 import deleteCommand from "./commands/delete";
-import exportCommand from "./commands/export"
+import exportCommand from "./commands/export";
 
 import partitionCommandsAndArgs from "./util/parseArgs";
 
@@ -29,10 +30,10 @@ const commandToFunction = {
 };
 
 const main = async () => {
-	const db = await getCortexDb();
+	const db = await profilePromise("getCortexDb", getCortexDb());
 
 	console.log(`cortex: "${db.key.toString("hex")}"
-local:  "${db.local.key.toString("hex")}"`);
+	local:  "${db.local.key.toString("hex")}"`);
 
 	const { task, taskAll } = createTask(db);
 	const { telemetry } = createTelemetry(db);
@@ -43,13 +44,15 @@ local:  "${db.local.key.toString("hex")}"`);
 		commandToFunction,
 	)(process.argv);
 
-	await (commandToFunction[command] || basicDisplay)({
+	await profilePromise("command", (commandToFunction[command] || basicDisplay)({
 		filter,
 		modifications,
 		taskAll,
 		task,
 		db,
-	});
+	}));
+
+	printStamps();
 };
 
 try {
