@@ -8,3 +8,11 @@ packages/*/lib
 packages/*/lib/
 packages/*/lib/*
 coverage
+
+
+#Added by cargo
+#
+#already existing elements are commented out
+
+/target
+**/*.rs.bk
