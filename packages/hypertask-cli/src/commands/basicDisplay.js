@@ -1,16 +1,14 @@
 import * as R from "ramda";
 
+import profilePromise from "@hypercortex/profile-timestamp";
+
 import renderTable from "../util/renderTable";
 import getObjectsMatchingFilter from "../util/getObjectsMatchingFilter";
-import logTime from "../util/profileTime";
 
 const basicDisplay = async ({ filter, modifications, taskAll, task }) => {
-	logTime("basicDisplay", "start")
-	const tasks = await getObjectsMatchingFilter(taskAll, task, filter, true);
-	logTime("basicDisplay", "tasks", "got")
+	const tasks = await profilePromise("getObjectsMatchingFilter", getObjectsMatchingFilter(taskAll, task, filter, true));
 
-	const taskObjs = await Promise.all(tasks.map(t => t.toJsObject()));
-	logTime("basicDisplay", "tasks", "mappedToObjects")
+	const taskObjs = await profilePromise("mapTasksToObjects", Promise.all(tasks.map(t => t.toJsObject())));
 
 	const nowString = new Date().toISOString();
 
@@ -23,7 +21,6 @@ const basicDisplay = async ({ filter, modifications, taskAll, task }) => {
 		),
 		renderTable,
 	)(taskObjs);
-	logTime("basicDisplay", "printed")
 };
 
 export default basicDisplay;

@@ -55,6 +55,7 @@
     "@hypercortex/object-type-task": "^0.6.17",
     "@hypercortex/object-type-telemetry": "^0.6.17",
     "@hypercortex/parse-cli-args": "^0.6.17",
+    "@hypercortex/profile-timestamp": "^0.6.17",
     "@hypercortex/render-table": "^0.6.13",
     "@hypercortex/uniq-prefixes": "^0.6.13",
     "babel-runtime": "^6.26.0",

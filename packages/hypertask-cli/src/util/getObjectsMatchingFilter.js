@@ -1,5 +1,7 @@
 import * as R from "ramda";
 
+import profilePromise from "@hypercortex/profile-timestamp";
+
 const getObjectsMatchingFilter = async (
 	taskAll,
 	task,
@@ -19,26 +21,29 @@ const getObjectsMatchingFilter = async (
 		R.map(R.prop("plus")),
 	)(filter);
 
-	const tasks = await taskAll();
+	const tasks = await profilePromise("getAllTasks", taskAll());
 
 	if (ids.length === 0 && filterTags.length === 0 && safe) {
 		return tasks;
 	}
 
-	const taskObjs = await Promise.all(
-		tasks.map(t =>
-			Promise.all([t.idGet(), t.tagsGet()]).then(([id, tags]) => {
-				if (
-					ids.some(idPrefix => id.startsWith(idPrefix)) ||
-					R.intersection(tags, filterTags).length > 0
-				) {
-					return t;
-				} else {
-					return false;
-				}
-			}),
-		),
-	).then(R.filter(Boolean));
+	const taskObjs = await profilePromise(
+		"filterTasks",
+		Promise.all(
+			tasks.map(t =>
+				Promise.all([t.idGet(), t.tagsGet()]).then(([id, tags]) => {
+					if (
+						ids.some(idPrefix => id.startsWith(idPrefix)) ||
+						R.intersection(tags, filterTags).length > 0
+					) {
+						return t;
+					} else {
+						return false;
+					}
+				}),
+			),
+		).then(R.filter(Boolean)),
+	);
 
 	return taskObjs;
 };
