@@ -1,4 +1,4 @@
-use engine::{Id, Mutation, Period, Prop, Query, Tag};
+use hypercortex_engine::{Id, Mutation, Period, Prop, Query, Tag};
 
 mod command;
 use command::Command;

@@ -7,5 +7,10 @@ pub enum Query {
 }
 
 impl Query {
-    pub fn from_string(string: &String) -> Err<Query, String> {}
+    pub fn from_string(string: String) -> Query {
+        match Tag::new(string.clone()) {
+            Ok(tag) => Query::Tag(tag),
+            Err(e) => Query::Id(Id::create(string)),
+        }
+    }
 }

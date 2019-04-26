@@ -1,5 +1,5 @@
 [package]
-name = "engine"
+name = "hypercortex_engine"
 version = "0.1.0"
 authors = ["Freddie Ridell <contact@freddieridell.com>"]
 edition = "2018"

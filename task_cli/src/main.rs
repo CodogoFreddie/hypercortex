@@ -1,4 +1,4 @@
-extern crate engine;
+extern crate hypercortex_engine;
 
 mod parse_args;
 
