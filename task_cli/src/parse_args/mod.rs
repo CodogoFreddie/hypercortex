@@ -1,4 +1,4 @@
-use hypercortex_engine::{Id, Mutation, Period, Prop, Query, Tag};
+use hypercortex_engine::{Id, Mutation, Period, PrimitiveParsingError, Prop, Query, Sign, Tag};
 
 mod command;
 use command::Command;
@@ -39,19 +39,32 @@ impl ParsedArgs {
     }
 
     fn parse_query_strings(strings: &Option<Vec<String>>) -> Option<Vec<Query>> {
-        if let None = strings {
-            return None;
+        match strings {
+            None => None,
+            Some(strings) => Some(
+                strings
+                    .iter()
+                    .map(|string| Query::from_string(string.clone()))
+                    .collect(),
+            ),
         }
-
-        Some(Vec::new())
     }
 
     fn parse_mutation_strings(strings: &Option<Vec<String>>) -> Option<Vec<Mutation>> {
-        if let None = strings {
-            return None;
-        }
+        match strings {
+            None => None,
+            Some(strings) => {
+                let result = strings
+                    .iter()
+                    .map(|string| Mutation::from_string(string.clone()))
+                    .collect();
 
-        Some(Vec::new())
+                match result {
+                    Err(e) => panic!(e),
+                    Ok(mutations) => Some(mutations),
+                }
+            }
+        }
     }
 
     pub fn new(raw_args: Vec<String>) -> Self {
@@ -104,5 +117,58 @@ mod test {
 
         assert_eq!(parsed.command, Some(Command::Modify));
         assert_eq!(parsed.mutations, None);
+    }
+
+    #[test]
+    fn can_parse_with_no_command() {
+        let parsed = ParsedArgs::new(vec![String::from("_1_"), String::from("_2_")]);
+
+        assert_eq!(parsed.command, None);
+    }
+
+    #[test]
+    fn can_parse_queries() {
+        let parsed = ParsedArgs::new(vec![
+            String::from("+foo"),
+            String::from("-bar"),
+            String::from("123baz"),
+            String::from("qux456"),
+        ]);
+
+        assert_eq!(
+            parsed.queries,
+            Some(vec![
+                Query::Tag(Tag::new(String::from("foo"), Sign::Plus)),
+                Query::Tag(Tag::new(String::from("bar"), Sign::Minus)),
+                Query::Id(Id::new(String::from("123baz"))),
+                Query::Id(Id::new(String::from("qux456"))),
+            ])
+        )
+    }
+
+    #[test]
+    fn can_parse_mutations() {
+        let parsed = ParsedArgs::new(vec![
+            String::from("add"),
+            String::from("+foo"),
+            String::from("-bar"),
+            String::from("this"),
+            String::from("is"),
+            String::from("description"),
+            String::from("due:now"),
+            String::from("wait:2019-02-03"),
+            String::from("sleep:1d"),
+        ]);
+
+        assert_eq!(
+            parsed.mutations,
+            Some(vec![
+                Mutation::Tag(Tag::new(String::from("foo"), Sign::Plus)),
+                Mutation::Tag(Tag::new(String::from("bar"), Sign::Minus)),
+                Mutation::PlainText(String::from("this")),
+                Mutation::PlainText(String::from("is")),
+                Mutation::PlainText(String::from("description")),
+            ])
+        )
     }
 }

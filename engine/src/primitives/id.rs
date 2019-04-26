@@ -10,7 +10,6 @@ pub struct Id {
 }
 
 fn get_easy_type_id(n: u8) -> String {
-    let words = "helloworld";
     let mut result = String::new();
 
     for _ in 0..n {
@@ -32,7 +31,7 @@ impl Id {
         }
     }
 
-    pub fn create(content: String) -> Self {
+    pub fn new(content: String) -> Self {
         Self { content }
     }
 }

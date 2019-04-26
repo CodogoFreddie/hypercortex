@@ -13,7 +13,10 @@ pub struct Tag {
 }
 
 impl Tag {
-    pub fn new(mut source: String) -> Result<Self, String> {
+    pub fn new(content: String, sign: Sign) -> Self {
+        Self { content, sign }
+    }
+    pub fn from_string(mut source: String) -> Result<Self, String> {
         let sign = match source.remove(0) {
             '+' => Sign::Plus,
             '-' => Sign::Minus,
@@ -43,24 +46,12 @@ mod test {
 
     #[test]
     fn can_construct_from_string() {
-        let plus_foo = Tag::new(String::from("+foo"));
+        let plus_foo = Tag::from_string(String::from("+foo"));
 
-        assert_eq!(
-            plus_foo,
-            Ok(Tag {
-                sign: Sign::Plus,
-                content: String::from("foo")
-            })
-        );
+        assert_eq!(plus_foo, Ok(Tag::new(String::from("foo"), Sign::Plus,)));
 
-        let minus_bar = Tag::new(String::from("-bar"));
+        let minus_bar = Tag::from_string(String::from("-bar"));
 
-        assert_eq!(
-            minus_bar,
-            Ok(Tag {
-                sign: Sign::Minus,
-                content: String::from("bar")
-            })
-        );
+        assert_eq!(minus_bar, Ok(Tag::new(String::from("bar"), Sign::Minus,)));
     }
 }

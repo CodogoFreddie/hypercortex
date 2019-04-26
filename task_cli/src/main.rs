@@ -8,5 +8,5 @@ use std::env;
 fn main() {
     let args: Vec<_> = env::args().collect();
 
-    let input = ParsedArgs::new(args);
+    let _input = ParsedArgs::new(args);
 }

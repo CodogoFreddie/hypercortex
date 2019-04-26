@@ -8,9 +8,9 @@ pub enum Query {
 
 impl Query {
     pub fn from_string(string: String) -> Query {
-        match Tag::new(string.clone()) {
+        match Tag::from_string(string.clone()) {
             Ok(tag) => Query::Tag(tag),
-            Err(e) => Query::Id(Id::create(string)),
+            Err(e) => Query::Id(Id::new(string)),
         }
     }
 }
