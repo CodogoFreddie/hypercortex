@@ -61,6 +61,19 @@ impl Prop {
         Ok(wrapper(wrapped))
     }
 
+    fn parse_date_time_like(
+        wrapper: &Fn(Option<AbstractDate>) -> Prop,
+        _name: &str,
+        string: &str,
+        get_now: &Fn() -> DateTime<Utc>,
+    ) -> Result<Prop, PrimitiveParsingError> {
+        if string.len() == 0 {
+            return Ok(wrapper(None));
+        }
+
+        Ok(wrapper(Some(AbstractDate::Definite(get_now()))))
+    }
+
     /// tries to parse a string to a prop
     /// returns None if the string is not a prop
     /// returns Some(Err) if the string is a malformed prop
@@ -88,6 +101,12 @@ impl Prop {
                         Prop::parse_plain(&Prop::Description, &prop_name, &prop_value_raw)
                     }
                     "archived" => Prop::parse_boolean(&Prop::Archived, &prop_name, &prop_value_raw),
+                    "due" => Prop::parse_date_time_like(
+                        &Prop::Due,
+                        &prop_name,
+                        &prop_value_raw,
+                        &get_now,
+                    ),
 
                     _ => Err(PrimitiveParsingError::UnknownProp(String::from(string))),
                 };
@@ -167,6 +186,12 @@ mod test {
                 assert_eq!(
                     Prop::from_string(&mock_get_now, "done:"),
                     Some(Ok(Prop::Done(None)))
+                );
+                assert_eq!(
+                    Prop::from_string(&mock_get_now, "done:foo"),
+                    Some(Err(PrimitiveParsingError::MalformedDateLike(String::from(
+                        "done:foo"
+                    ))))
                 );
             }
 

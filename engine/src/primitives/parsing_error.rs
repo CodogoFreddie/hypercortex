@@ -2,8 +2,9 @@ use std::{error::Error, fmt};
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum PrimitiveParsingError {
-    UnknownProp(String),
     MalformedBoolean(String),
+    MalformedDateLike(String),
+    UnknownProp(String),
 }
 
 impl Error for PrimitiveParsingError {}
@@ -13,8 +14,13 @@ impl fmt::Display for PrimitiveParsingError {
         use PrimitiveParsingError::*;
 
         match self {
-            UnknownProp(token) => write!(f, "the prop `{}` is not a known prop", token),
             MalformedBoolean(token) => write!(f, "the prop `{}` is not a valid boolean", token),
+            MalformedDateLike(token) => write!(
+                f,
+                "the prop `{}` is not a valid date/time or date/time shortcut",
+                token
+            ),
+            UnknownProp(token) => write!(f, "the prop `{}` is not a known prop", token),
         }
     }
 }
