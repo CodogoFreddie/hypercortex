@@ -63,7 +63,7 @@ impl Prop {
 
     fn parse_date_time_like(
         wrapper: &Fn(Option<AbstractDate>) -> Prop,
-        _name: &str,
+        name: &str,
         string: &str,
         get_now: &Fn() -> DateTime<Utc>,
     ) -> Result<Prop, PrimitiveParsingError> {
@@ -71,7 +71,14 @@ impl Prop {
             return Ok(wrapper(None));
         }
 
-        Ok(wrapper(Some(AbstractDate::Definite(get_now()))))
+        match string {
+            "" => Ok(wrapper(None)),
+            "now" => Ok(wrapper(Some(AbstractDate::Definite(get_now())))),
+            _ => Err(PrimitiveParsingError::MalformedDateLike(format!(
+                "{}:{}",
+                name, string
+            ))),
+        }
     }
 
     /// tries to parse a string to a prop
@@ -103,6 +110,12 @@ impl Prop {
                     "archived" => Prop::parse_boolean(&Prop::Archived, &prop_name, &prop_value_raw),
                     "due" => Prop::parse_date_time_like(
                         &Prop::Due,
+                        &prop_name,
+                        &prop_value_raw,
+                        &get_now,
+                    ),
+                    "done" => Prop::parse_date_time_like(
+                        &Prop::Done,
                         &prop_name,
                         &prop_value_raw,
                         &get_now,
@@ -204,6 +217,12 @@ mod test {
                 assert_eq!(
                     Prop::from_string(&mock_get_now, "due:"),
                     Some(Ok(Prop::Due(None)))
+                );
+                assert_eq!(
+                    Prop::from_string(&mock_get_now, "due:foo"),
+                    Some(Err(PrimitiveParsingError::MalformedDateLike(String::from(
+                        "due:foo"
+                    ))))
                 );
             }
 
