@@ -120,6 +120,18 @@ impl Prop {
                         &prop_value_raw,
                         &get_now,
                     ),
+                    "snooze" => Prop::parse_date_time_like(
+                        &Prop::Snooze,
+                        &prop_name,
+                        &prop_value_raw,
+                        &get_now,
+                    ),
+                    "wait" => Prop::parse_date_time_like(
+                        &Prop::Wait,
+                        &prop_name,
+                        &prop_value_raw,
+                        &get_now,
+                    ),
 
                     _ => Err(PrimitiveParsingError::UnknownProp(String::from(string))),
                 };
@@ -250,6 +262,12 @@ mod test {
                     Prop::from_string(&mock_get_now, "snooze:"),
                     Some(Ok(Prop::Snooze(None)))
                 );
+                assert_eq!(
+                    Prop::from_string(&mock_get_now, "snooze:foo"),
+                    Some(Err(PrimitiveParsingError::MalformedDateLike(String::from(
+                        "snooze:foo"
+                    ))))
+                );
             }
 
             #[test]
@@ -261,6 +279,12 @@ mod test {
                 assert_eq!(
                     Prop::from_string(&mock_get_now, "wait:"),
                     Some(Ok(Prop::Wait(None)))
+                );
+                assert_eq!(
+                    Prop::from_string(&mock_get_now, "wait:foo"),
+                    Some(Err(PrimitiveParsingError::MalformedDateLike(String::from(
+                        "wait:foo"
+                    ))))
                 );
             }
         }
