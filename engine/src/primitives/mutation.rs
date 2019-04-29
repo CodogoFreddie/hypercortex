@@ -1,6 +1,11 @@
 use super::parsing_error::PrimitiveParsingError;
 use super::{Prop, Tag};
+use chrono::prelude::*;
 use std::{error::Error, fmt};
+
+fn get_now() -> DateTime<Utc> {
+    Utc::now()
+}
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Mutation {
@@ -17,7 +22,7 @@ impl Mutation {
             return Ok(Mutation::Tag(tag));
         }
 
-        let try_prop = Prop::from_string(string.clone());
+        let try_prop = Prop::from_string(&get_now, &string[..]);
 
         match try_prop {
             None => Ok(Mutation::PlainText(string)),

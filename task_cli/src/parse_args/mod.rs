@@ -41,29 +41,14 @@ impl ParsedArgs {
     fn parse_query_strings(strings: &Option<Vec<String>>) -> Option<Vec<Query>> {
         match strings {
             None => None,
-            Some(strings) => Some(
-                strings
-                    .iter()
-                    .map(|string| Query::from_string(string.clone()))
-                    .collect(),
-            ),
+            Some(_) => Some(Vec::new()),
         }
     }
 
     fn parse_mutation_strings(strings: &Option<Vec<String>>) -> Option<Vec<Mutation>> {
         match strings {
             None => None,
-            Some(strings) => {
-                let result = strings
-                    .iter()
-                    .map(|string| Mutation::from_string(string.clone()))
-                    .collect();
-
-                match result {
-                    Err(e) => panic!(e),
-                    Ok(mutations) => Some(mutations),
-                }
-            }
+            Some(_) => Some(Vec::new()),
         }
     }
 
@@ -142,32 +127,6 @@ mod test {
                 Query::Tag(Tag::new(String::from("bar"), Sign::Minus)),
                 Query::Id(Id::new(String::from("123baz"))),
                 Query::Id(Id::new(String::from("qux456"))),
-            ])
-        )
-    }
-
-    #[test]
-    fn can_parse_mutations() {
-        let parsed = ParsedArgs::new(vec![
-            String::from("add"),
-            String::from("+foo"),
-            String::from("-bar"),
-            String::from("this"),
-            String::from("is"),
-            String::from("description"),
-            String::from("due:now"),
-            String::from("wait:2019-02-03"),
-            String::from("sleep:1d"),
-        ]);
-
-        assert_eq!(
-            parsed.mutations,
-            Some(vec![
-                Mutation::Tag(Tag::new(String::from("foo"), Sign::Plus)),
-                Mutation::Tag(Tag::new(String::from("bar"), Sign::Minus)),
-                Mutation::PlainText(String::from("this")),
-                Mutation::PlainText(String::from("is")),
-                Mutation::PlainText(String::from("description")),
             ])
         )
     }
