@@ -4,6 +4,8 @@ use std::{error::Error, fmt};
 pub enum PrimitiveParsingError {
     MalformedBoolean(String),
     MalformedDateLike(String),
+    MalformedPeriod(String),
+    MalformedRecur(String),
     UnknownProp(String),
 }
 
@@ -20,7 +22,13 @@ impl fmt::Display for PrimitiveParsingError {
                 "the prop `{}` is not a valid date/time or date/time shortcut",
                 token
             ),
+            MalformedPeriod(token) => write!(f, "the period `{}` is not in a valid format", token),
+            MalformedRecur(token) => {
+                write!(f, "the prop `{}` is not in a valid recur format", token)
+            }
             UnknownProp(token) => write!(f, "the prop `{}` is not a known prop", token),
         }
     }
 }
+
+pub type PrimitiveParsingResult<T> = Result<T, PrimitiveParsingError>;

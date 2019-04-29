@@ -81,6 +81,24 @@ impl Prop {
         }
     }
 
+    fn parse_period(
+        wrapper: &Fn(Option<Period>) -> Prop,
+        name: &str,
+        string: &str,
+    ) -> Result<Prop, PrimitiveParsingError> {
+        if string.len() == 0 {
+            return Ok(wrapper(None));
+        }
+
+        match Period::from_string(string) {
+            Err(e) => Err(PrimitiveParsingError::MalformedRecur(format!(
+                "{}:{}",
+                name, string
+            ))),
+            Ok(o) => Ok(wrapper(Some(o))),
+        }
+    }
+
     /// tries to parse a string to a prop
     /// returns None if the string is not a prop
     /// returns Some(Err) if the string is a malformed prop
@@ -132,6 +150,7 @@ impl Prop {
                         &prop_value_raw,
                         &get_now,
                     ),
+                    "recur" => Prop::parse_period(&Prop::Recur, &prop_name, &prop_value_raw),
 
                     _ => Err(PrimitiveParsingError::UnknownProp(String::from(string))),
                 };
@@ -247,6 +266,12 @@ mod test {
                 assert_eq!(
                     Prop::from_string(&mock_get_now, "recur:"),
                     Some(Ok(Prop::Recur(None)))
+                );
+                assert_eq!(
+                    Prop::from_string(&mock_get_now, "recur:foo"),
+                    Some(Err(PrimitiveParsingError::MalformedRecur(String::from(
+                        "recur:foo"
+                    ))))
                 );
             }
 
