@@ -25,23 +25,31 @@ pub enum Prop {
 }
 
 impl Prop {
-    fn parse_boolean(string: &str) -> Result<Option<bool>, ()> {
-        match string {
-            "true" => Ok(Some(true)),
-            "t" => Ok(Some(true)),
-            "yes" => Ok(Some(true)),
-            "y" => Ok(Some(true)),
-            "false" => Ok(Some(false)),
-            "f" => Ok(Some(false)),
-            "no" => Ok(Some(false)),
-            "n" => Ok(Some(false)),
-            "" => Ok(None),
-            _ => Err(()),
+    fn parse_boolean(
+        wrapper: &Fn(Option<bool>) -> Prop,
+        name: &str,
+        value: &str,
+    ) -> Result<Prop, PrimitiveParsingError> {
+        match value {
+            "true" => Ok(wrapper(Some(true))),
+            "t" => Ok(wrapper(Some(true))),
+            "yes" => Ok(wrapper(Some(true))),
+            "y" => Ok(wrapper(Some(true))),
+            "false" => Ok(wrapper(Some(false))),
+            "f" => Ok(wrapper(Some(false))),
+            "no" => Ok(wrapper(Some(false))),
+            "n" => Ok(wrapper(Some(false))),
+            "" => Ok(wrapper(None)),
+            _ => Err(PrimitiveParsingError::MalformedBoolean(format!(
+                "{}:{}",
+                name, value
+            ))),
         }
     }
 
     fn parse_plain(
         wrapper: &Fn(Option<String>) -> Prop,
+        _name: &str,
         string: &str,
     ) -> Result<Prop, PrimitiveParsingError> {
         let wrapped = if string.len() == 0 {
@@ -76,7 +84,10 @@ impl Prop {
                 let prop_value_raw = &string[i + 1..];
 
                 let parsed = match prop_name {
-                    "description" => Prop::parse_plain(&Prop::Description, &prop_value_raw),
+                    "description" => {
+                        Prop::parse_plain(&Prop::Description, &prop_name, &prop_value_raw)
+                    }
+                    "archived" => Prop::parse_boolean(&Prop::Archived, &prop_name, &prop_value_raw),
 
                     _ => Err(PrimitiveParsingError::UnknownProp(String::from(string))),
                 };
@@ -126,6 +137,12 @@ mod test {
                 assert_eq!(
                     Prop::from_string(&mock_get_now, "archived:"),
                     Some(Ok(Prop::Archived(None)))
+                );
+                assert_eq!(
+                    Prop::from_string(&mock_get_now, "archived:foo"),
+                    Some(Err(PrimitiveParsingError::MalformedBoolean(String::from(
+                        "archived:foo"
+                    ))))
                 );
             }
 
