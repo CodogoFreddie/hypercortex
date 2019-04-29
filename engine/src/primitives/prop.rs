@@ -25,14 +25,6 @@ pub enum Prop {
 }
 
 impl Prop {
-    fn parse_plain(string: &str) -> Option<String> {
-        if string.len() == 0 {
-            None
-        } else {
-            Some(String::from(string))
-        }
-    }
-
     fn parse_boolean(string: &str) -> Result<Option<bool>, ()> {
         match string {
             "true" => Ok(Some(true)),
@@ -46,6 +38,19 @@ impl Prop {
             "" => Ok(None),
             _ => Err(()),
         }
+    }
+
+    fn parse_plain(
+        wrapper: &Fn(Option<String>) -> Prop,
+        string: &str,
+    ) -> Result<Prop, PrimitiveParsingError> {
+        let wrapped = if string.len() == 0 {
+            None
+        } else {
+            Some(String::from(string))
+        };
+
+        Ok(wrapper(wrapped))
     }
 
     /// tries to parse a string to a prop
@@ -70,22 +75,13 @@ impl Prop {
                 let prop_name = &string[..i];
                 let prop_value_raw = &string[i + 1..];
 
-                match prop_name {
-                    "description" => {
-                        Some(Ok(Prop::Description(Prop::parse_plain(&prop_value_raw))))
-                    }
+                let parsed = match prop_name {
+                    "description" => Prop::parse_plain(&Prop::Description, &prop_value_raw),
 
-                    "archived" => match Prop::parse_boolean(&prop_value_raw) {
-                        Ok(x) => Some(Ok(Prop::Archived(x))),
-                        Err(_) => Some(Err(PrimitiveParsingError::MalformedBoolean(String::from(
-                            string,
-                        )))),
-                    },
+                    _ => Err(PrimitiveParsingError::UnknownProp(String::from(string))),
+                };
 
-                    _ => Some(Err(PrimitiveParsingError::UnknownProp(String::from(
-                        string,
-                    )))),
-                }
+                Some(parsed)
             }
         }
     }
