@@ -4,7 +4,7 @@ use std::fmt;
 
 pub enum AbstractDate {
     Definite(DateTime<Utc>),
-    Deferred(&'static Fn(&[DateTime<Utc>]) -> DateTime<Utc>),
+    Deferred(Box<Fn(&[DateTime<Utc>]) -> DateTime<Utc>>),
 }
 
 impl AbstractDate {

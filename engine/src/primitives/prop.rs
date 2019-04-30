@@ -1,7 +1,15 @@
 use super::abstract_date::AbstractDate;
-use super::parsing_error::PrimitiveParsingError;
+use super::parsing_error::{PrimitiveParsingError, PrimitiveParsingResult};
 use super::period::Period;
 use chrono::prelude::*;
+use regex::Regex;
+
+fn parse_as_partial_iso(
+    get_now: &Fn() -> DateTime<Utc>,
+    _string: &str,
+) -> PrimitiveParsingResult<DateTime<Utc>> {
+    Ok(get_now())
+}
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Prop {
@@ -71,13 +79,42 @@ impl Prop {
             return Ok(wrapper(None));
         }
 
-        match string {
-            "" => Ok(wrapper(None)),
-            "now" => Ok(wrapper(Some(AbstractDate::Definite(get_now())))),
+        //attempts to parse the string through various different parsers in turn untill it
+        //eventually gives up and returns an Err
+
+        let parsed = match string {
+            //first check for simple string matches
+            "now" => Ok(AbstractDate::Definite(get_now())),
+            "soon" => Ok(AbstractDate::Deferred(Box::new(
+                |ds: &[DateTime<Utc>]| ds[0],
+            ))),
             _ => Err(PrimitiveParsingError::MalformedDateLike(format!(
                 "{}:{}",
                 name, string
             ))),
+        }
+        .or_else(|e| {
+            let date = parse_as_partial_iso(get_now, &string)?;
+
+            Ok(AbstractDate::Definite(date))
+        })
+        .or_else(|e: PrimitiveParsingError| {
+            //try to parse as a period
+            let period = Period::from_string(string)?;
+
+            Ok(AbstractDate::Definite(get_now() + period.to_duration()))
+        })
+        .or_else(|_: PrimitiveParsingError| {
+            //if all this has failed, we should return an error saying so
+            Err(PrimitiveParsingError::MalformedDateLike(format!(
+                "{}:{}",
+                name, string
+            )))
+        });
+
+        match parsed {
+            Ok(x) => Ok(wrapper(Some(x))),
+            Err(e) => Err(e),
         }
     }
 
@@ -185,6 +222,16 @@ mod test {
                 Some(Err(PrimitiveParsingError::UnknownProp(String::from(
                     "foo:bar"
                 ))))
+            );
+        }
+
+        #[test]
+        fn parses_various_date_formats() {
+            assert_eq!(
+                Prop::from_string(&mock_get_now, "due:2018"),
+                Some(Ok(Prop::Due(Some(AbstractDate::Definite(
+                    Utc.ymd(2018, 0, 0).and_hms(0, 0, 0)
+                )))))
             );
         }
 
