@@ -8,7 +8,7 @@ pub enum AbstractDate {
 }
 
 impl AbstractDate {
-    fn resolve(self, dates: &[DateTime<Utc>]) -> DateTime<Utc> {
+    pub fn resolve(self, dates: &[DateTime<Utc>]) -> DateTime<Utc> {
         match self {
             AbstractDate::Definite(x) => x,
             AbstractDate::Deferred(func) => func(dates),

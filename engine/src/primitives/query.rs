@@ -1,5 +1,5 @@
 use super::id::Id;
-use super::parsing_error::{PrimitiveParsingError, PrimitiveParsingResult};
+use super::parsing_error::PrimitiveParsingResult;
 use super::tag::Tag;
 
 #[derive(Debug, Eq, PartialEq)]

@@ -129,12 +129,12 @@ impl Prop {
                 name, string
             ))),
         }
-        .or_else(|e| {
+        .or_else(|_| {
             let date = parse_as_partial_iso(get_now, &string)?;
 
             Ok(AbstractDate::Definite(date))
         })
-        .or_else(|e: PrimitiveParsingError| {
+        .or_else(|_: PrimitiveParsingError| {
             //try to parse as a period
             let period = Period::from_string(string)?;
 
@@ -164,7 +164,7 @@ impl Prop {
         }
 
         match Period::from_string(string) {
-            Err(e) => Err(PrimitiveParsingError::MalformedRecur(format!(
+            Err(_) => Err(PrimitiveParsingError::MalformedRecur(format!(
                 "{}:{}",
                 name, string
             ))),

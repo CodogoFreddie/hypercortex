@@ -5,9 +5,9 @@ use command::Command;
 use hypercortex_engine::*;
 
 pub struct ParsedArgs {
-    command: Option<Command>,
-    mutations: Option<Vec<Mutation>>,
-    queries: Option<Vec<Query>>,
+    pub command: Option<Command>,
+    pub mutations: Option<Vec<Mutation>>,
+    pub queries: Option<Vec<Query>>,
 }
 
 impl ParsedArgs {
