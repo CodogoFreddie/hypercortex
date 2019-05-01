@@ -1,3 +1,4 @@
+use super::parsing_error::{PrimitiveParsingError, PrimitiveParsingResult};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Debug, Eq, PartialEq)]
@@ -13,14 +14,19 @@ pub struct Tag {
 }
 
 impl Tag {
-    pub fn new(content: String, sign: Sign) -> Self {
-        Self { content, sign }
+    pub fn new(content: &str, sign: Sign) -> Self {
+        Self {
+            content: String::from(content),
+            sign,
+        }
     }
-    pub fn from_string(mut source: String) -> Result<Self, String> {
+    pub fn from_string(source_str: &str) -> PrimitiveParsingResult<Self> {
+        let mut source = String::from(source_str);
+
         let sign = match source.remove(0) {
             '+' => Sign::Plus,
             '-' => Sign::Minus,
-            _ => return Err(format!("can not parse tag {}", source)),
+            _ => return Err(PrimitiveParsingError::MalformedTag(source)),
         };
 
         Ok(Self {
@@ -46,12 +52,12 @@ mod test {
 
     #[test]
     fn can_construct_from_string() {
-        let plus_foo = Tag::from_string(String::from("+foo"));
+        let plus_foo = Tag::from_string("+foo");
 
-        assert_eq!(plus_foo, Ok(Tag::new(String::from("foo"), Sign::Plus,)));
+        assert_eq!(plus_foo, Ok(Tag::new("foo", Sign::Plus,)));
 
-        let minus_bar = Tag::from_string(String::from("-bar"));
+        let minus_bar = Tag::from_string("-bar");
 
-        assert_eq!(minus_bar, Ok(Tag::new(String::from("bar"), Sign::Minus,)));
+        assert_eq!(minus_bar, Ok(Tag::new("bar", Sign::Minus,)));
     }
 }

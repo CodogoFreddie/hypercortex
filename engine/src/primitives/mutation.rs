@@ -15,8 +15,8 @@ pub enum Mutation {
 }
 
 impl Mutation {
-    pub fn from_string(string: String) -> Result<Mutation, PrimitiveParsingError> {
-        let try_tag = Tag::from_string(string.clone());
+    pub fn from_string(string: &str) -> Result<Mutation, PrimitiveParsingError> {
+        let try_tag = Tag::from_string(string);
 
         if let Ok(tag) = try_tag {
             return Ok(Mutation::Tag(tag));
@@ -25,7 +25,7 @@ impl Mutation {
         let try_prop = Prop::from_string(&get_now, &string[..]);
 
         match try_prop {
-            None => Ok(Mutation::PlainText(string)),
+            None => Ok(Mutation::PlainText(String::from(string))),
             Some(Ok(prop)) => Ok(Mutation::Prop(prop)),
             Some(Err(e)) => Err(e),
         }

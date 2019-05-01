@@ -31,8 +31,10 @@ impl Id {
         }
     }
 
-    pub fn new(content: String) -> Self {
-        Self { content }
+    pub fn new(content: &str) -> Self {
+        Self {
+            content: String::from(content),
+        }
     }
 }
 

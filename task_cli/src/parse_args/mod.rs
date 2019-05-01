@@ -1,4 +1,6 @@
-use hypercortex_engine::{Id, Mutation, Period, PrimitiveParsingError, Prop, Query, Sign, Tag};
+use hypercortex_engine::{
+    Id, Mutation, Period, PrimitiveParsingError, PrimitiveParsingResult, Prop, Query, Sign, Tag,
+};
 
 mod command;
 use command::Command;
@@ -38,11 +40,8 @@ impl ParsedArgs {
         return (Some(raw_args.clone()), None, None);
     }
 
-    fn parse_query_strings(strings: &Option<Vec<String>>) -> Option<Vec<Query>> {
-        match strings {
-            None => None,
-            Some(_) => Some(Vec::new()),
-        }
+    fn parse_query_strings(strings: &Vec<String>) -> PrimitiveParsingResult<Vec<Query>> {
+        strings.iter().map(|s| Query::from_string(&s[..])).collect()
     }
 
     fn parse_mutation_strings(strings: &Option<Vec<String>>) -> Option<Vec<Mutation>> {
@@ -52,14 +51,19 @@ impl ParsedArgs {
         }
     }
 
-    pub fn new(raw_args: Vec<String>) -> Self {
+    pub fn new(raw_args: Vec<String>) -> PrimitiveParsingResult<Self> {
         let (query_strings, command, mutation_strings) = ParsedArgs::partition_args(&raw_args);
 
-        Self {
+        let queries = match query_strings {
+            None => None,
+            Some(qs) => Some(ParsedArgs::parse_query_strings(&qs)?),
+        };
+
+        Ok(Self {
             command,
             mutations: ParsedArgs::parse_mutation_strings(&mutation_strings),
-            queries: ParsedArgs::parse_query_strings(&query_strings),
-        }
+            queries,
+        })
     }
 }
 
@@ -73,7 +77,8 @@ mod test {
             String::from("add"),
             String::from("_3_"),
             String::from("_4_"),
-        ]);
+        ])
+        .unwrap();
 
         assert_eq!(parsed.queries, None);
         assert_eq!(parsed.command, Some(Command::Add));
@@ -87,7 +92,8 @@ mod test {
             String::from("delete"),
             String::from("_3_"),
             String::from("_4_"),
-        ]);
+        ])
+        .unwrap();
 
         assert_eq!(parsed.command, Some(Command::Delete));
     }
@@ -98,7 +104,8 @@ mod test {
             String::from("_1_"),
             String::from("_2_"),
             String::from("modify"),
-        ]);
+        ])
+        .unwrap();
 
         assert_eq!(parsed.command, Some(Command::Modify));
         assert_eq!(parsed.mutations, None);
@@ -106,7 +113,7 @@ mod test {
 
     #[test]
     fn can_parse_with_no_command() {
-        let parsed = ParsedArgs::new(vec![String::from("_1_"), String::from("_2_")]);
+        let parsed = ParsedArgs::new(vec![String::from("_1_"), String::from("_2_")]).unwrap();
 
         assert_eq!(parsed.command, None);
     }
@@ -118,15 +125,16 @@ mod test {
             String::from("-bar"),
             String::from("123baz"),
             String::from("qux456"),
-        ]);
+        ])
+        .unwrap();
 
         assert_eq!(
             parsed.queries,
             Some(vec![
-                Query::Tag(Tag::new(String::from("foo"), Sign::Plus)),
-                Query::Tag(Tag::new(String::from("bar"), Sign::Minus)),
-                Query::Id(Id::new(String::from("123baz"))),
-                Query::Id(Id::new(String::from("qux456"))),
+                Query::Tag(Tag::new("foo", Sign::Plus)),
+                Query::Tag(Tag::new("bar", Sign::Minus)),
+                Query::Id(Id::new("123baz")),
+                Query::Id(Id::new("qux456")),
             ])
         )
     }
