@@ -6,6 +6,7 @@ pub enum PrimitiveParsingError {
     MalformedDateLike(String),
     MalformedPeriod(String),
     MalformedRecur(String),
+    NotAPartialIsoDate(String),
     UnknownProp(String),
 }
 
@@ -26,6 +27,7 @@ impl fmt::Display for PrimitiveParsingError {
             MalformedRecur(token) => {
                 write!(f, "the prop `{}` is not in a valid recur format", token)
             }
+            NotAPartialIsoDate(token) => write!(f, "{} is not a partial ISO date", token),
             UnknownProp(token) => write!(f, "the prop `{}` is not a known prop", token),
         }
     }

@@ -6,9 +6,44 @@ use regex::Regex;
 
 fn parse_as_partial_iso(
     get_now: &Fn() -> DateTime<Utc>,
-    _string: &str,
+    string: &str,
 ) -> PrimitiveParsingResult<DateTime<Utc>> {
-    Ok(get_now())
+    let captures = vec![
+        r"^(?P<month>\d{2})-(?P<day>\d{2})$",
+        r"^(?P<year>\d{4})$",
+        r"^(?P<year>\d{4})-(?P<month>\d{2})$",
+        r"^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})$",
+    ]
+    .iter()
+    .find_map(|re| Regex::new(re).unwrap().captures(string))
+    .ok_or(PrimitiveParsingError::NotAPartialIsoDate(String::from(
+        string,
+    )))?;
+
+    let mut date = get_now();
+
+    println!("captures: {:?}", captures);
+    println!("before: {}", date);
+
+    if let Some(year) = captures.name("year") {
+        date = date
+            .with_year(year.as_str().parse::<i32>().unwrap())
+            .unwrap();
+    }
+
+    if let Some(month) = captures.name("month") {
+        date = date
+            .with_month(month.as_str().parse::<u32>().unwrap())
+            .unwrap();
+    }
+
+    if let Some(day) = captures.name("day") {
+        date = date.with_day(day.as_str().parse::<u32>().unwrap()).unwrap();
+    }
+
+    println!("after: {}", date);
+
+    Ok(date)
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -230,7 +265,25 @@ mod test {
             assert_eq!(
                 Prop::from_string(&mock_get_now, "due:2018"),
                 Some(Ok(Prop::Due(Some(AbstractDate::Definite(
-                    Utc.ymd(2018, 0, 0).and_hms(0, 0, 0)
+                    Utc.ymd(2018, 7, 8).and_hms(9, 10, 11)
+                )))))
+            );
+            assert_eq!(
+                Prop::from_string(&mock_get_now, "due:2018-02"),
+                Some(Ok(Prop::Due(Some(AbstractDate::Definite(
+                    Utc.ymd(2018, 02, 8).and_hms(9, 10, 11)
+                )))))
+            );
+            assert_eq!(
+                Prop::from_string(&mock_get_now, "due:2018-02-03"),
+                Some(Ok(Prop::Due(Some(AbstractDate::Definite(
+                    Utc.ymd(2018, 2, 3).and_hms(9, 10, 11)
+                )))))
+            );
+            assert_eq!(
+                Prop::from_string(&mock_get_now, "due:02-03"),
+                Some(Ok(Prop::Due(Some(AbstractDate::Definite(
+                    Utc.ymd(2014, 2, 3).and_hms(9, 10, 11)
                 )))))
             );
         }
