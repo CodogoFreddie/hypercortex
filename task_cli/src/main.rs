@@ -1,17 +1,12 @@
 extern crate hypercortex_engine;
-
-mod parse_args;
+extern crate task_cli;
 
 use chrono::prelude::*;
-use parse_args::ParsedArgs;
-use std::env;
 
 fn get_now() -> DateTime<Utc> {
-    Utc.ymd(2014, 7, 8).and_hms(9, 10, 11)
+    Utc::now()
 }
 
 fn main() {
-    let args: Vec<_> = env::args().collect();
-
-    let _input = ParsedArgs::new(&get_now, args);
+    task_cli::run(&get_now);
 }
