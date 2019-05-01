@@ -22,9 +22,6 @@ fn parse_as_partial_iso(
 
     let mut date = get_now();
 
-    println!("captures: {:?}", captures);
-    println!("before: {}", date);
-
     if let Some(year) = captures.name("year") {
         date = date
             .with_year(year.as_str().parse::<i32>().unwrap())
@@ -41,9 +38,13 @@ fn parse_as_partial_iso(
         date = date.with_day(day.as_str().parse::<u32>().unwrap()).unwrap();
     }
 
-    println!("after: {}", date);
-
-    Ok(date)
+    Ok(date
+        .with_hour(0)
+        .unwrap()
+        .with_minute(0)
+        .unwrap()
+        .with_second(0)
+        .unwrap())
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -265,25 +266,25 @@ mod test {
             assert_eq!(
                 Prop::from_string(&mock_get_now, "due:2018"),
                 Some(Ok(Prop::Due(Some(AbstractDate::Definite(
-                    Utc.ymd(2018, 7, 8).and_hms(9, 10, 11)
+                    Utc.ymd(2018, 7, 8).and_hms(0, 0, 0)
                 )))))
             );
             assert_eq!(
                 Prop::from_string(&mock_get_now, "due:2018-02"),
                 Some(Ok(Prop::Due(Some(AbstractDate::Definite(
-                    Utc.ymd(2018, 02, 8).and_hms(9, 10, 11)
+                    Utc.ymd(2018, 02, 8).and_hms(0, 0, 0)
                 )))))
             );
             assert_eq!(
                 Prop::from_string(&mock_get_now, "due:2018-02-03"),
                 Some(Ok(Prop::Due(Some(AbstractDate::Definite(
-                    Utc.ymd(2018, 2, 3).and_hms(9, 10, 11)
+                    Utc.ymd(2018, 2, 3).and_hms(0, 0, 0)
                 )))))
             );
             assert_eq!(
                 Prop::from_string(&mock_get_now, "due:02-03"),
                 Some(Ok(Prop::Due(Some(AbstractDate::Definite(
-                    Utc.ymd(2014, 2, 3).and_hms(9, 10, 11)
+                    Utc.ymd(2014, 2, 3).and_hms(0, 0, 0)
                 )))))
             );
         }
