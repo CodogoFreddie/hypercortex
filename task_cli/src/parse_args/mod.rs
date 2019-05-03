@@ -75,7 +75,7 @@ impl ParsedArgs {
         Ok(not_plains)
     }
 
-    pub fn new(get_now: &GetNow, raw_args: Vec<String>) -> PrimitiveParsingResult<Self> {
+    pub fn new(get_now: &GetNow, raw_args: &Vec<String>) -> PrimitiveParsingResult<Self> {
         let (query_strings, command, mutation_strings) = ParsedArgs::partition_args(&raw_args);
 
         let queries = match query_strings {
@@ -108,7 +108,7 @@ mod test {
     fn can_locate_command_at_start() {
         let parsed = ParsedArgs::new(
             &mock_get_now,
-            vec![
+            &vec![
                 String::from("add"),
                 String::from("_3_"),
                 String::from("_4_"),
@@ -124,7 +124,7 @@ mod test {
     fn can_locate_command_in_middle() {
         let parsed = ParsedArgs::new(
             &mock_get_now,
-            vec![
+            &vec![
                 String::from("_1_"),
                 String::from("_2_"),
                 String::from("delete"),
@@ -141,7 +141,7 @@ mod test {
     fn can_locate_command_at_end() {
         let parsed = ParsedArgs::new(
             &mock_get_now,
-            vec![
+            &vec![
                 String::from("_1_"),
                 String::from("_2_"),
                 String::from("modify"),
@@ -157,7 +157,7 @@ mod test {
     fn can_parse_with_no_command() {
         let parsed = ParsedArgs::new(
             &mock_get_now,
-            vec![String::from("_1_"), String::from("_2_")],
+            &vec![String::from("_1_"), String::from("_2_")],
         )
         .unwrap();
 
@@ -168,7 +168,7 @@ mod test {
     fn can_parse_queries() {
         let parsed = ParsedArgs::new(
             &mock_get_now,
-            vec![
+            &vec![
                 String::from("+foo"),
                 String::from("-bar"),
                 String::from("123baz"),
@@ -192,7 +192,7 @@ mod test {
     fn can_parse_mutations() {
         let parsed_mutations = ParsedArgs::new(
             &mock_get_now,
-            vec![
+            &vec![
                 "add",
                 "+foo",
                 "-bar",

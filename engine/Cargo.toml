@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }
+itertools = "0.8.0"
 rand = "0.6.5" 
 regex = "1"
 serde = "1.0.90"
