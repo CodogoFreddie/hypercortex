@@ -1,13 +1,14 @@
 use super::interface::{Mutation, Query};
 use super::task::{Id, Task};
+use crate::error::CortexResult;
 use std::marker::PhantomData;
 
 pub trait EngineDriver<GotTasks: Iterator<Item = Task>> {
-    fn setup(&mut self) -> Result<(), ()>;
-    fn mount(&mut self) -> Result<(), ()>;
+    fn setup(&mut self) -> CortexResult<()>;
+    fn mount(&mut self) -> CortexResult<()>;
     fn get_tasks(&self) -> GotTasks;
-    fn put_task(&mut self, task: Task) -> Result<Task, ()>;
-    fn del_task(&mut self, task: Task) -> Result<Task, ()>;
+    fn put_task(&mut self, task: Task) -> CortexResult<Task>;
+    fn del_task(&mut self, task: Task) -> CortexResult<Task>;
 }
 
 struct EngineOutputIter<I: Iterator<Item = Task>> {
@@ -57,7 +58,7 @@ impl<Input: Iterator<Item = Task>, Driver: EngineDriver<Input>> Engine<Input, Dr
         self
     }
 
-    pub fn iter(mut self) -> Result<EngineIterator<Input, Driver>, ()> {
+    pub fn iter(mut self) -> CortexResult<EngineIterator<Input, Driver>> {
         self.driver.setup()?;
         self.driver.mount()?;
 
@@ -107,7 +108,7 @@ impl<Input: Iterator<Item = Task>, Driver: EngineDriver<Input>> EngineIterator<I
 impl<Input: Iterator<Item = Task>, Driver: EngineDriver<Input>> Iterator
     for EngineIterator<Input, Driver>
 {
-    type Item = Result<Task, ()>;
+    type Item = CortexResult<Task>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let task = self.input.next()?;
