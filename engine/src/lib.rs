@@ -7,7 +7,7 @@ mod error;
 mod interface;
 mod task;
 
-pub use engine::Engine;
+pub use engine::*;
 pub use error::{CortexError, CortexResult};
 pub use interface::*;
 pub use task::Task;
