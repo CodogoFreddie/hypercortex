@@ -6,6 +6,6 @@ mod engine;
 mod interface;
 mod task;
 
-pub use engine::run;
+pub use engine::Engine;
 pub use interface::*;
 pub use task::Task;

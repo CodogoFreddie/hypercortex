@@ -5,7 +5,7 @@ use std::marker::PhantomData;
 pub trait EngineDriver<GotTasks: Iterator<Item = Task>> {
     fn setup(&mut self) -> Result<(), ()>;
     fn mount(&mut self) -> Result<(), ()>;
-    fn get_tasks(&mut self) -> GotTasks;
+    fn get_tasks(&self) -> GotTasks;
     fn put_task(&mut self, task: Task) -> Result<Task, ()>;
     fn del_task(&mut self, task: Task) -> Result<Task, ()>;
 }
@@ -28,42 +28,108 @@ impl<I: Iterator<Item = Task>> Iterator for EngineOutputIter<I> {
     }
 }
 
-pub fn run<Input: Iterator<Item = Task>, Driver: EngineDriver<Input>>(
-    mut driver: Driver,
-    queries: Vec<Query>,
+pub struct Engine<Input: Iterator<Item = Task>, Driver: EngineDriver<Input>> {
+    driver: Driver,
     mutations: Option<Vec<Mutation>>,
-) -> impl Iterator<Item = Result<Task, ()>> {
-    driver.setup();
-    driver.mount();
+    phantom: PhantomData<Input>,
+    queries: Option<Vec<Query>>,
+}
 
-    let is_delete_mutation = if let Some(ms) = &mutations {
-        ms.iter().any(|m| {
-            if let Mutation::Delete = m {
-                true
-            } else {
-                false
-            }
-        })
-    } else {
-        false
-    };
+impl<Input: Iterator<Item = Task>, Driver: EngineDriver<Input>> Engine<Input, Driver> {
+    pub fn new(mut driver: Driver) -> Self {
+        Self {
+            driver,
+            mutations: None,
+            phantom: PhantomData,
+            queries: None,
+        }
+    }
 
-    driver
-        .get_tasks()
-        .filter(move |task| task.satisfies_queries(&queries[..]))
-        .map(move |task| match &mutations {
-            //no mutations, just return
-            None => Ok(task),
-            //there are mutations
-            Some(ms) => {
-                if is_delete_mutation {
-                    // if any of the mutations are Delete, delete the task
-                    driver.del_task(task)
+    pub fn with_queries(mut self, queries: Vec<Query>) -> Self {
+        self.queries = Some(queries);
+
+        self
+    }
+
+    pub fn with_mutations(mut self, mutations: Vec<Mutation>) -> Self {
+        self.mutations = Some(mutations);
+
+        self
+    }
+
+    pub fn iter(mut self) -> Result<EngineIterator<Input, Driver>, ()> {
+        self.driver.setup()?;
+        self.driver.mount()?;
+
+        Ok(EngineIterator::new(
+            self.driver,
+            self.queries,
+            self.mutations,
+        ))
+    }
+}
+
+pub struct EngineIterator<Input: Iterator<Item = Task>, Driver: EngineDriver<Input>> {
+    driver: Driver,
+    input: Input,
+    mutations: Option<Vec<Mutation>>,
+    queries: Option<Vec<Query>>,
+}
+
+impl<Input: Iterator<Item = Task>, Driver: EngineDriver<Input>> EngineIterator<Input, Driver> {
+    pub fn new(
+        driver: Driver,
+        queries: Option<Vec<Query>>,
+        mutations: Option<Vec<Mutation>>,
+    ) -> Self {
+        let input = driver.get_tasks();
+
+        Self {
+            driver,
+            input,
+            mutations,
+            queries,
+        }
+    }
+
+    fn is_delete_mutation(&self) -> bool {
+        if let Some(the_mutations) = &self.mutations {
+            the_mutations.iter().any(|m| match m {
+                Mutation::Delete => true,
+                _ => false,
+            })
+        } else {
+            false
+        }
+    }
+}
+
+impl<Input: Iterator<Item = Task>, Driver: EngineDriver<Input>> Iterator
+    for EngineIterator<Input, Driver>
+{
+    type Item = Result<Task, ()>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let task = self.input.next()?;
+
+        match &self.queries {
+            None => Some(Ok(task)),
+            Some(qs) => {
+                if task.satisfies_queries(&qs) {
+                    match &self.mutations {
+                        None => Some(Ok(task)),
+                        Some(ms) => {
+                            if self.is_delete_mutation() {
+                                Some(self.driver.del_task(task))
+                            } else {
+                                Some(self.driver.put_task(task.apply_mutations(ms)))
+                            }
+                        }
+                    }
                 } else {
-                    // otherwise, apply the mutations and save
-                    let updated_task = task.apply_mutations(&ms[..]);
-                    driver.put_task(updated_task)
+                    self.next()
                 }
             }
-        })
+        }
+    }
 }
