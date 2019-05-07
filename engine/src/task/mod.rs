@@ -10,6 +10,7 @@ pub use tag::Tag;
 
 pub struct Task {
     created_at: DateTime<Utc>,
+    deleted: bool,
     description: String,
     done: Option<DateTime<Utc>>,
     due: Option<DateTime<Utc>>,
@@ -38,5 +39,9 @@ impl Task {
         mutations
             .iter()
             .fold(self, |task, mutation| task.apply_mutation(mutation))
+    }
+
+    pub fn get_id(&self) -> Id {
+        self.id.clone()
     }
 }

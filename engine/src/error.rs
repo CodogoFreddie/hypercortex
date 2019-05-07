@@ -5,9 +5,7 @@ use std::io::Error as IoError;
 #[derive(Debug)]
 pub enum CortexError {
     Del(IoError),
-    Mount(IoError),
     Put(IoError),
-    Setup(IoError),
 }
 
 impl Error for CortexError {
@@ -16,9 +14,7 @@ impl Error for CortexError {
 
         match *self {
             CortexError::Del(ref e) => Some(e),
-            CortexError::Mount(ref e) => Some(e),
             CortexError::Put(ref e) => Some(e),
-            CortexError::Setup(ref e) => Some(e),
         }
     }
 }
@@ -29,9 +25,7 @@ impl fmt::Display for CortexError {
 
         match self {
             Del(cause) => write!(f, "CortexError::Del({})", cause),
-            Mount(cause) => write!(f, "CortexError::Mount({})", cause),
             Put(cause) => write!(f, "CortexError::Put({})", cause),
-            Setup(cause) => write!(f, "CortexError::Setup({})", cause),
         }
     }
 }

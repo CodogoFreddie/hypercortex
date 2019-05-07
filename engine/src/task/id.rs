@@ -1,33 +1,18 @@
 use rand::seq::IteratorRandom;
 use std::cmp::{Eq, PartialEq};
 
-const CHARS: &'static str = "fhgkdsarytewpqmbncxz56473829";
+const CHARS: &'static str = "23456789abcdefghkmnpqrstwxyz";
 const NUMBER_OF_CHARS_IN_FULL_ID: u8 = 16;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Id {
     content: String,
-}
-
-fn get_easy_type_id(n: u8) -> String {
-    let mut result = String::new();
-
-    for _ in 0..n {
-        let random = CHARS
-            .chars()
-            .choose(&mut rand::thread_rng())
-            .expect("Couldn't get random char");
-
-        result.push(random);
-    }
-
-    result
 }
 
 impl Id {
     pub fn generate() -> Self {
         Self {
-            content: get_easy_type_id(NUMBER_OF_CHARS_IN_FULL_ID),
+            content: Id::get_easy_type_id(),
         }
     }
 
@@ -35,6 +20,21 @@ impl Id {
         Self {
             content: String::from(content),
         }
+    }
+
+    fn get_easy_type_id() -> String {
+        let mut result = String::new();
+
+        for _ in 0..NUMBER_OF_CHARS_IN_FULL_ID {
+            let random = CHARS
+                .chars()
+                .choose(&mut rand::thread_rng())
+                .expect("Couldn't get random char");
+
+            result.push(random);
+        }
+
+        result
     }
 }
 
