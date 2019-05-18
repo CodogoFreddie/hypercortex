@@ -1,6 +1,7 @@
-use super::interface::{Mutation, Query};
-use super::task::{Id, Task};
 use crate::error::CortexResult;
+use crate::id::Id;
+use crate::interface::{Mutation, Query};
+use crate::task::Task;
 use std::marker::PhantomData;
 
 pub fn run<Persister: Fn(Task) -> CortexResult<Task>, Input: Iterator<Item = Task>>(
@@ -8,7 +9,7 @@ pub fn run<Persister: Fn(Task) -> CortexResult<Task>, Input: Iterator<Item = Tas
     queries: Option<Vec<Query>>,
     mutations: Option<Vec<Mutation>>,
     input: Input,
-) -> Vec<CortexResult<Task>> {
+) -> CortexResult<Vec<Task>> {
     let mut all_ids = Vec::new();
 
     input
@@ -32,9 +33,15 @@ pub fn run<Persister: Fn(Task) -> CortexResult<Task>, Input: Iterator<Item = Tas
         .map(
             // apply the mutations to each task that's been selected
             |task| match &mutations {
-            None => Ok(task),
-            // if there are mutations to apply, persist the task once they've been applied
-            Some(ms) => persister(task.apply_mutations(ms)),
+                None => Ok(task),
+                // if there are mutations to apply, persist the task once they've been applied
+                Some(ms) => persister(task.apply_mutations(ms)),
+            },
+        )
+        .collect::<CortexResult<Vec<Task>>>()
+        .and_then(|mut tasks| {
+            tasks.iter_mut().for_each(|mut task| task.calculate_score());
+            tasks.sort_unstable();
+            Ok(tasks)
         })
-        .collect()
 }

@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
 use time::Duration;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Period {
     Hour(usize),
     Day(usize),

@@ -1,10 +1,11 @@
 use rand::seq::IteratorRandom;
+use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, PartialEq};
 
 const CHARS: &'static str = "23456789abcdefghkmnpqrstwxyz";
 const NUMBER_OF_CHARS_IN_FULL_ID: u8 = 16;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Id {
     content: String,
 }
