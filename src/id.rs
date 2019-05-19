@@ -6,21 +6,15 @@ const CHARS: &'static str = "23456789abcdefghkmnpqrstwxyz";
 const NUMBER_OF_CHARS_IN_FULL_ID: u8 = 16;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Id {
-    content: String,
-}
+pub struct Id(String);
 
 impl Id {
     pub fn generate() -> Self {
-        Self {
-            content: Id::get_easy_type_id(),
-        }
+        Self(Id::get_easy_type_id())
     }
 
     pub fn new(content: &str) -> Self {
-        Self {
-            content: String::from(content),
-        }
+        Self(String::from(content))
     }
 
     fn get_easy_type_id() -> String {
@@ -41,8 +35,11 @@ impl Id {
 
 impl PartialEq for Id {
     fn eq(&self, other: &Id) -> bool {
-        self.content.contains(other.content.as_str())
-            || other.content.contains(self.content.as_str())
+        let Id(self_content) = self;
+        let Id(other_content) = other;
+
+        self_content.contains(other_content.as_str())
+            || other_content.contains(self_content.as_str())
     }
 }
 
