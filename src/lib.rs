@@ -1,9 +1,14 @@
+mod engine;
 mod error;
 mod id;
+mod parse_args;
+mod prop;
+mod tag;
 mod task;
 
 use crate::error::{CortexError, CortexResult};
 use crate::id::Id;
+use crate::parse_args::parse_cli_args;
 use crate::task::Task;
 use chrono::prelude::*;
 use serde::Deserialize;
@@ -38,17 +43,12 @@ fn get_tasks() -> impl Iterator<Item = LoadedTask> {
     })
 }
 
-pub fn run_cli(get_now: &Fn() -> DateTime<Utc>, _args: &Vec<String>) -> () {
+pub fn run_cli(get_now: &Fn() -> DateTime<Utc>, args: &Vec<String>) -> () {
     let tasks_iterator = get_tasks();
 
-    for task in tasks_iterator {
-        println!("{:?}", task)
-    }
+    let engine = parse_cli_args(args.iter().skip(1));
 
-    let task = Task {
-        created_at: get_now(),
-        id: Id::generate(),
-    };
+    //let tasks_to_display = engine.run(tasks_iterator);
 
-    println!("{}", serde_json::to_string(&task).unwrap());
+    //println!("{}", tasks_to_display);
 }
