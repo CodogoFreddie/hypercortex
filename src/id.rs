@@ -3,10 +3,10 @@ use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, PartialEq};
 
 const CHARS: &'static str = "23456789abcdefghkmnpqrstwxyz";
-const NUMBER_OF_CHARS_IN_FULL_ID: u8 = 16;
+pub const NUMBER_OF_CHARS_IN_FULL_ID: usize = 16;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Id(String);
+pub struct Id(pub String);
 
 impl Id {
     pub fn generate() -> Self {

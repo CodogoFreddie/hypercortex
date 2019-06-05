@@ -1,9 +1,11 @@
+#[derive(Debug)]
 pub enum Sign {
     Plus,
     Minus,
 }
 
+#[derive(Debug)]
 pub struct Tag {
-    sign: Sign,
-    name: String,
+    pub sign: Sign,
+    pub name: String,
 }

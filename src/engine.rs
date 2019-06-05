@@ -3,11 +3,13 @@ use crate::prop::Prop;
 use crate::tag::Tag;
 use crate::task::Task;
 
+#[derive(Debug)]
 pub enum Mutation {
     SetProp(Prop),
     SetTag(Tag),
 }
 
+#[derive(Debug)]
 pub enum Query {
     Id(Id),
     Tag(Tag),
