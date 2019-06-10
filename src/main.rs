@@ -9,5 +9,8 @@ fn get_now() -> DateTime<Utc> {
 
 fn main() {
     let args: Vec<_> = env::args().collect();
-    hypercortex::run_cli(&get_now, &args);
+    let commands = match hypercortex::run_cli(&get_now, &args) {
+        Ok(x) => x,
+        Err(e) => println!("{}", e),
+    };
 }

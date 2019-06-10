@@ -1,6 +1,9 @@
 use crate::engine::{Mutation, Query};
 use crate::id::{Id, NUMBER_OF_CHARS_IN_FULL_ID};
+use crate::prop::Prop;
 use crate::tag::{Sign, Tag};
+use chrono::prelude::*;
+use time::Duration;
 
 mod command {
     #[derive(Debug)]
@@ -88,11 +91,147 @@ pub fn parse_as_query(token: &str) -> Result<Query, String> {
     Err(format!("`{}` is not a valid query parameter", token))
 }
 
-pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> () {
+fn parse_weekday(weekday: &Weekday) -> DateTime<Utc> {
+    let now_week = Utc::now().iso_week();
+    let mut d = Utc
+        .isoywd(now_week.year(), now_week.week(), *weekday)
+        .and_hms(0, 0, 0);
+
+    if d < Utc::now() {
+        d + Duration::weeks(1)
+    } else {
+        d
+    }
+}
+
+fn end_of_day() -> DateTime<Utc> {
+    Utc::now()
+        .with_nanosecond(0)
+        .unwrap()
+        .with_second(59)
+        .unwrap()
+        .with_minute(59)
+        .unwrap()
+        .with_hour(23)
+        .unwrap()
+}
+
+fn end_of_week() -> DateTime<Utc> {
+    parse_weekday(&Weekday::Sun)
+        .with_second(59)
+        .unwrap()
+        .with_minute(59)
+        .unwrap()
+        .with_hour(23)
+        .unwrap()
+}
+
+fn end_of_month() -> DateTime<Utc> {
+    let mut d = end_of_day();
+    let mut count_up = Some(d);
+    while let Some(new_count_up) = count_up.unwrap().with_day(1 + count_up.unwrap().day()) {
+        count_up = Some(new_count_up);
+    }
+
+    count_up.unwrap()
+}
+
+fn end_of_year() -> DateTime<Utc> {
+    end_of_month().with_month(12).unwrap()
+}
+
+pub fn parse_as_date_time(token: &str) -> Result<DateTime<Utc>, String> {
+    match token {
+        "now" => Ok(Utc::now()),
+        "monday" => Ok(parse_weekday(&Weekday::Mon)),
+        "tuesday" => Ok(parse_weekday(&Weekday::Tue)),
+        "wednesday" => Ok(parse_weekday(&Weekday::Wed)),
+        "thursday" => Ok(parse_weekday(&Weekday::Thu)),
+        "friday" => Ok(parse_weekday(&Weekday::Fri)),
+        "saturday" => Ok(parse_weekday(&Weekday::Sat)),
+        "sunday" => Ok(parse_weekday(&Weekday::Sun)),
+        "eod" => Ok(end_of_day()),
+        "eow" => Ok(end_of_week()),
+        "eom" => Ok(end_of_month()),
+        "eoy" => Ok(end_of_year()),
+        _ => Err(format!("`{}` is a malformed DateTime value", token)),
+    }
+}
+
+pub fn parse_as_prop(token: &str) -> Option<Result<Prop, String>> {
+    let colon_index = match token.chars().position(|c| c == ':') {
+        Some(i) => i,
+        None => return None,
+    };
+
+    Some(match (&token[..colon_index], &token[colon_index + 1..]) {
+        ("due", value) => {
+            let value = match parse_as_date_time(&value) {
+                Ok(x) => x,
+                Err(msg) => return Some(Err(msg)),
+            };
+            Ok(Prop::Due(value))
+        }
+        _ => Err(format!("`{}` is a malformed prop parameter", token)),
+    })
+}
+
+pub fn parse_as_mutation(token: &str) -> Result<Mutation, String> {
+    match parse_as_tag(token) {
+        Some(tag) => return Ok(Mutation::SetTag(tag)),
+        _ => {}
+    };
+
+    match parse_as_prop(token) {
+        Some(Ok(prop)) => return Ok(Mutation::SetProp(prop)),
+        Some(Err(msg)) => return Err(msg),
+        _ => {}
+    }
+
+    Ok(Mutation::SetProp(Prop::Description(token.to_string())))
+}
+
+fn merge_description_mutations(mut mutations: Vec<Mutation>) -> Vec<Mutation> {
+    let mut output: Vec<Mutation> = vec![];
+    let mut description: Option<String> = None;
+
+    while let Some(m) = mutations.pop() {
+        if let Mutation::SetProp(Prop::Description(d)) = m {
+            description = match description {
+                None => Some(d.to_string()),
+                Some(ds) => Some(format!("{} {}", d, ds)),
+            }
+        } else {
+            output.push(m);
+        }
+    }
+
+    if let Some(d) = description {
+        output.push(Mutation::SetProp(Prop::Description(d)))
+    }
+
+    output
+}
+
+pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> Result<(), String> {
     let (query_tokens, command, mutation_tokens) = partition_args(args);
 
-    let parsed_queries: Result<Vec<Query>, String> =
-        query_tokens.iter().map(|q| parse_as_query(q)).collect();
+    let parsed_queries: Vec<Query> = (query_tokens
+        .iter()
+        .map(|q| parse_as_query(q))
+        .collect::<Result<Vec<Query>, String>>())?;
 
-    println!("({:?}, {:?}, {:?})", parsed_queries, command, ());
+    let parsed_mutations: Vec<Mutation> = mutation_tokens
+        .iter()
+        .map(|m| parse_as_mutation(m))
+        .collect::<Result<Vec<Mutation>, String>>()?;
+
+    let parsed_mutations_with_merged_description = merge_description_mutations(parsed_mutations);
+
+    println!(
+        "({:?}, {:?}, {:?})",
+        parsed_queries, command, parsed_mutations_with_merged_description
+    );
+
+    Ok(())
 }

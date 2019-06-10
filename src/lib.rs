@@ -43,10 +43,12 @@ fn get_tasks() -> impl Iterator<Item = LoadedTask> {
     })
 }
 
-pub fn run_cli(get_now: &Fn() -> DateTime<Utc>, args: &Vec<String>) -> () {
+pub fn run_cli(get_now: &Fn() -> DateTime<Utc>, args: &Vec<String>) -> Result<(), String> {
     let tasks_iterator = get_tasks();
 
-    let engine = parse_cli_args(args.iter().skip(1));
+    let engine = parse_cli_args(args.iter().skip(1))?;
+
+    Ok(())
 
     //let tasks_to_display = engine.run(tasks_iterator);
 
