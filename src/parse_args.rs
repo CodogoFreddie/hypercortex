@@ -3,6 +3,7 @@ use crate::id::{Id, NUMBER_OF_CHARS_IN_FULL_ID};
 use crate::prop::Prop;
 use crate::tag::{Sign, Tag};
 use chrono::prelude::*;
+use regex::Regex;
 use time::Duration;
 
 mod command {
@@ -140,20 +141,38 @@ fn end_of_year() -> DateTime<Utc> {
     end_of_month().with_month(12).unwrap()
 }
 
+lazy_static! {
+    static ref IS_RELATIVE_DATE_SHORTCUT_REGEX: Regex = Regex::new(r"(\d+)([dwmy])").unwrap();
+}
+fn is_relative_date_shortcut(token: &str) -> bool {
+    IS_RELATIVE_DATE_SHORTCUT_REGEX.is_match(token)
+}
+
+fn parse_relative_date_shortcut(token: &str) -> DateTime<Utc> {
+    let caps = IS_RELATIVE_DATE_SHORTCUT_REGEX.captures(token).unwrap();
+    let number = caps.get(1).unwrap().as_str().parse::<i32>().unwrap();
+    let unit = caps.get(2).unwrap().as_str();
+
+    println!("{:?}, {:?}", number, unit); 
+
+    Utc::now()
+}
+
 pub fn parse_as_date_time(token: &str) -> Result<DateTime<Utc>, String> {
     match token {
         "now" => Ok(Utc::now()),
-        "monday" => Ok(parse_weekday(&Weekday::Mon)),
-        "tuesday" => Ok(parse_weekday(&Weekday::Tue)),
-        "wednesday" => Ok(parse_weekday(&Weekday::Wed)),
-        "thursday" => Ok(parse_weekday(&Weekday::Thu)),
-        "friday" => Ok(parse_weekday(&Weekday::Fri)),
-        "saturday" => Ok(parse_weekday(&Weekday::Sat)),
-        "sunday" => Ok(parse_weekday(&Weekday::Sun)),
+        "mon" => Ok(parse_weekday(&Weekday::Mon)),
+        "tue" => Ok(parse_weekday(&Weekday::Tue)),
+        "wed" => Ok(parse_weekday(&Weekday::Wed)),
+        "thu" => Ok(parse_weekday(&Weekday::Thu)),
+        "fri" => Ok(parse_weekday(&Weekday::Fri)),
+        "sat" => Ok(parse_weekday(&Weekday::Sat)),
+        "sun" => Ok(parse_weekday(&Weekday::Sun)),
         "eod" => Ok(end_of_day()),
         "eow" => Ok(end_of_week()),
         "eom" => Ok(end_of_month()),
         "eoy" => Ok(end_of_year()),
+        x if is_relative_date_shortcut(&x) => Ok(parse_relative_date_shortcut(&x)),
         _ => Err(format!("`{}` is a malformed DateTime value", token)),
     }
 }
@@ -229,8 +248,12 @@ pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> Result<(), 
     let parsed_mutations_with_merged_description = merge_description_mutations(parsed_mutations);
 
     println!(
-        "({:?}, {:?}, {:?})",
-        parsed_queries, command, parsed_mutations_with_merged_description
+        "{:#?}",
+        (
+            parsed_queries,
+            command,
+            parsed_mutations_with_merged_description
+        )
     );
 
     Ok(())
