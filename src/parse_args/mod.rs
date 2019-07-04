@@ -195,21 +195,21 @@ pub fn parse_as_prop(token: &str) -> Option<Result<Prop, String>> {
                 Ok(x) => x,
                 Err(msg) => return Some(Err(msg)),
             };
-            Ok(Prop::Due(value))
+            Ok(Prop::Due(Some(value)))
         }
         ("wait", value) => {
             let value = match parse_as_date_time(&value) {
                 Ok(x) => x,
                 Err(msg) => return Some(Err(msg)),
             };
-            Ok(Prop::Wait(value))
+            Ok(Prop::Wait(Some(value)))
         }
         ("snooze", value) => {
             let value = match parse_as_date_time(&value) {
                 Ok(x) => x,
                 Err(msg) => return Some(Err(msg)),
             };
-            Ok(Prop::Snooze(value))
+            Ok(Prop::Snooze(Some(value)))
         }
         _ => Err(format!("`{}` is a malformed prop parameter", token)),
     })
@@ -222,7 +222,7 @@ pub fn parse_as_mutation(token: &str) -> Result<Mutation, String> {
     };
 
     match parse_as_prop(token) {
-        Some(Ok(prop)) => return Ok(Mutation::SetProp(prop)),
+        Some(Ok(prop)) => return Ok(Mutation::SetProp((prop))),
         Some(Err(msg)) => return Err(msg),
         _ => {}
     }
@@ -274,13 +274,13 @@ pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> Result<Cort
         Some(Command::Delete) => Ok(CortexEngine::Delete(parsed_queries)),
         Some(Command::Done) => Ok(CortexEngine::Update(
             parsed_queries,
-            vec![Mutation::SetProp(Prop::Done(Utc::now()))],
+            vec![Mutation::SetProp(Prop::Done((Utc::now())))],
         )),
         Some(Command::Snooze) => Ok(CortexEngine::Update(
             parsed_queries,
-            vec![Mutation::SetProp(Prop::Snooze(
+            vec![Mutation::SetProp(Prop::Snooze(Some(
                 Utc::now() + Duration::hours(1),
-            ))],
+            )))],
         )),
         Some(Command::Modify) => Ok(CortexEngine::Update(
             parsed_queries,

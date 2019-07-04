@@ -4,7 +4,7 @@ use chrono::prelude::*;
 pub enum Prop {
     Description(String),
     Done(DateTime<Utc>),
-    Due(DateTime<Utc>),
-    Snooze(DateTime<Utc>),
-    Wait(DateTime<Utc>),
+    Due(Option<DateTime<Utc>>),
+    Snooze(Option<DateTime<Utc>>),
+    Wait(Option<DateTime<Utc>>),
 }

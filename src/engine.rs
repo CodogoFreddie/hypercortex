@@ -27,7 +27,24 @@ pub enum CortexEngine {
 }
 
 impl CortexEngine {
-    pub fn run(input_tasks_iter: impl Iterator<Item = Task>) -> Vec<Task> {
-        vec![]
+    pub fn run(
+        self,
+        input_tasks_iter: impl Iterator<Item = Result<Task, String>>,
+        put_task: impl Fn(&Task) -> Result<(), String>,
+    ) -> Vec<Task> {
+        match &self {
+            CortexEngine::Create(mutations) => {
+                let mut new_task = Task::generate();
+
+                for m in mutations {
+                    new_task.apply_mutation(m);
+                }
+
+                put_task(&new_task);
+
+                vec![new_task]
+            }
+            _ => {vec![]}
+        }
     }
 }

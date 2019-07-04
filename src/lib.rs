@@ -69,10 +69,9 @@ pub fn run_cli(get_now: &Fn() -> DateTime<Utc>, args: &Vec<String>) -> Result<()
 
     let engine = parse_cli_args(args.iter().skip(1))?;
 
-    println!("{:#?}", engine);
+    let tasks_to_display = engine.run(tasks_iterator, &put_task);
+
+    println!("{:#?}", tasks_to_display);
+
     Ok(())
-
-    //let tasks_to_display = engine.run(tasks_iterator);
-
-    //println!("{}", tasks_to_display);
 }
