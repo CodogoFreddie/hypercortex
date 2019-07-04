@@ -1,4 +1,4 @@
-use crate::engine::Mutation;
+use crate::engine::{Mutation, Mutations, Queries, Query};
 use crate::id::Id;
 use crate::prop::Prop;
 use crate::tag::{Sign, Tag};
@@ -36,6 +36,33 @@ impl Task {
 
     pub fn get_id(&self) -> &Id {
         &(self.id)
+    }
+
+    pub fn satisfies_queries(&self, queries: &Queries) -> bool {
+        for q in queries {
+            if self.satisfies_query(q) {
+                continue;
+            } else {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    pub fn satisfies_query(&self, query: &Query) -> bool {
+        match query {
+            Query::Id(id) => id == &self.id,
+            Query::Tag(Tag { sign, name }) => self.tags.contains(name),
+        }
+    }
+
+    pub fn apply_mutations(&mut self, mutations: &Mutations) -> &Self {
+        for m in mutations {
+            self.apply_mutation(m);
+        }
+
+        self
     }
 
     pub fn apply_mutation(&mut self, mutation: &Mutation) -> &Self {

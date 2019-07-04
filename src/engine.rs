@@ -36,15 +36,19 @@ impl CortexEngine {
             CortexEngine::Create(mutations) => {
                 let mut new_task = Task::generate();
 
-                for m in mutations {
-                    new_task.apply_mutation(m);
-                }
+                new_task.apply_mutations(mutations);
 
                 put_task(&new_task);
 
                 vec![new_task]
             }
-            _ => {vec![]}
+
+            CortexEngine::Read(queries) => input_tasks_iter
+                .map( |r| r.unwrap() )
+                .filter(|t| t.satisfies_queries(queries))
+                .collect::<Vec<Task>>(),
+
+            _ => vec![],
         }
     }
 }
