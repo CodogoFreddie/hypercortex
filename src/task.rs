@@ -4,7 +4,7 @@ use crate::prop::Prop;
 use crate::tag::{Sign, Tag};
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Task {
@@ -32,6 +32,28 @@ impl Task {
             updated_at: Utc::now(),
             wait: None,
         }
+    }
+
+    pub fn to_renderable_hash_map(&self) -> HashMap<&str, String> {
+        let mut hm = HashMap::<&str, String>::new();
+
+        let Id(id) = &self.id;
+        hm.insert("id", id.to_string());
+
+        if let Some(description) = &self.description {
+            hm.insert("description", description.to_string());
+        }
+
+        hm.insert(
+            "tags",
+            self.tags
+                .iter()
+                .map(|t| format!("+{}", t))
+                .collect::<Vec<String>>()
+                .join(" "),
+        );
+
+        hm
     }
 
     pub fn get_id(&self) -> &Id {

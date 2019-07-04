@@ -38,13 +38,13 @@ impl CortexEngine {
 
                 new_task.apply_mutations(mutations);
 
-                put_task(&new_task);
+                put_task(&new_task).unwrap();
 
                 vec![new_task]
             }
 
             CortexEngine::Read(queries) => input_tasks_iter
-                .map( |r| r.unwrap() )
+                .map(|r| r.unwrap())
                 .filter(|t| t.satisfies_queries(queries))
                 .collect::<Vec<Task>>(),
 

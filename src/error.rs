@@ -15,5 +15,3 @@ impl fmt::Display for CortexError {
         }
     }
 }
-
-pub type CortexResult<T> = Result<T, CortexError>;

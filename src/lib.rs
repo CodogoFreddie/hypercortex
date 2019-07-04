@@ -6,12 +6,14 @@ mod error;
 mod id;
 mod parse_args;
 mod prop;
+mod render;
 mod tag;
 mod task;
 
-use crate::error::{CortexError, CortexResult};
+use crate::error::{CortexError};
 use crate::id::Id;
 use crate::parse_args::parse_cli_args;
+use crate::render::render_table;
 use crate::task::Task;
 use chrono::prelude::*;
 use serde::Deserialize;
@@ -71,7 +73,7 @@ pub fn run_cli(get_now: &Fn() -> DateTime<Utc>, args: &Vec<String>) -> Result<()
 
     let tasks_to_display = engine.run(tasks_iterator, &put_task);
 
-    println!("{:#?}", tasks_to_display);
+    render_table(&tasks_to_display);
 
     Ok(())
 }

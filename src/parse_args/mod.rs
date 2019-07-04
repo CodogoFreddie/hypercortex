@@ -26,12 +26,6 @@ pub fn parse_as_command(token: &str) -> Option<Command> {
     }
 }
 
-enum Arg {
-    Command(Command),
-    Query(Query),
-    Mutation(Mutation),
-}
-
 fn partition_args<'a>(
     args: impl Iterator<Item = &'a String>,
 ) -> (Vec<&'a String>, Option<Command>, Vec<&'a String>) {

@@ -1,6 +1,7 @@
 use rand::seq::IteratorRandom;
 use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, PartialEq};
+use std::fmt;
 
 const CHARS: &'static str = "23456789abcdefghkmnpqrstwxyz";
 pub const NUMBER_OF_CHARS_IN_FULL_ID: usize = 16;
@@ -11,10 +12,6 @@ pub struct Id(pub String);
 impl Id {
     pub fn generate() -> Self {
         Self(Id::get_easy_type_id())
-    }
-
-    pub fn new(content: &str) -> Self {
-        Self(String::from(content))
     }
 
     fn get_easy_type_id() -> String {
@@ -44,3 +41,10 @@ impl PartialEq for Id {
 }
 
 impl Eq for Id {}
+
+impl fmt::Display for Id {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Id(x) = self;
+        write!(f, "{}", x)
+    }
+}
