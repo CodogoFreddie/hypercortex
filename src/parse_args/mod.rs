@@ -1,4 +1,4 @@
-use crate::engine::{Mutation, Query};
+use crate::engine::{CortexEngine, Mutation, Mutations, Queries, Query};
 use crate::id::{Id, NUMBER_OF_CHARS_IN_FULL_ID};
 use crate::prop::Prop;
 use crate::tag::{Sign, Tag};
@@ -6,44 +6,42 @@ use chrono::prelude::*;
 use regex::Regex;
 use time::Duration;
 
-mod command {
-    #[derive(Debug)]
-    pub enum Command {
-        Add,
-        Delete,
-        Done,
-        Modify,
-        Snooze,
-    }
+#[derive(Debug)]
+pub enum Command {
+    Add,
+    Delete,
+    Done,
+    Modify,
+    Snooze,
+}
 
-    pub fn parse_as_command(token: &str) -> Option<Command> {
-        match token {
-            "add" => Some(Command::Add),
-            "delete" => Some(Command::Delete),
-            "done" => Some(Command::Done),
-            "modify" => Some(Command::Modify),
-            "snooze" => Some(Command::Snooze),
-            _ => None,
-        }
+pub fn parse_as_command(token: &str) -> Option<Command> {
+    match token {
+        "add" => Some(Command::Add),
+        "delete" => Some(Command::Delete),
+        "done" => Some(Command::Done),
+        "modify" => Some(Command::Modify),
+        "snooze" => Some(Command::Snooze),
+        _ => None,
     }
 }
 
 enum Arg {
-    Command(command::Command),
+    Command(Command),
     Query(Query),
     Mutation(Mutation),
 }
 
 fn partition_args<'a>(
     args: impl Iterator<Item = &'a String>,
-) -> (Vec<&'a String>, Option<command::Command>, Vec<&'a String>) {
+) -> (Vec<&'a String>, Option<Command>, Vec<&'a String>) {
     let mut query_tokens = vec![];
     let mut mutation_tokens = vec![];
-    let mut command: Option<command::Command> = None;
+    let mut command: Option<Command> = None;
 
     for arg in args {
         if command.is_none() {
-            if let Some(c) = command::parse_as_command(&arg) {
+            if let Some(c) = parse_as_command(&arg) {
                 command = Some(c);
             } else {
                 query_tokens.push(arg);
@@ -150,12 +148,20 @@ fn is_relative_date_shortcut(token: &str) -> bool {
 
 fn parse_relative_date_shortcut(token: &str) -> DateTime<Utc> {
     let caps = IS_RELATIVE_DATE_SHORTCUT_REGEX.captures(token).unwrap();
-    let number = caps.get(1).unwrap().as_str().parse::<i32>().unwrap();
+    let number = caps.get(1).unwrap().as_str().parse::<i64>().unwrap();
     let unit = caps.get(2).unwrap().as_str();
 
-    println!("{:?}, {:?}", number, unit); 
+    let increment = match (number, unit) {
+        (n, "d") => Duration::days(n),
+        (n, "w") => Duration::weeks(n),
+        (n, "m") => Duration::seconds(n * 60 * 60 * 24 * 365 / 12),
+        (n, "y") => Duration::days(n * 365),
+        (n, u) => panic!("{} is not a valid unit", u),
+    };
 
-    Utc::now()
+    println!("{:?}, {:?}", number, unit);
+
+    Utc::now() + increment
 }
 
 pub fn parse_as_date_time(token: &str) -> Result<DateTime<Utc>, String> {
@@ -190,6 +196,20 @@ pub fn parse_as_prop(token: &str) -> Option<Result<Prop, String>> {
                 Err(msg) => return Some(Err(msg)),
             };
             Ok(Prop::Due(value))
+        }
+        ("wait", value) => {
+            let value = match parse_as_date_time(&value) {
+                Ok(x) => x,
+                Err(msg) => return Some(Err(msg)),
+            };
+            Ok(Prop::Wait(value))
+        }
+        ("snooze", value) => {
+            let value = match parse_as_date_time(&value) {
+                Ok(x) => x,
+                Err(msg) => return Some(Err(msg)),
+            };
+            Ok(Prop::Snooze(value))
         }
         _ => Err(format!("`{}` is a malformed prop parameter", token)),
     })
@@ -232,7 +252,7 @@ fn merge_description_mutations(mut mutations: Vec<Mutation>) -> Vec<Mutation> {
     output
 }
 
-pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> Result<(), String> {
+pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> Result<CortexEngine, String> {
     let (query_tokens, command, mutation_tokens) = partition_args(args);
 
     let parsed_queries: Vec<Query> = (query_tokens
@@ -247,14 +267,25 @@ pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> Result<(), 
 
     let parsed_mutations_with_merged_description = merge_description_mutations(parsed_mutations);
 
-    println!(
-        "{:#?}",
-        (
+    match (command) {
+        Some(Command::Add) => Ok(CortexEngine::Create(
+            parsed_mutations_with_merged_description,
+        )),
+        Some(Command::Delete) => Ok(CortexEngine::Delete(parsed_queries)),
+        Some(Command::Done) => Ok(CortexEngine::Update(
             parsed_queries,
-            command,
-            parsed_mutations_with_merged_description
-        )
-    );
-
-    Ok(())
+            vec![Mutation::SetProp(Prop::Done(Utc::now()))],
+        )),
+        Some(Command::Snooze) => Ok(CortexEngine::Update(
+            parsed_queries,
+            vec![Mutation::SetProp(Prop::Snooze(
+                Utc::now() + Duration::hours(1),
+            ))],
+        )),
+        Some(Command::Modify) => Ok(CortexEngine::Update(
+            parsed_queries,
+            parsed_mutations_with_merged_description,
+        )),
+        None => Ok(CortexEngine::Read(parsed_queries)),
+    }
 }

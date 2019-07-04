@@ -4,6 +4,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Task {
-    pub created_at: DateTime<Utc>,
     pub id: Id,
+}
+
+impl Task {
+    pub fn get_id(&self) -> &Id {
+        &(self.id)
+    }
 }

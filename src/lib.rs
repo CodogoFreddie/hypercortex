@@ -18,7 +18,7 @@ use serde::Deserialize;
 use serde_json;
 use std::error::Error;
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, BufWriter};
 use std::path::Path;
 use std::{env, fs};
 
@@ -46,11 +46,30 @@ fn get_tasks() -> impl Iterator<Item = LoadedTask> {
     })
 }
 
+fn put_task(task: &Task) -> Result<(), String> {
+    let var_name = "HYPERCORTEX_DIR";
+    let Id(task_id) = task.get_id();
+
+    let hyper_cortex_dir =
+        env::var(var_name).expect(format!("environment variable {} is unset", var_name).as_str());
+
+    let file_path = Path::new(&hyper_cortex_dir).join(task_id);
+
+    let file = File::create(file_path).expect("Unable to create file");
+    let mut buf_writer = BufWriter::new(file);
+
+    serde_json::to_writer_pretty(buf_writer, &task)
+        .expect(format!("could not output task {:?}", &task).as_str());
+
+    Ok(())
+}
+
 pub fn run_cli(get_now: &Fn() -> DateTime<Utc>, args: &Vec<String>) -> Result<(), String> {
     let tasks_iterator = get_tasks();
 
     let engine = parse_cli_args(args.iter().skip(1))?;
 
+    println!("{:#?}", engine);
     Ok(())
 
     //let tasks_to_display = engine.run(tasks_iterator);

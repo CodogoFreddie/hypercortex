@@ -15,9 +15,10 @@ pub enum Query {
     Tag(Tag),
 }
 
-type Mutations = Vec<Mutation>;
-type Queries = Vec<Query>;
+pub type Mutations = Vec<Mutation>;
+pub type Queries = Vec<Query>;
 
+#[derive(Debug)]
 pub enum CortexEngine {
     Create(Mutations),
     Read(Queries),
