@@ -1,11 +1,11 @@
 use crate::task::Task;
-use ansi_term::Colour::{Red, Cyan};
+use ansi_term::Colour::{Cyan, Red};
 use ansi_term::Style;
 use std::collections::HashMap;
 
 const GUTTER_WIDTH: usize = 2;
 
-const HEADER_ORDER: &[&str] = &["score", "id", "description", "tags", "due", "recur"];
+const HEADER_ORDER: &[&str] = &["id", "description", "tags", "due", "recur"];
 
 pub fn render_table(tasks: &Vec<Task>) -> () {
     let mut widths = HashMap::<&str, usize>::new();

@@ -66,8 +66,6 @@ impl Task {
             hm.insert("recur", format!("{}", recur));
         }
 
-        hm.insert("score", format!("{}", self.get_score()));
-
         hm
     }
 
@@ -156,23 +154,35 @@ impl Task {
 
         let mut score: u64 = 0;
 
-        if let Some(wait) = self.due {
+        if let Some(wait) = self.wait {
             if wait > Utc::now() {
                 return 0;
             }
         }
 
-        //if let Some(snooze) = self.due {
-            //if snooze > Utc::now() {
-                //return 0;
-            //}
-        //}
+        if let Some(snooze) = self.snooze {
+            if snooze > Utc::now() {
+                return 0;
+            }
+        }
 
         score = score + ((Utc::now() - self.updated_at).num_minutes() as u64).pow(2);
 
         if let Some(due) = self.due {
-            score = score + (2147483647 - (due.timestamp() as u64));
+            score = score
+                + if self.tags.contains("timely") {
+                    2 * (2147483647 - (due.timestamp() as u64))
+                } else {
+                    (2147483647 - (due.timestamp() as u64))
+                };
         }
+
+        score = score
+            + if self.tags.contains("urgent") {
+                score
+            } else {
+                0
+            };
 
         score
     }

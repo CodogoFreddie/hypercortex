@@ -24,7 +24,7 @@ use std::path::Path;
 use std::{env, fs};
 
 fn get_tasks() -> impl Iterator<Item = Result<Task, String>> {
-    let var_name = "HYPERCORTEX_DIR";
+    let var_name = "HYPERTASK_DIR";
 
     let hyper_cortex_dir =
         env::var(var_name).expect(format!("environment variable {} is unset", var_name).as_str());
@@ -46,7 +46,8 @@ fn get_tasks() -> impl Iterator<Item = Result<Task, String>> {
 }
 
 fn put_task(task: &Task) -> Result<(), String> {
-    let var_name = "HYPERCORTEX_DIR";
+    let var_name = "HYPERTASK_DIR";
+
     let Id(task_id) = task.get_id();
 
     let hyper_cortex_dir =

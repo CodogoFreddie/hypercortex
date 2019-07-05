@@ -213,6 +213,7 @@ pub fn parse_as_prop(token: &str) -> Option<Result<Prop, String>> {
     };
 
     Some(match (&token[..colon_index], &token[colon_index + 1..]) {
+        ("due", "") => Ok(Prop::Due(None)),
         ("due", value) => {
             let value = match parse_as_date_time(&value) {
                 Ok(x) => x,
@@ -220,6 +221,8 @@ pub fn parse_as_prop(token: &str) -> Option<Result<Prop, String>> {
             };
             Ok(Prop::Due(Some(value)))
         }
+
+        ("wait", "") => Ok(Prop::Wait(None)),
         ("wait", value) => {
             let value = match parse_as_date_time(&value) {
                 Ok(x) => x,
@@ -227,6 +230,8 @@ pub fn parse_as_prop(token: &str) -> Option<Result<Prop, String>> {
             };
             Ok(Prop::Wait(Some(value)))
         }
+
+        ("snooze", "") => Ok(Prop::Snooze(None)),
         ("snooze", value) => {
             let value = match parse_as_date_time(&value) {
                 Ok(x) => x,

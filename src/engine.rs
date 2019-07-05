@@ -46,6 +46,7 @@ impl CortexEngine {
             CortexEngine::Read(queries) => input_tasks_iter
                 .map(|r| r.unwrap())
                 .filter(|t| t.satisfies_queries(queries))
+                .filter(|t| t.get_score() != 0)
                 .collect::<Vec<Task>>(),
 
             CortexEngine::Update(queries, mutations) => input_tasks_iter
