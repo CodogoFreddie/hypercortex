@@ -1,10 +1,12 @@
 use crate::engine::{Mutation, Mutations, Queries, Query};
 use crate::id::Id;
 use crate::prop::Prop;
+use crate::recur::Recur;
 use crate::tag::{Sign, Tag};
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
+use time::Duration;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Task {
@@ -13,6 +15,7 @@ pub struct Task {
     done: Option<DateTime<Utc>>,
     due: Option<DateTime<Utc>>,
     id: Id,
+    recur: Option<Recur>,
     snooze: Option<DateTime<Utc>>,
     tags: HashSet<String>,
     updated_at: DateTime<Utc>,
@@ -27,6 +30,7 @@ impl Task {
             done: None,
             due: None,
             id: Id::generate(),
+            recur: None,
             snooze: None,
             tags: HashSet::new(),
             updated_at: Utc::now(),
@@ -53,6 +57,14 @@ impl Task {
                 .join(" "),
         );
 
+        if let Some(due) = &self.due {
+            hm.insert("due", due.format("%Y-%m-%d %H:%M:%S").to_string());
+        }
+
+        if let Some(recur) = &self.recur {
+            hm.insert("recur", format!("{}", recur));
+        }
+
         hm
     }
 
@@ -75,7 +87,7 @@ impl Task {
     pub fn satisfies_query(&self, query: &Query) -> bool {
         match query {
             Query::Id(id) => id == &self.id,
-            Query::Tag(Tag { sign, name }) => self.tags.contains(name),
+            Query::Tag(Tag { sign: _, name }) => self.tags.contains(name),
         }
     }
 
@@ -105,7 +117,18 @@ impl Task {
                 self.description = Some(description.to_string());
             }
             Mutation::SetProp(Prop::Done(done)) => {
-                self.done = Some(done.clone());
+                if let Some(recur) = &self.recur {
+                    let dt: Duration = Duration::from(recur);
+
+                    if let Some(due) = self.due {
+                        self.due = Some(due + dt);
+                    }
+                    if let Some(wait) = self.wait {
+                        self.wait = Some(wait + dt);
+                    }
+                } else {
+                    self.done = Some(done.clone());
+                }
             }
             Mutation::SetProp(Prop::Due(due)) => {
                 self.due = due.clone();
@@ -116,6 +139,7 @@ impl Task {
             Mutation::SetProp(Prop::Wait(wait)) => {
                 self.wait = wait.clone();
             }
+            Mutation::SetProp(Prop::Recur(recur)) => self.recur = recur.clone(),
         }
 
         self.updated_at = Utc::now();

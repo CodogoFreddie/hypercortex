@@ -10,5 +10,5 @@ fn get_now() -> DateTime<Utc> {
 fn main() {
     let args: Vec<_> = env::args().collect();
 
-   hypercortex::run_cli(&get_now, &args).unwrap();
+    hypercortex::run_cli(&get_now, &args).unwrap();
 }

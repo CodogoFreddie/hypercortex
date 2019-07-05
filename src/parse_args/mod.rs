@@ -1,6 +1,7 @@
-use crate::engine::{CortexEngine, Mutation, Mutations, Queries, Query};
+use crate::engine::{CortexEngine, Mutation, Query};
 use crate::id::{Id, NUMBER_OF_CHARS_IN_FULL_ID};
 use crate::prop::Prop;
+use crate::recur::Recur;
 use crate::tag::{Sign, Tag};
 use chrono::prelude::*;
 use regex::Regex;
@@ -86,7 +87,7 @@ pub fn parse_as_query(token: &str) -> Result<Query, String> {
 
 fn parse_weekday(weekday: &Weekday) -> DateTime<Utc> {
     let now_week = Utc::now().iso_week();
-    let mut d = Utc
+    let d = Utc
         .isoywd(now_week.year(), now_week.week(), *weekday)
         .and_hms(0, 0, 0);
 
@@ -120,7 +121,7 @@ fn end_of_week() -> DateTime<Utc> {
 }
 
 fn end_of_month() -> DateTime<Utc> {
-    let mut d = end_of_day();
+    let d = end_of_day();
     let mut count_up = Some(d);
     while let Some(new_count_up) = count_up.unwrap().with_day(1 + count_up.unwrap().day()) {
         count_up = Some(new_count_up);
@@ -134,14 +135,15 @@ fn end_of_year() -> DateTime<Utc> {
 }
 
 lazy_static! {
-    static ref IS_RELATIVE_DATE_SHORTCUT_REGEX: Regex = Regex::new(r"(\d+)([dwmy])").unwrap();
+    static ref DATE_SHORTCUT_REGEX: Regex = Regex::new(r"(\d+)([dwmy])").unwrap();
 }
+
 fn is_relative_date_shortcut(token: &str) -> bool {
-    IS_RELATIVE_DATE_SHORTCUT_REGEX.is_match(token)
+    DATE_SHORTCUT_REGEX.is_match(token)
 }
 
 fn parse_relative_date_shortcut(token: &str) -> DateTime<Utc> {
-    let caps = IS_RELATIVE_DATE_SHORTCUT_REGEX.captures(token).unwrap();
+    let caps = DATE_SHORTCUT_REGEX.captures(token).unwrap();
     let number = caps.get(1).unwrap().as_str().parse::<i64>().unwrap();
     let unit = caps.get(2).unwrap().as_str();
 
@@ -150,7 +152,7 @@ fn parse_relative_date_shortcut(token: &str) -> DateTime<Utc> {
         (n, "w") => Duration::weeks(n),
         (n, "m") => Duration::seconds(n * 60 * 60 * 24 * 365 / 12),
         (n, "y") => Duration::days(n * 365),
-        (n, u) => panic!("{} is not a valid unit", u),
+        (_, u) => panic!("{} is not a valid unit", u),
     };
 
     println!("{:?}, {:?}", number, unit);
@@ -175,6 +177,33 @@ pub fn parse_as_date_time(token: &str) -> Result<DateTime<Utc>, String> {
         x if is_relative_date_shortcut(&x) => Ok(parse_relative_date_shortcut(&x)),
         _ => Err(format!("`{}` is a malformed DateTime value", token)),
     }
+}
+
+fn parse_as_recur(token: &str) -> Result<Recur, String> {
+    let caps = DATE_SHORTCUT_REGEX
+        .captures(token)
+        .ok_or(format!("{} is not a valid recurence format", token))?;
+
+    let number = caps
+        .get(1)
+        .ok_or(format!("{} is not a valid recurence format", token))?
+        .as_str()
+        .parse::<i64>()
+        .unwrap();
+    let unit = caps
+        .get(2)
+        .ok_or(format!("{} is not a valid recurence format", token))?
+        .as_str();
+
+    let recur = match (number, unit) {
+        (n, "d") => Recur::Day(n),
+        (n, "w") => Recur::Week(n),
+        (n, "m") => Recur::Month(n),
+        (n, "y") => Recur::Year(n),
+        (_, u) => panic!("{} is not a valid unit", u),
+    };
+
+    Ok(recur)
 }
 
 pub fn parse_as_prop(token: &str) -> Option<Result<Prop, String>> {
@@ -205,6 +234,13 @@ pub fn parse_as_prop(token: &str) -> Option<Result<Prop, String>> {
             };
             Ok(Prop::Snooze(Some(value)))
         }
+        ("recur", value) => {
+            let value = match parse_as_recur(&value) {
+                Ok(x) => x,
+                Err(msg) => return Some(Err(msg)),
+            };
+            Ok(Prop::Recur(Some(value)))
+        }
         _ => Err(format!("`{}` is a malformed prop parameter", token)),
     })
 }
@@ -216,7 +252,7 @@ pub fn parse_as_mutation(token: &str) -> Result<Mutation, String> {
     };
 
     match parse_as_prop(token) {
-        Some(Ok(prop)) => return Ok(Mutation::SetProp((prop))),
+        Some(Ok(prop)) => return Ok(Mutation::SetProp(prop)),
         Some(Err(msg)) => return Err(msg),
         _ => {}
     }
@@ -261,14 +297,14 @@ pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> Result<Cort
 
     let parsed_mutations_with_merged_description = merge_description_mutations(parsed_mutations);
 
-    match (command) {
+    match command {
         Some(Command::Add) => Ok(CortexEngine::Create(
             parsed_mutations_with_merged_description,
         )),
         Some(Command::Delete) => Ok(CortexEngine::Delete(parsed_queries)),
         Some(Command::Done) => Ok(CortexEngine::Update(
             parsed_queries,
-            vec![Mutation::SetProp(Prop::Done((Utc::now())))],
+            vec![Mutation::SetProp(Prop::Done(Utc::now()))],
         )),
         Some(Command::Snooze) => Ok(CortexEngine::Update(
             parsed_queries,
