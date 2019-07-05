@@ -1,14 +1,15 @@
 use crate::task::Task;
+use ansi_term::Colour::{Red, Cyan};
 use ansi_term::Style;
 use std::collections::HashMap;
 
 const GUTTER_WIDTH: usize = 2;
 
-const HEADER_ORDER: &[&str] = &["id", "description", "tags", "due", "recur"];
+const HEADER_ORDER: &[&str] = &["score", "id", "description", "tags", "due", "recur"];
 
 pub fn render_table(tasks: &Vec<Task>) -> () {
     let mut widths = HashMap::<&str, usize>::new();
-    let mut hash_mapped_tasks: Vec<HashMap<&str, String>> = vec![];
+    let mut hash_mapped_tasks: Vec<(HashMap<&str, String>, &Task)> = vec![];
 
     //calculate column widths
     for header in HEADER_ORDER {
@@ -25,7 +26,7 @@ pub fn render_table(tasks: &Vec<Task>) -> () {
                 widths.insert(key, length);
             }
         }
-        hash_mapped_tasks.push(hash_map)
+        hash_mapped_tasks.push((hash_map, task))
     }
 
     //print the header
@@ -41,13 +42,13 @@ pub fn render_table(tasks: &Vec<Task>) -> () {
     println!("{}", Style::new().underline().paint(header_string));
 
     //print the tasks
-    for task in hash_mapped_tasks {
+    for (task_hash, task) in hash_mapped_tasks {
         let task_string = HEADER_ORDER
             .iter()
             .map(|header| {
                 format!(
                     "{:1$}",
-                    if let Some(val) = task.get(header) {
+                    if let Some(val) = task_hash.get(header) {
                         val
                     } else {
                         ""
@@ -57,6 +58,15 @@ pub fn render_table(tasks: &Vec<Task>) -> () {
             })
             .collect::<Vec<String>>()
             .join("");
-        println!("{}", task_string);
+        println!(
+            "{}",
+            if task.is_overdue() {
+                Red.paint(task_string).to_string()
+            } else if task.is_soon_due() {
+                Cyan.paint(task_string).to_string()
+            } else {
+                task_string
+            }
+        );
     }
 }

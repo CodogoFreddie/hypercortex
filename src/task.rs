@@ -66,6 +66,8 @@ impl Task {
             hm.insert("recur", format!("{}", recur));
         }
 
+        hm.insert("score", format!("{}", self.get_score()));
+
         hm
     }
 
@@ -160,11 +162,11 @@ impl Task {
             }
         }
 
-        if let Some(snooze) = self.due {
-            if snooze > Utc::now() {
-                return 0;
-            }
-        }
+        //if let Some(snooze) = self.due {
+            //if snooze > Utc::now() {
+                //return 0;
+            //}
+        //}
 
         score = score + ((Utc::now() - self.updated_at).num_minutes() as u64).pow(2);
 
@@ -173,6 +175,22 @@ impl Task {
         }
 
         score
+    }
+
+    pub fn is_overdue(&self) -> bool {
+        if let Some(due) = self.due {
+            return due < Utc::now();
+        } else {
+            return false;
+        }
+    }
+
+    pub fn is_soon_due(&self) -> bool {
+        if let Some(due) = self.due {
+            return due < (Utc::now() + Duration::days(3));
+        } else {
+            return false;
+        }
     }
 }
 
