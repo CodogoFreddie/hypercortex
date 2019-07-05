@@ -32,7 +32,7 @@ impl CortexEngine {
         input_tasks_iter: impl Iterator<Item = Result<Task, String>>,
         put_task: impl Fn(&Task) -> Result<(), String>,
     ) -> Vec<Task> {
-        match &self {
+        let mut tasks_collection = match &self {
             CortexEngine::Create(mutations) => {
                 let mut new_task = Task::generate();
 
@@ -48,7 +48,24 @@ impl CortexEngine {
                 .filter(|t| t.satisfies_queries(queries))
                 .collect::<Vec<Task>>(),
 
-            _ => vec![],
-        }
+            CortexEngine::Update(queries, mutations) => input_tasks_iter
+                .map(|r| r.unwrap())
+                .filter(|t| t.satisfies_queries(queries))
+                .map(|mut t| {
+                    t.apply_mutations(mutations);
+                    put_task(&t).unwrap();
+                    t
+                })
+                .collect::<Vec<Task>>(),
+
+            CortexEngine::Delete(queries) => input_tasks_iter
+                .map(|r| r.unwrap())
+                .filter(|t| t.satisfies_queries(queries))
+                .collect::<Vec<Task>>(),
+        };
+
+        tasks_collection.sort_unstable();
+
+        tasks_collection
     }
 }

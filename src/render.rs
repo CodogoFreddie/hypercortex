@@ -11,12 +11,13 @@ pub fn render_table(tasks: &Vec<Task>) -> () {
     let mut hash_mapped_tasks: Vec<HashMap<&str, String>> = vec![];
 
     //calculate column widths
+    for header in HEADER_ORDER {
+        widths.insert(header, header.len());
+    }
     for task in tasks {
         let hash_map = task.to_renderable_hash_map();;
         for (key, value) in &hash_map {
             let length = value.len();
-
-            widths.entry(key).or_insert(length);
 
             let current_length = widths.get(key).unwrap();
 

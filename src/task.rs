@@ -5,6 +5,7 @@ use crate::recur::Recur;
 use crate::tag::{Sign, Tag};
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use time::Duration;
 
@@ -145,5 +146,51 @@ impl Task {
         self.updated_at = Utc::now();
 
         self
+    }
+
+    pub fn get_score(&self) -> u64 {
+        //this is perfectly fine for now, but I'd like to aim to replace this with
+        //something user-configureable, possibly https://github.com/jonathandturner/rhai
+
+        let mut score: u64 = 0;
+
+        if let Some(wait) = self.due {
+            if wait > Utc::now() {
+                return 0;
+            }
+        }
+
+        if let Some(snooze) = self.due {
+            if snooze > Utc::now() {
+                return 0;
+            }
+        }
+
+        score = score + ((Utc::now() - self.updated_at).num_minutes() as u64).pow(2);
+
+        if let Some(due) = self.due {
+            score = score + (2147483647 - (due.timestamp() as u64));
+        }
+
+        score
+    }
+}
+
+impl PartialOrd for Task {
+    fn partial_cmp(&self, other: &Task) -> Option<Ordering> {
+        Some(self.get_score().cmp(&other.get_score()).reverse())
+    }
+}
+
+impl Ord for Task {
+    fn cmp(&self, other: &Task) -> Ordering {
+        self.get_score().cmp(&other.get_score()).reverse()
+    }
+}
+
+impl Eq for Task {}
+impl PartialEq for Task {
+    fn eq(&self, other: &Task) -> bool {
+        self.get_score() == other.get_score()
     }
 }

@@ -234,6 +234,8 @@ pub fn parse_as_prop(token: &str) -> Option<Result<Prop, String>> {
             };
             Ok(Prop::Snooze(Some(value)))
         }
+
+        ("recur", "") => Ok(Prop::Recur(None)),
         ("recur", value) => {
             let value = match parse_as_recur(&value) {
                 Ok(x) => x,
