@@ -42,7 +42,7 @@ pub fn render_table(tasks: &Vec<Task>) -> () {
     println!("{}", Style::new().underline().paint(header_string));
 
     //print the tasks
-    for (task_hash, task) in hash_mapped_tasks {
+    for (task_hash, task) in hash_mapped_tasks.iter().take(20) {
         let task_string = HEADER_ORDER
             .iter()
             .map(|header| {

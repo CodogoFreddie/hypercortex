@@ -154,6 +154,10 @@ impl Task {
 
         let mut score: u64 = 0;
 
+        if let Some(_) = self.done {
+            return 0;
+        }
+
         if let Some(wait) = self.wait {
             if wait > Utc::now() {
                 return 0;
@@ -170,7 +174,7 @@ impl Task {
 
         if let Some(due) = self.due {
             score = score
-                + if self.tags.contains("timely") {
+                + if self.tags.contains("timely") && due < Utc::now() {
                     2 * (2147483647 - (due.timestamp() as u64))
                 } else {
                     (2147483647 - (due.timestamp() as u64))
