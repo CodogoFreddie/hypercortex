@@ -76,9 +76,9 @@ impl Task {
     pub fn satisfies_queries(&self, queries: &Queries) -> bool {
         for q in queries {
             if self.satisfies_query(q) {
-                continue;
+                return true;
             } else {
-                return false;
+                continue;
             }
         }
 
