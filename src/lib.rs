@@ -21,13 +21,16 @@ use serde_json;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::path::Path;
+use std::process::Command;
 use std::{env, fs};
 
-fn get_tasks() -> impl Iterator<Item = Result<Task, String>> {
-    let var_name = "HYPERTASK_DIR";
+const ENV_VAR_SHELL: &str = "SHELL";
+const ENV_VAR_DIR_NAME: &str = "HYPERTASK_DIR";
+const ENV_VAR_AFTER_HOOK: &str = "HYPERTASK_AFTER";
 
-    let hyper_cortex_dir =
-        env::var(var_name).expect(format!("environment variable {} is unset", var_name).as_str());
+fn get_tasks() -> impl Iterator<Item = Result<Task, String>> {
+    let hyper_cortex_dir = env::var(ENV_VAR_DIR_NAME)
+        .expect(format!("environment variable {} is unset", ENV_VAR_DIR_NAME).as_str());
 
     let paths = fs::read_dir(&hyper_cortex_dir)
         .expect(format!("folder {} could not be found", hyper_cortex_dir.to_string()).as_str());
@@ -46,12 +49,10 @@ fn get_tasks() -> impl Iterator<Item = Result<Task, String>> {
 }
 
 fn put_task(task: &Task) -> Result<(), String> {
-    let var_name = "HYPERTASK_DIR";
-
     let Id(task_id) = task.get_id();
 
-    let hyper_cortex_dir =
-        env::var(var_name).expect(format!("environment variable {} is unset", var_name).as_str());
+    let hyper_cortex_dir = env::var(ENV_VAR_DIR_NAME)
+        .expect(format!("environment variable {} is unset", ENV_VAR_DIR_NAME).as_str());
 
     let file_path = Path::new(&hyper_cortex_dir).join(task_id);
 
@@ -60,6 +61,14 @@ fn put_task(task: &Task) -> Result<(), String> {
 
     serde_json::to_writer_pretty(buf_writer, &task)
         .expect(format!("could not output task {:?}", &task).as_str());
+
+    if let (Ok(shell), Ok(after_cmd)) = (env::var(ENV_VAR_SHELL), env::var(ENV_VAR_AFTER_HOOK)) {
+        let output = Command::new(shell)
+            .arg("-c")
+            .arg(after_cmd)
+            .output()
+            .expect("Failed to execute command");
+    }
 
     Ok(())
 }
