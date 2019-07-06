@@ -170,7 +170,7 @@ impl Task {
             }
         }
 
-        score = score + ((Utc::now() - self.updated_at).num_minutes() as u64).pow(2);
+        score = score + (Utc::now() - self.updated_at).num_seconds() as u64;
 
         if let Some(due) = self.due {
             score = score
