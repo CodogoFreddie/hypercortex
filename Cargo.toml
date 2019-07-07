@@ -3,11 +3,12 @@ name = "hypertask"
 version = "0.1.0"
 authors = ["Freddie Ridell <contact@freddieridell.com>"]
 edition = "2018"
-exclude = [ "target/**/*" ]
+categories = [ "command-line-utilities" ]
 description = "A cli task manager"
+homepage = "https://github.com/FreddieRidell/hypertask"
+keywords = [ "task", "todo", "cli" ]
 license = "MIT"
 repository = "https://github.com/FreddieRidell/hypertask"
-homepage = "https://github.com/FreddieRidell/hypertask"
 
 [[bin]]
 name = "task"
