@@ -3,6 +3,8 @@ name = "hypertask"
 version = "0.1.0"
 authors = ["Freddie Ridell <contact@freddieridell.com>"]
 edition = "2018"
+exclude = [ "target/**/*" ]
+
 
 [[bin]]
 name = "task"
@@ -17,3 +19,4 @@ regex = "1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 time = "0.1.42"
+
