@@ -1,6 +1,6 @@
 [package]
 name = "hypertask"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Freddie Ridell <contact@freddieridell.com>"]
 edition = "2018"
 categories = [ "command-line-utilities" ]
