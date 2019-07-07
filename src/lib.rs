@@ -63,7 +63,7 @@ fn put_task(task: &Task) -> Result<(), String> {
         .expect(format!("could not output task {:?}", &task).as_str());
 
     if let (Ok(shell), Ok(after_cmd)) = (env::var(ENV_VAR_SHELL), env::var(ENV_VAR_AFTER_HOOK)) {
-        let output = Command::new(shell)
+        Command::new(shell)
             .arg("-c")
             .arg(after_cmd)
             .output()
