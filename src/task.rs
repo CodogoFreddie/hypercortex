@@ -92,7 +92,16 @@ impl Task {
     pub fn satisfies_query(&self, query: &Query) -> bool {
         match query {
             Query::Id(id) => id == &self.id,
-            Query::Tag(Tag { sign: _, name }) => self.tags.contains(name),
+
+            Query::Tag(Tag {
+                sign: Sign::Plus,
+                name,
+            }) => self.tags.contains(name),
+
+            Query::Tag(Tag {
+                sign: Sign::Minus,
+                name,
+            }) => !self.tags.contains(name),
         }
     }
 
