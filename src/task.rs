@@ -78,31 +78,44 @@ impl Task {
             return true;
         }
 
-        for q in queries {
-            if self.satisfies_query(q) {
-                return true;
-            } else {
-                continue;
+        let mut default = false;
+
+        for query in queries {
+            match query {
+                Query::Id(id) => {
+                    if id == &self.id {
+                        return true;
+                    } else {
+                        continue;
+                    }
+                }
+
+                Query::Tag(Tag {
+                    sign: Sign::Plus,
+                    name,
+                }) => {
+                    if self.tags.contains(name) {
+                        return true;
+                    } else {
+                        continue;
+                    }
+                }
+
+                Query::Tag(Tag {
+                    sign: Sign::Minus,
+                    name,
+                }) => {
+                    if self.tags.contains(name) {
+                        return false;
+                    } else {
+                    default = true;
+                        continue;
+                    }
+                }
             }
         }
 
-        false
-    }
-
-    pub fn satisfies_query(&self, query: &Query) -> bool {
-        match query {
-            Query::Id(id) => id == &self.id,
-
-            Query::Tag(Tag {
-                sign: Sign::Plus,
-                name,
-            }) => self.tags.contains(name),
-
-            Query::Tag(Tag {
-                sign: Sign::Minus,
-                name,
-            }) => !self.tags.contains(name),
-        }
+        return default;
     }
 
     pub fn apply_mutations(&mut self, mutations: &Mutations) -> &Self {
