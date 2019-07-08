@@ -59,7 +59,7 @@ impl Task {
         );
 
         if let Some(due) = &self.due {
-            hm.insert("due", due.format("%Y-%m-%d %H:%M:%S").to_string());
+            hm.insert("due", due.format("%Y-%m-%d %H:%M").to_string());
         }
 
         if let Some(recur) = &self.recur {
