@@ -75,7 +75,7 @@ impl Task {
 
     pub fn satisfies_queries(&self, queries: &Queries) -> bool {
         if queries.len() == 0 {
-            return true;
+            return false;
         }
 
         let mut default = false;
@@ -108,7 +108,7 @@ impl Task {
                     if self.tags.contains(name) {
                         return false;
                     } else {
-                    default = true;
+                        default = true;
                         continue;
                     }
                 }
