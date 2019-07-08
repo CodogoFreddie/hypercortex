@@ -4,10 +4,32 @@ use crate::prop::Prop;
 use crate::recur::Recur;
 use crate::tag::{Sign, Tag};
 use chrono::prelude::*;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use time::Duration;
+
+//extern crate serde;
+//#[macro_use]
+//extern crate serde_derive;
+//extern crate serde_json;
+
+//use serde::{Serialize, Serializer};
+//use std::collections::{BTreeMap, HashMap};
+
+//#[derive(Serialize, Deserialize, Default)]
+//struct MyStruct {
+//#[serde(serialize_with = "ordered_map")]
+//map: HashMap<String, String>,
+//}
+
+//fn ordered_map<S>(value: &HashMap<String, String>, serializer: S) -> Result<S::Ok, S::Error>
+//where
+//S: Serializer,
+//{
+//let ordered: BTreeMap<_, _> = value.iter().collect();
+//ordered.serialize(serializer)
+//}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Task {
@@ -18,9 +40,21 @@ pub struct Task {
     id: Id,
     recur: Option<Recur>,
     snooze: Option<DateTime<Utc>>,
+    #[serde(serialize_with = "ordered_set")]
     tags: HashSet<String>,
     updated_at: DateTime<Utc>,
     wait: Option<DateTime<Utc>>,
+}
+
+fn ordered_set<S>(value: &HashSet<String>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let mut vec = value.iter().collect::<Vec<&String>>();
+
+    vec.sort();
+
+    vec.serialize(serializer)
 }
 
 impl Task {
