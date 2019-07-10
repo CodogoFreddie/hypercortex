@@ -9,28 +9,6 @@ use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use time::Duration;
 
-//extern crate serde;
-//#[macro_use]
-//extern crate serde_derive;
-//extern crate serde_json;
-
-//use serde::{Serialize, Serializer};
-//use std::collections::{BTreeMap, HashMap};
-
-//#[derive(Serialize, Deserialize, Default)]
-//struct MyStruct {
-//#[serde(serialize_with = "ordered_map")]
-//map: HashMap<String, String>,
-//}
-
-//fn ordered_map<S>(value: &HashMap<String, String>, serializer: S) -> Result<S::Ok, S::Error>
-//where
-//S: Serializer,
-//{
-//let ordered: BTreeMap<_, _> = value.iter().collect();
-//ordered.serialize(serializer)
-//}
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Task {
     created_at: DateTime<Utc>,
@@ -85,11 +63,16 @@ impl Task {
 
         hm.insert(
             "tags",
-            self.tags
+            {
+                let mut tags_vec = self.tags
                 .iter()
                 .map(|t| format!("+{}", t))
-                .collect::<Vec<String>>()
-                .join(" "),
+                .collect::<Vec<String>>();
+
+                tags_vec.sort();
+
+                tags_vec.join(" ")
+            },
         );
 
         if let Some(due) = &self.due {

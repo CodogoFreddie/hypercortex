@@ -32,6 +32,7 @@ fn partition_args<'a>(
 ) -> (Vec<&'a String>, Option<Command>, Vec<&'a String>) {
     let mut query_tokens = vec![];
     let mut mutation_tokens = vec![];
+
     let mut command: Option<Command> = None;
 
     for arg in args {
