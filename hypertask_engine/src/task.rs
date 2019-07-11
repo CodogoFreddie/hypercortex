@@ -11,17 +11,18 @@ use time::Duration;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Task {
-    created_at: DateTime<Utc>,
-    description: Option<String>,
-    done: Option<DateTime<Utc>>,
-    due: Option<DateTime<Utc>>,
-    id: Id,
-    recur: Option<Recur>,
-    snooze: Option<DateTime<Utc>>,
-    #[serde(serialize_with = "ordered_set")]
-    tags: HashSet<String>,
-    updated_at: DateTime<Utc>,
-    wait: Option<DateTime<Utc>>,
+   pub(crate) created_at: DateTime<Utc>,
+   pub(crate) description: Option<String>,
+   pub(crate) done: Option<DateTime<Utc>>,
+   pub(crate) due: Option<DateTime<Utc>>,
+   pub(crate) id: Id,
+   pub(crate) recur: Option<Recur>,
+   pub(crate) snooze: Option<DateTime<Utc>>,
+   pub(crate) updated_at: DateTime<Utc>,
+   pub(crate) wait: Option<DateTime<Utc>>,
+
+   #[serde(serialize_with = "ordered_set")]
+   pub(crate) tags: HashSet<String>,
 }
 
 fn ordered_set<S>(value: &HashSet<String>, serializer: S) -> Result<S::Ok, S::Error>

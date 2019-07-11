@@ -1,22 +1,14 @@
 #[macro_use]
 extern crate lazy_static;
-
 extern crate ansi_term;
+extern crate hypertask_engine;
 
-mod engine;
-mod id;
 mod parse_args;
-mod prop;
-mod recur;
 mod render;
-mod tag;
-mod task;
 
-use crate::id::Id;
 use crate::parse_args::parse_cli_args;
 use crate::render::render_table;
-use crate::task::Task;
-use chrono::prelude::*;
+use hypertask_engine::prelude::*;
 use serde_json;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
@@ -73,7 +65,7 @@ fn put_task(task: &Task) -> Result<(), String> {
     Ok(())
 }
 
-pub fn run_cli(_get_now: &Fn() -> DateTime<Utc>, args: &Vec<String>) -> Result<(), String> {
+pub fn run_cli(args: &Vec<String>) -> Result<(), String> {
     let tasks_iterator = get_tasks();
 
     let engine = parse_cli_args(args.iter().skip(1))?;

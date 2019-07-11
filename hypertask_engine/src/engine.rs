@@ -19,21 +19,21 @@ pub type Mutations = Vec<Mutation>;
 pub type Queries = Vec<Query>;
 
 #[derive(Debug)]
-pub enum CortexEngine {
+pub enum Engine {
     Create(Mutations),
     Read(Queries),
     Update(Queries, Mutations),
     Delete(Queries),
 }
 
-impl CortexEngine {
+impl Engine {
     pub fn run(
         self,
         input_tasks_iter: impl Iterator<Item = Result<Task, String>>,
         put_task: impl Fn(&Task) -> Result<(), String>,
     ) -> Vec<Task> {
         let mut tasks_collection = match &self {
-            CortexEngine::Create(mutations) => {
+            Engine::Create(mutations) => {
                 let mut new_task = Task::generate();
 
                 new_task.apply_mutations(mutations);
@@ -43,13 +43,13 @@ impl CortexEngine {
                 vec![new_task]
             }
 
-            CortexEngine::Read(queries) => input_tasks_iter
+            Engine::Read(queries) => input_tasks_iter
                 .map(|r| r.unwrap())
                 .filter(|t| queries.len() == 0 || t.satisfies_queries(queries))
                 .filter(|t| t.get_score() != 0)
                 .collect::<Vec<Task>>(),
 
-            CortexEngine::Update(queries, mutations) => input_tasks_iter
+            Engine::Update(queries, mutations) => input_tasks_iter
                 .map(|r| r.unwrap())
                 .filter(|t| t.satisfies_queries(queries))
                 .map(|mut t| {
@@ -59,7 +59,7 @@ impl CortexEngine {
                 })
                 .collect::<Vec<Task>>(),
 
-            CortexEngine::Delete(queries) => input_tasks_iter
+            Engine::Delete(queries) => input_tasks_iter
                 .map(|r| r.unwrap())
                 .filter(|t| t.satisfies_queries(queries))
                 .collect::<Vec<Task>>(),

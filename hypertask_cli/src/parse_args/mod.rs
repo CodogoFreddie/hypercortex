@@ -1,9 +1,5 @@
-use crate::engine::{CortexEngine, Mutation, Query};
-use crate::id::{Id, NUMBER_OF_CHARS_IN_FULL_ID};
-use crate::prop::Prop;
-use crate::recur::Recur;
-use crate::tag::{Sign, Tag};
 use chrono::prelude::*;
+use hypertask_engine::prelude::*;
 use regex::Regex;
 use time::Duration;
 
@@ -290,7 +286,7 @@ fn merge_description_mutations(mut mutations: Vec<Mutation>) -> Vec<Mutation> {
     output
 }
 
-pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> Result<CortexEngine, String> {
+pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> Result<Engine, String> {
     let (query_tokens, command, mutation_tokens) = partition_args(args);
 
     let parsed_queries: Vec<Query> = (query_tokens
@@ -306,24 +302,24 @@ pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> Result<Cort
     let parsed_mutations_with_merged_description = merge_description_mutations(parsed_mutations);
 
     match command {
-        Some(Command::Add) => Ok(CortexEngine::Create(
+        Some(Command::Add) => Ok(Engine::Create(
             parsed_mutations_with_merged_description,
         )),
-        Some(Command::Delete) => Ok(CortexEngine::Delete(parsed_queries)),
-        Some(Command::Done) => Ok(CortexEngine::Update(
+        Some(Command::Delete) => Ok(Engine::Delete(parsed_queries)),
+        Some(Command::Done) => Ok(Engine::Update(
             parsed_queries,
             vec![Mutation::SetProp(Prop::Done(Utc::now()))],
         )),
-        Some(Command::Snooze) => Ok(CortexEngine::Update(
+        Some(Command::Snooze) => Ok(Engine::Update(
             parsed_queries,
             vec![Mutation::SetProp(Prop::Snooze(Some(
                 Utc::now() + Duration::hours(1),
             )))],
         )),
-        Some(Command::Modify) => Ok(CortexEngine::Update(
+        Some(Command::Modify) => Ok(Engine::Update(
             parsed_queries,
             parsed_mutations_with_merged_description,
         )),
-        None => Ok(CortexEngine::Read(parsed_queries)),
+        None => Ok(Engine::Read(parsed_queries)),
     }
 }

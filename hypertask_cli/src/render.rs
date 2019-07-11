@@ -1,4 +1,4 @@
-use crate::task::Task;
+use hypertask_engine::prelude::*;
 use ansi_term::Colour::{Cyan, Red};
 use ansi_term::Style;
 use std::collections::HashMap;
