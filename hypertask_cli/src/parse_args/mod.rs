@@ -302,9 +302,7 @@ pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> Result<Engi
     let parsed_mutations_with_merged_description = merge_description_mutations(parsed_mutations);
 
     match command {
-        Some(Command::Add) => Ok(Engine::Create(
-            parsed_mutations_with_merged_description,
-        )),
+        Some(Command::Add) => Ok(Engine::Create(parsed_mutations_with_merged_description)),
         Some(Command::Delete) => Ok(Engine::Delete(parsed_queries)),
         Some(Command::Done) => Ok(Engine::Update(
             parsed_queries,

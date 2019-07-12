@@ -1,7 +1,7 @@
 use crate::id::Id;
 use crate::prop::Prop;
 use crate::tag::Tag;
-use crate::task::Task;
+use crate::task::{FinalisedTask, Task};
 
 #[derive(Debug)]
 pub enum Mutation {
@@ -31,7 +31,7 @@ impl Engine {
         self,
         input_tasks_iter: impl Iterator<Item = Result<Task, String>>,
         put_task: impl Fn(&Task) -> Result<(), String>,
-    ) -> Vec<Task> {
+    ) -> Vec<FinalisedTask> {
         let mut tasks_collection = match &self {
             Engine::Create(mutations) => {
                 let mut new_task = Task::generate();
@@ -40,14 +40,15 @@ impl Engine {
 
                 put_task(&new_task).unwrap();
 
-                vec![new_task]
+                vec![new_task.finalise()]
             }
 
             Engine::Read(queries) => input_tasks_iter
                 .map(|r| r.unwrap())
                 .filter(|t| queries.len() == 0 || t.satisfies_queries(queries))
-                .filter(|t| t.get_score() != 0)
-                .collect::<Vec<Task>>(),
+                .map(|t| t.finalise())
+                .filter(|ft| ft.get_score() != &0)
+                .collect::<Vec<FinalisedTask>>(),
 
             Engine::Update(queries, mutations) => input_tasks_iter
                 .map(|r| r.unwrap())
@@ -57,12 +58,14 @@ impl Engine {
                     put_task(&t).unwrap();
                     t
                 })
-                .collect::<Vec<Task>>(),
+                .map(|t| t.finalise())
+                .collect::<Vec<FinalisedTask>>(),
 
             Engine::Delete(queries) => input_tasks_iter
                 .map(|r| r.unwrap())
                 .filter(|t| t.satisfies_queries(queries))
-                .collect::<Vec<Task>>(),
+                .map(|t| t.finalise())
+                .collect::<Vec<FinalisedTask>>(),
         };
 
         tasks_collection.sort_unstable();

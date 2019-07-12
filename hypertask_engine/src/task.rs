@@ -11,18 +11,18 @@ use time::Duration;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Task {
-   pub(crate) created_at: DateTime<Utc>,
-   pub(crate) description: Option<String>,
-   pub(crate) done: Option<DateTime<Utc>>,
-   pub(crate) due: Option<DateTime<Utc>>,
-   pub(crate) id: Id,
-   pub(crate) recur: Option<Recur>,
-   pub(crate) snooze: Option<DateTime<Utc>>,
-   pub(crate) updated_at: DateTime<Utc>,
-   pub(crate) wait: Option<DateTime<Utc>>,
+    created_at: DateTime<Utc>,
+    description: Option<String>,
+    done: Option<DateTime<Utc>>,
+    due: Option<DateTime<Utc>>,
+    id: Id,
+    recur: Option<Recur>,
+    snooze: Option<DateTime<Utc>>,
+    updated_at: DateTime<Utc>,
+    wait: Option<DateTime<Utc>>,
 
-   #[serde(serialize_with = "ordered_set")]
-   pub(crate) tags: HashSet<String>,
+    #[serde(serialize_with = "ordered_set")]
+    tags: HashSet<String>,
 }
 
 fn ordered_set<S>(value: &HashSet<String>, serializer: S) -> Result<S::Ok, S::Error>
@@ -52,43 +52,35 @@ impl Task {
         }
     }
 
-    pub fn to_renderable_hash_map(&self) -> HashMap<&str, String> {
-        let mut hm = HashMap::<&str, String>::new();
-
-        let Id(id) = &self.id;
-        hm.insert("id", id.to_string());
-
-        if let Some(description) = &self.description {
-            hm.insert("description", description.to_string());
-        }
-
-        hm.insert(
-            "tags",
-            {
-                let mut tags_vec = self.tags
-                .iter()
-                .map(|t| format!("+{}", t))
-                .collect::<Vec<String>>();
-
-                tags_vec.sort();
-
-                tags_vec.join(" ")
-            },
-        );
-
-        if let Some(due) = &self.due {
-            hm.insert("due", due.format("%Y-%m-%d %H:%M").to_string());
-        }
-
-        if let Some(recur) = &self.recur {
-            hm.insert("recur", format!("{}", recur));
-        }
-
-        hm
+    pub fn get_created_at(&self) -> &DateTime<Utc> {
+        &self.created_at
     }
-
+    pub fn get_description(&self) -> &Option<String> {
+        &self.description
+    }
+    pub fn get_done(&self) -> &Option<DateTime<Utc>> {
+        &self.done
+    }
+    pub fn get_due(&self) -> &Option<DateTime<Utc>> {
+        &self.due
+    }
     pub fn get_id(&self) -> &Id {
-        &(self.id)
+        &self.id
+    }
+    pub fn get_recur(&self) -> &Option<Recur> {
+        &self.recur
+    }
+    pub fn get_snooze(&self) -> &Option<DateTime<Utc>> {
+        &self.snooze
+    }
+    pub fn get_tags(&self) -> &HashSet<String> {
+        &self.tags
+    }
+    pub fn get_updated_at(&self) -> &DateTime<Utc> {
+        &self.updated_at
+    }
+    pub fn get_wait(&self) -> &Option<DateTime<Utc>> {
+        &self.wait
     }
 
     pub fn satisfies_queries(&self, queries: &Queries) -> bool {
@@ -192,7 +184,14 @@ impl Task {
         self
     }
 
-    pub fn get_score(&self) -> u64 {
+    pub fn finalise(self) -> FinalisedTask {
+        FinalisedTask {
+            score: self.get_score(),
+            task: self,
+        }
+    }
+
+    fn get_score(&self) -> u64 {
         //this is perfectly fine for now, but I'd like to aim to replace this with
         //something user-configureable, possibly https://github.com/jonathandturner/rhai
 
@@ -252,21 +251,36 @@ impl Task {
     }
 }
 
-impl PartialOrd for Task {
-    fn partial_cmp(&self, other: &Task) -> Option<Ordering> {
-        Some(self.get_score().cmp(&other.get_score()).reverse())
+#[derive(Debug)]
+pub struct FinalisedTask {
+    task: Task,
+    score: u64,
+}
+
+impl FinalisedTask {
+    pub fn get_task(&self) -> &Task {
+        &self.task
+    }
+    pub fn get_score(&self) -> &u64 {
+        &self.score
     }
 }
 
-impl Ord for Task {
-    fn cmp(&self, other: &Task) -> Ordering {
-        self.get_score().cmp(&other.get_score()).reverse()
+impl PartialOrd for FinalisedTask {
+    fn partial_cmp(&self, other: &FinalisedTask) -> Option<Ordering> {
+        Some(self.score.cmp(&other.score).reverse())
     }
 }
 
-impl Eq for Task {}
-impl PartialEq for Task {
-    fn eq(&self, other: &Task) -> bool {
-        self.get_score() == other.get_score()
+impl Ord for FinalisedTask {
+    fn cmp(&self, other: &FinalisedTask) -> Ordering {
+        self.score.cmp(&other.score).reverse()
+    }
+}
+
+impl Eq for FinalisedTask {}
+impl PartialEq for FinalisedTask {
+    fn eq(&self, other: &FinalisedTask) -> bool {
+        self.score == other.score
     }
 }

@@ -1,13 +1,47 @@
-use hypertask_engine::prelude::*;
 use ansi_term::Colour::{Cyan, Red};
 use ansi_term::Style;
+use hypertask_engine::prelude::*;
 use std::collections::HashMap;
 
 const GUTTER_WIDTH: usize = 2;
 
 const HEADER_ORDER: &[&str] = &["id", "description", "tags", "due", "recur"];
 
-pub fn render_table(tasks: &Vec<Task>) -> () {
+fn task_to_renderable_hash_map(finalised_task: &FinalisedTask) -> HashMap<&str, String> {
+    let mut hm = HashMap::<&str, String>::new();
+    let task = finalised_task.get_task();
+
+    let Id(id) = task.get_id();
+    hm.insert("id", id.to_string());
+
+    if let Some(description) = task.get_description() {
+        hm.insert("description", description.to_string());
+    }
+
+    hm.insert("tags", {
+        let mut tags_vec = task
+            .get_tags()
+            .iter()
+            .map(|t| format!("+{}", t))
+            .collect::<Vec<String>>();
+
+        tags_vec.sort();
+
+        tags_vec.join(" ")
+    });
+
+    if let Some(due) = task.get_due() {
+        hm.insert("due", due.format("%Y-%m-%d %H:%M").to_string());
+    }
+
+    if let Some(recur) = task.get_recur() {
+        hm.insert("recur", format!("{}", recur));
+    }
+
+    hm
+}
+
+pub fn render_table(finalised_tasks: &Vec<FinalisedTask>) -> () {
     let mut widths = HashMap::<&str, usize>::new();
     let mut hash_mapped_tasks: Vec<(HashMap<&str, String>, &Task)> = vec![];
 
@@ -15,8 +49,8 @@ pub fn render_table(tasks: &Vec<Task>) -> () {
     for header in HEADER_ORDER {
         widths.insert(header, header.len());
     }
-    for task in tasks {
-        let hash_map = task.to_renderable_hash_map();;
+    for finalised_task in finalised_tasks {
+        let hash_map = task_to_renderable_hash_map(&finalised_task);
         for (key, value) in &hash_map {
             let length = value.len();
 
@@ -26,7 +60,7 @@ pub fn render_table(tasks: &Vec<Task>) -> () {
                 widths.insert(key, length);
             }
         }
-        hash_mapped_tasks.push((hash_map, task))
+        hash_mapped_tasks.push((hash_map, finalised_task.get_task()))
     }
 
     //print the header
