@@ -3,7 +3,6 @@ use crate::id::Id;
 use crate::prop::Prop;
 use crate::tag::Tag;
 use crate::task::{FinalisedTask, Task};
-use std::marker::PhantomData;
 
 #[derive(Debug)]
 pub enum Mutation {
@@ -17,14 +16,11 @@ pub enum Query {
     Tag(Tag),
 }
 
-pub type Mutations = Vec<Mutation>;
-pub type Queries = Vec<Query>;
-
 pub enum Command {
-    Create(Mutations),
-    Read(Queries),
-    Update(Queries, Mutations),
-    Delete(Queries),
+    Create(Vec<Mutation>),
+    Read(Vec<Query>),
+    Update(Vec<Query>, Vec<Mutation>),
+    Delete(Vec<Query>),
 }
 
 pub fn run(command: Command, context: &Context) -> Result<Vec<FinalisedTask>, String> {
@@ -43,15 +39,15 @@ pub fn run(command: Command, context: &Context) -> Result<Vec<FinalisedTask>, St
 
         Command::Read(queries) => context
             .get_input_tasks_iter()?
-            .map(|r| r.unwrap())
-            .filter(|t| queries.len() == 0 || t.satisfies_queries(queries))
+            .map(std::result::Result::unwrap)
+            .filter(|t| queries.is_empty() || t.satisfies_queries(queries))
             .map(|t| t.finalise(&now))
             .filter(|ft| ft.get_score() != &0)
             .collect::<Vec<FinalisedTask>>(),
 
         Command::Update(queries, mutations) => context
             .get_input_tasks_iter()?
-            .map(|r| r.unwrap())
+            .map(std::result::Result::unwrap)
             .filter(|t| t.satisfies_queries(queries))
             .map(|mut t| {
                 t.apply_mutations(mutations, &now);
@@ -63,7 +59,7 @@ pub fn run(command: Command, context: &Context) -> Result<Vec<FinalisedTask>, St
 
         Command::Delete(queries) => context
             .get_input_tasks_iter()?
-            .map(|r| r.unwrap())
+            .map(std::result::Result::unwrap)
             .filter(|t| t.satisfies_queries(queries))
             .map(|t| t.finalise(&now))
             .collect::<Vec<FinalisedTask>>(),

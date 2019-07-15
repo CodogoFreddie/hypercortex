@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, PartialEq};
 use std::fmt;
 
-const CHARS: &'static str = "23456789abcdefghkmnpqrstwxyz";
+const CHARS: &str = "23456789abcdefghkmnpqrstwxyz";
 pub const NUMBER_OF_CHARS_IN_FULL_ID: usize = 16;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

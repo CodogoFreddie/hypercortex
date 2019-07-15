@@ -1,4 +1,4 @@
-use crate::task::{FinalisedTask, Task};
+use crate::task::Task;
 use chrono::prelude::*;
 
 pub trait Context {

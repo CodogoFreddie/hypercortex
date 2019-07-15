@@ -12,7 +12,7 @@ mod task;
 
 pub mod prelude {
     pub use crate::context::Context;
-    pub use crate::engine::{run, Command, Mutation, Mutations, Queries, Query};
+    pub use crate::engine::{run, Command, Mutation, Query};
     pub use crate::id::{Id, NUMBER_OF_CHARS_IN_FULL_ID};
     pub use crate::prop::Prop;
     pub use crate::recur::Recur;

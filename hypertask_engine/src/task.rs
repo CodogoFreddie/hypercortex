@@ -1,4 +1,4 @@
-use crate::engine::{Mutation, Mutations, Queries, Query};
+use crate::engine::{Mutation, Query};
 use crate::id::Id;
 use crate::prop::Prop;
 use crate::recur::Recur;
@@ -6,7 +6,7 @@ use crate::tag::{Sign, Tag};
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize, Serializer};
 use std::cmp::Ordering;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use time::Duration;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -39,7 +39,7 @@ where
 impl Task {
     pub fn generate(now: &DateTime<Utc>) -> Self {
         Self {
-            created_at: now.clone(),
+            created_at: *now,
             description: None,
             done: None,
             due: None,
@@ -47,7 +47,7 @@ impl Task {
             recur: None,
             snooze: None,
             tags: HashSet::new(),
-            updated_at: now.clone(),
+            updated_at: *now,
             wait: None,
         }
     }
@@ -83,8 +83,8 @@ impl Task {
         &self.wait
     }
 
-    pub fn satisfies_queries(&self, queries: &Queries) -> bool {
-        if queries.len() == 0 {
+    pub fn satisfies_queries(&self, queries: &[Query]) -> bool {
+        if queries.is_empty() {
             return false;
         }
 
@@ -125,10 +125,10 @@ impl Task {
             }
         }
 
-        return default;
+        default
     }
 
-    pub fn apply_mutations(&mut self, mutations: &Mutations, now: &DateTime<Utc>) -> &Self {
+    pub fn apply_mutations(&mut self, mutations: &[Mutation], now: &DateTime<Utc>) -> &Self {
         for m in mutations {
             self.apply_mutation(m, now);
         }
@@ -164,17 +164,17 @@ impl Task {
                         self.wait = Some(wait + dt);
                     }
                 } else {
-                    self.done = Some(done.clone());
+                    self.done = Some(*done);
                 }
             }
             Mutation::SetProp(Prop::Due(due)) => {
-                self.due = due.clone();
+                self.due = *due;
             }
             Mutation::SetProp(Prop::Snooze(snooze)) => {
-                self.snooze = snooze.clone();
+                self.snooze = *snooze;
             }
             Mutation::SetProp(Prop::Wait(wait)) => {
-                self.wait = wait.clone();
+                self.wait = *wait;
             }
             Mutation::SetProp(Prop::Recur(recur)) => self.recur = recur.clone(),
         }
@@ -197,7 +197,7 @@ impl Task {
 
         let mut score: u64 = 0;
 
-        if let Some(_) = self.done {
+        if self.done.is_some() {
             return 0;
         }
 
@@ -213,23 +213,21 @@ impl Task {
             }
         }
 
-        score = score + (*now - self.updated_at).num_seconds() as u64;
+        score += (*now - self.updated_at).num_seconds() as u64;
 
         if let Some(due) = self.due {
-            score = score
-                + if self.tags.contains("timely") && due < *now {
-                    2 * (2147483647 - (due.timestamp() as u64))
-                } else {
-                    (2147483647 - (due.timestamp() as u64))
-                };
+            score += if self.tags.contains("timely") && due < *now {
+                2 * (2_147_483_647 - (due.timestamp() as u64))
+            } else {
+                (2_147_483_647 - (due.timestamp() as u64))
+            };
         }
 
-        score = score
-            + if self.tags.contains("urgent") {
-                score
-            } else {
-                0
-            };
+        score += if self.tags.contains("urgent") {
+            score
+        } else {
+            0
+        };
 
         score
     }
