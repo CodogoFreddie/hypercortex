@@ -69,23 +69,21 @@ pub fn parse_as_tag(token: &str) -> Option<Tag> {
 }
 
 pub fn parse_as_query(token: &str) -> Result<Query, String> {
-    match parse_as_tag(token) {
-        Some(tag) => return Ok(Query::Tag(tag)),
-        _ => {}
+    if let Some(tag) = parse_as_tag(token) {
+        return Ok(Query::Tag(tag));
     };
 
-    match parse_as_id(token) {
-        Some(id) => return Ok(Query::Id(id)),
-        _ => {}
+    if let Some(id) = parse_as_id(token) {
+        return Ok(Query::Id(id));
     };
 
     Err(format!("`{}` is not a valid query parameter", token))
 }
 
-fn parse_weekday(weekday: &Weekday) -> DateTime<Utc> {
+fn parse_weekday(weekday: Weekday) -> DateTime<Utc> {
     let now_week = Utc::now().iso_week();
     let d = Utc
-        .isoywd(now_week.year(), now_week.week(), *weekday)
+        .isoywd(now_week.year(), now_week.week(), weekday)
         .and_hms(0, 0, 0);
 
     if d < Utc::now() {
@@ -108,7 +106,7 @@ fn end_of_day() -> DateTime<Utc> {
 }
 
 fn end_of_week() -> DateTime<Utc> {
-    parse_weekday(&Weekday::Sun)
+    parse_weekday(Weekday::Sun)
         .with_second(59)
         .unwrap()
         .with_minute(59)
@@ -160,13 +158,13 @@ fn parse_relative_date_shortcut(token: &str) -> DateTime<Utc> {
 pub fn parse_as_date_time(token: &str) -> Result<DateTime<Utc>, String> {
     match token {
         "now" => Ok(Utc::now()),
-        "mon" => Ok(parse_weekday(&Weekday::Mon)),
-        "tue" => Ok(parse_weekday(&Weekday::Tue)),
-        "wed" => Ok(parse_weekday(&Weekday::Wed)),
-        "thu" => Ok(parse_weekday(&Weekday::Thu)),
-        "fri" => Ok(parse_weekday(&Weekday::Fri)),
-        "sat" => Ok(parse_weekday(&Weekday::Sat)),
-        "sun" => Ok(parse_weekday(&Weekday::Sun)),
+        "mon" => Ok(parse_weekday(Weekday::Mon)),
+        "tue" => Ok(parse_weekday(Weekday::Tue)),
+        "wed" => Ok(parse_weekday(Weekday::Wed)),
+        "thu" => Ok(parse_weekday(Weekday::Thu)),
+        "fri" => Ok(parse_weekday(Weekday::Fri)),
+        "sat" => Ok(parse_weekday(Weekday::Sat)),
+        "sun" => Ok(parse_weekday(Weekday::Sun)),
         "eod" => Ok(end_of_day()),
         "eow" => Ok(end_of_week()),
         "eom" => Ok(end_of_month()),
@@ -179,17 +177,17 @@ pub fn parse_as_date_time(token: &str) -> Result<DateTime<Utc>, String> {
 fn parse_as_recur(token: &str) -> Result<Recur, String> {
     let caps = DATE_SHORTCUT_REGEX
         .captures(token)
-        .ok_or(format!("{} is not a valid recurence format", token))?;
+        .ok_or_else(|| format!("{} is not a valid recurence format", token))?;
 
     let number = caps
         .get(1)
-        .ok_or(format!("{} is not a valid recurence format", token))?
+        .ok_or_else(|| format!("{} is not a valid recurence format", token))?
         .as_str()
         .parse::<i64>()
         .unwrap();
     let unit = caps
         .get(2)
-        .ok_or(format!("{} is not a valid recurence format", token))?
+        .ok_or_else(|| format!("{} is not a valid recurence format", token))?
         .as_str();
 
     let recur = match (number, unit) {
@@ -250,9 +248,8 @@ pub fn parse_as_prop(token: &str) -> Option<Result<Prop, String>> {
 }
 
 pub fn parse_as_mutation(token: &str) -> Result<Mutation, String> {
-    match parse_as_tag(token) {
-        Some(tag) => return Ok(Mutation::SetTag(tag)),
-        _ => {}
+    if let Some(tag) = parse_as_tag(token) {
+        return Ok(Mutation::SetTag(tag));
     };
 
     match parse_as_prop(token) {

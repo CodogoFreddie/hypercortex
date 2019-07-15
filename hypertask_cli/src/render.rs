@@ -42,7 +42,7 @@ fn task_to_renderable_hash_map(finalised_task: &FinalisedTask) -> HashMap<&str, 
     hm
 }
 
-pub fn render_table(finalised_tasks: &Vec<FinalisedTask>) -> () {
+pub fn render_table(finalised_tasks: &[FinalisedTask]) {
     let now = Utc::now();
     let mut widths = HashMap::<&str, usize>::new();
     let mut hash_mapped_tasks: Vec<(HashMap<&str, String>, &Task)> = vec![];
@@ -55,10 +55,9 @@ pub fn render_table(finalised_tasks: &Vec<FinalisedTask>) -> () {
         let hash_map = task_to_renderable_hash_map(&finalised_task);
         for (key, value) in &hash_map {
             let length = value.len();
+            let current_length = widths[key];
 
-            let current_length = widths.get(key).unwrap();
-
-            if current_length < &length {
+            if current_length < length {
                 widths.insert(key, length);
             }
         }
@@ -70,7 +69,7 @@ pub fn render_table(finalised_tasks: &Vec<FinalisedTask>) -> () {
         .iter()
         .map(|header| {
             widths.entry(header).or_insert(1);
-            format!("{:1$}", header, widths.get(header).unwrap() + GUTTER_WIDTH)
+            format!("{:1$}", header, widths[header] + GUTTER_WIDTH)
         })
         .collect::<Vec<String>>()
         .join("");
@@ -89,7 +88,7 @@ pub fn render_table(finalised_tasks: &Vec<FinalisedTask>) -> () {
                     } else {
                         ""
                     },
-                    widths.get(header).unwrap() + GUTTER_WIDTH
+                    widths[header] + GUTTER_WIDTH
                 )
             })
             .collect::<Vec<String>>()

@@ -27,7 +27,7 @@ pub enum Command {
     Delete(Queries),
 }
 
-pub fn run(command: Command, context: &Context) -> Vec<FinalisedTask> {
+pub fn run(command: Command, context: &Context) -> Result<Vec<FinalisedTask>, String> {
     let now = context.get_now();
 
     let mut tasks_collection = match &command {
@@ -42,7 +42,7 @@ pub fn run(command: Command, context: &Context) -> Vec<FinalisedTask> {
         }
 
         Command::Read(queries) => context
-            .get_input_tasks_iter()
+            .get_input_tasks_iter()?
             .map(|r| r.unwrap())
             .filter(|t| queries.len() == 0 || t.satisfies_queries(queries))
             .map(|t| t.finalise(&now))
@@ -50,7 +50,7 @@ pub fn run(command: Command, context: &Context) -> Vec<FinalisedTask> {
             .collect::<Vec<FinalisedTask>>(),
 
         Command::Update(queries, mutations) => context
-            .get_input_tasks_iter()
+            .get_input_tasks_iter()?
             .map(|r| r.unwrap())
             .filter(|t| t.satisfies_queries(queries))
             .map(|mut t| {
@@ -62,7 +62,7 @@ pub fn run(command: Command, context: &Context) -> Vec<FinalisedTask> {
             .collect::<Vec<FinalisedTask>>(),
 
         Command::Delete(queries) => context
-            .get_input_tasks_iter()
+            .get_input_tasks_iter()?
             .map(|r| r.unwrap())
             .filter(|t| t.satisfies_queries(queries))
             .map(|t| t.finalise(&now))
@@ -71,5 +71,5 @@ pub fn run(command: Command, context: &Context) -> Vec<FinalisedTask> {
 
     tasks_collection.sort_unstable();
 
-    tasks_collection
+    Ok(tasks_collection)
 }
