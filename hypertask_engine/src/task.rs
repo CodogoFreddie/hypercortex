@@ -37,9 +37,9 @@ where
 }
 
 impl Task {
-    pub fn generate() -> Self {
+    pub fn generate(now: &DateTime<Utc>) -> Self {
         Self {
-            created_at: Utc::now(),
+            created_at: now.clone(),
             description: None,
             done: None,
             due: None,
@@ -47,7 +47,7 @@ impl Task {
             recur: None,
             snooze: None,
             tags: HashSet::new(),
-            updated_at: Utc::now(),
+            updated_at: now.clone(),
             wait: None,
         }
     }
@@ -128,15 +128,15 @@ impl Task {
         return default;
     }
 
-    pub fn apply_mutations(&mut self, mutations: &Mutations) -> &Self {
+    pub fn apply_mutations(&mut self, mutations: &Mutations, now: &DateTime<Utc>) -> &Self {
         for m in mutations {
-            self.apply_mutation(m);
+            self.apply_mutation(m, now);
         }
 
         self
     }
 
-    pub fn apply_mutation(&mut self, mutation: &Mutation) -> &Self {
+    pub fn apply_mutation(&mut self, mutation: &Mutation, now: &DateTime<Utc>) -> &Self {
         match mutation {
             Mutation::SetTag(Tag {
                 sign: Sign::Plus,
@@ -179,19 +179,19 @@ impl Task {
             Mutation::SetProp(Prop::Recur(recur)) => self.recur = recur.clone(),
         }
 
-        self.updated_at = Utc::now();
+        self.updated_at = *now;
 
         self
     }
 
-    pub fn finalise(self) -> FinalisedTask {
+    pub fn finalise(self, now: &DateTime<Utc>) -> FinalisedTask {
         FinalisedTask {
-            score: self.get_score(),
+            score: self.get_score(now),
             task: self,
         }
     }
 
-    fn get_score(&self) -> u64 {
+    fn get_score(&self, now: &DateTime<Utc>) -> u64 {
         //this is perfectly fine for now, but I'd like to aim to replace this with
         //something user-configureable, possibly https://github.com/jonathandturner/rhai
 
@@ -202,22 +202,22 @@ impl Task {
         }
 
         if let Some(wait) = self.wait {
-            if wait > Utc::now() {
+            if wait > *now {
                 return 0;
             }
         }
 
         if let Some(snooze) = self.snooze {
-            if snooze > Utc::now() {
+            if snooze > *now {
                 return 0;
             }
         }
 
-        score = score + (Utc::now() - self.updated_at).num_seconds() as u64;
+        score = score + (*now - self.updated_at).num_seconds() as u64;
 
         if let Some(due) = self.due {
             score = score
-                + if self.tags.contains("timely") && due < Utc::now() {
+                + if self.tags.contains("timely") && due < *now {
                     2 * (2147483647 - (due.timestamp() as u64))
                 } else {
                     (2147483647 - (due.timestamp() as u64))
@@ -234,17 +234,17 @@ impl Task {
         score
     }
 
-    pub fn is_overdue(&self) -> bool {
+    pub fn is_overdue(&self, now: &DateTime<Utc>) -> bool {
         if let Some(due) = self.due {
-            return due < Utc::now();
+            return due < *now;
         } else {
             return false;
         }
     }
 
-    pub fn is_soon_due(&self) -> bool {
+    pub fn is_soon_due(&self, now: &DateTime<Utc>) -> bool {
         if let Some(due) = self.due {
-            return due < (Utc::now() + Duration::days(3));
+            return due < (*now + Duration::days(3));
         } else {
             return false;
         }

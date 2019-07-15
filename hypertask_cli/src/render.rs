@@ -1,5 +1,6 @@
 use ansi_term::Colour::{Cyan, Red};
 use ansi_term::Style;
+use chrono::prelude::*;
 use hypertask_engine::prelude::*;
 use std::collections::HashMap;
 
@@ -42,6 +43,7 @@ fn task_to_renderable_hash_map(finalised_task: &FinalisedTask) -> HashMap<&str, 
 }
 
 pub fn render_table(finalised_tasks: &Vec<FinalisedTask>) -> () {
+    let now = Utc::now();
     let mut widths = HashMap::<&str, usize>::new();
     let mut hash_mapped_tasks: Vec<(HashMap<&str, String>, &Task)> = vec![];
 
@@ -94,9 +96,9 @@ pub fn render_table(finalised_tasks: &Vec<FinalisedTask>) -> () {
             .join("");
         println!(
             "{}",
-            if task.is_overdue() {
+            if task.is_overdue(&now) {
                 Red.paint(task_string).to_string()
-            } else if task.is_soon_due() {
+            } else if task.is_soon_due(&now) {
                 Cyan.paint(task_string).to_string()
             } else {
                 task_string

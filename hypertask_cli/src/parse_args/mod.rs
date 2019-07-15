@@ -4,7 +4,7 @@ use regex::Regex;
 use time::Duration;
 
 #[derive(Debug)]
-pub enum Command {
+pub enum CliCommand {
     Add,
     Delete,
     Done,
@@ -12,24 +12,24 @@ pub enum Command {
     Snooze,
 }
 
-pub fn parse_as_command(token: &str) -> Option<Command> {
+pub fn parse_as_command(token: &str) -> Option<CliCommand> {
     match token {
-        "add" => Some(Command::Add),
-        "delete" => Some(Command::Delete),
-        "done" => Some(Command::Done),
-        "modify" => Some(Command::Modify),
-        "snooze" => Some(Command::Snooze),
+        "add" => Some(CliCommand::Add),
+        "delete" => Some(CliCommand::Delete),
+        "done" => Some(CliCommand::Done),
+        "modify" => Some(CliCommand::Modify),
+        "snooze" => Some(CliCommand::Snooze),
         _ => None,
     }
 }
 
 fn partition_args<'a>(
     args: impl Iterator<Item = &'a String>,
-) -> (Vec<&'a String>, Option<Command>, Vec<&'a String>) {
+) -> (Vec<&'a String>, Option<CliCommand>, Vec<&'a String>) {
     let mut query_tokens = vec![];
     let mut mutation_tokens = vec![];
 
-    let mut command: Option<Command> = None;
+    let mut command: Option<CliCommand> = None;
 
     for arg in args {
         if command.is_none() {
@@ -286,7 +286,7 @@ fn merge_description_mutations(mut mutations: Vec<Mutation>) -> Vec<Mutation> {
     output
 }
 
-pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> Result<Engine, String> {
+pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> Result<Command, String> {
     let (query_tokens, command, mutation_tokens) = partition_args(args);
 
     let parsed_queries: Vec<Query> = (query_tokens
@@ -302,22 +302,22 @@ pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> Result<Engi
     let parsed_mutations_with_merged_description = merge_description_mutations(parsed_mutations);
 
     match command {
-        Some(Command::Add) => Ok(Engine::Create(parsed_mutations_with_merged_description)),
-        Some(Command::Delete) => Ok(Engine::Delete(parsed_queries)),
-        Some(Command::Done) => Ok(Engine::Update(
+        Some(CliCommand::Add) => Ok(Command::Create(parsed_mutations_with_merged_description)),
+        Some(CliCommand::Delete) => Ok(Command::Delete(parsed_queries)),
+        Some(CliCommand::Done) => Ok(Command::Update(
             parsed_queries,
             vec![Mutation::SetProp(Prop::Done(Utc::now()))],
         )),
-        Some(Command::Snooze) => Ok(Engine::Update(
+        Some(CliCommand::Snooze) => Ok(Command::Update(
             parsed_queries,
             vec![Mutation::SetProp(Prop::Snooze(Some(
                 Utc::now() + Duration::hours(1),
             )))],
         )),
-        Some(Command::Modify) => Ok(Engine::Update(
+        Some(CliCommand::Modify) => Ok(Command::Update(
             parsed_queries,
             parsed_mutations_with_merged_description,
         )),
-        None => Ok(Engine::Read(parsed_queries)),
+        None => Ok(Command::Read(parsed_queries)),
     }
 }
