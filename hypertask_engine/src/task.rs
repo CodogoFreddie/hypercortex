@@ -249,7 +249,7 @@ impl Task {
     }
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct FinalisedTask {
     task: Task,
     score: u64,

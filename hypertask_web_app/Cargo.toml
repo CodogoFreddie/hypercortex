@@ -1,0 +1,22 @@
+[package]
+name = "hypertask_web_app"
+version = "0.1.0"
+authors = ["Freddie Ridell <contact@freddieridell.com>"]
+edition = "2018"
+description = "A sample project with wasm-pack"
+license = "MIT/Apache-2.0"
+repository = "https://github.com/yourgithubusername/hello-wasm"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+hypertask_engine = { path = "../hypertask_engine" }
+serde = "^1.0.59"
+serde_derive = "^1.0.59"
+serde_json = "1.0.40" 
+
+[dependencies.wasm-bindgen]
+version = "0.2"
+features = ["serde-serialize"]
+

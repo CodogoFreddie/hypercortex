@@ -4,18 +4,19 @@ use crate::prop::Prop;
 use crate::tag::Tag;
 use crate::task::{FinalisedTask, Task};
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub enum Mutation {
     SetProp(Prop),
     SetTag(Tag),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub enum Query {
     Id(Id),
     Tag(Tag),
 }
 
+#[derive(Debug, Deserialize, Serialize)]
 pub enum Command {
     Create(Vec<Mutation>),
     Read(Vec<Query>),
