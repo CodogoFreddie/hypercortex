@@ -1,2 +1,2 @@
 [workspace]
-members = [ "hypertask_cli", "hypertask_engine", ]
+members = [ "hypertask_cli", "hypertask_engine", "hypertask_web_app" ]
