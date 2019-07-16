@@ -11,7 +11,7 @@ const ENV_VAR_SHELL: &str = "SHELL";
 const ENV_VAR_DIR_NAME: &str = "HYPERTASK_DIR";
 const ENV_VAR_AFTER_HOOK: &str = "HYPERTASK_AFTER";
 
-pub struct CliContext {}
+pub struct CliContext { }
 
 impl Context for CliContext {
     fn get_now(&self) -> DateTime<Utc> {
@@ -33,10 +33,12 @@ impl Context for CliContext {
                     File::open(file_path.path())
                         .map_err(|_| format!("failed to open task `{:?}`", file_path))
                         .and_then(|file| {
-                            serde_json::from_reader(BufReader::new(file))
-                                .map_err(|_| format!("failed to parse task `{:?}`", file_path))?
-                        })?
-                })?
+                            serde_json::from_reader::<std::io::BufReader<std::fs::File>, Task>(
+                                BufReader::new(file),
+                            )
+                            .map_err(|_| format!("failed to parse task @ `{:?}`", file_path))
+                        })
+                })
         })))
     }
 
