@@ -213,14 +213,14 @@ impl Task {
             }
         }
 
-        score += (*now - self.updated_at).num_seconds() as u64;
-
         if let Some(due) = self.due {
             score += if self.tags.contains("timely") && due < *now {
                 2 * (2_147_483_647 - (due.timestamp() as u64))
             } else {
                 (2_147_483_647 - (due.timestamp() as u64))
             };
+        } else {
+            score += (*now - self.updated_at).num_seconds() as u64;
         }
 
         score += if self.tags.contains("urgent") {
