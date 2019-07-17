@@ -19,7 +19,7 @@ use std::{env, fs};
 const ENV_VAR_DIR_NAME: &str = "HYPERTASK_DIR";
 
 pub fn run_cli(args: &[String]) -> Result<(), String> {
-    let cli_context = CliContext {};
+    let cli_context = CliContext::new();
 
     let hyper_cortex_dir = env::var(ENV_VAR_DIR_NAME)
         .map_err(|_| format!("environment variable {} is unset", ENV_VAR_DIR_NAME))?;

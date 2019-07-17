@@ -1,22 +1,54 @@
 use chrono::prelude::*;
 use hypertask_engine::prelude::*;
-use rand::prelude::*;
+use platform_dirs::{AppDirs, AppUI};
+use rand::seq::IteratorRandom;
 use serde_json;
-use std::env;
 use std::fs::File;
-use std::io::BufWriter;
-use std::path::Path;
+use std::io::{BufReader, BufWriter};
+use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::{env, fs};
 
-const ENV_VAR_AFTER_HOOK: &str = "HYPERTASK_AFTER";
-const ENV_VAR_DIR_NAME: &str = "HYPERTASK_DIR";
 const ENV_VAR_SHELL: &str = "SHELL";
+const ENV_VAR_DIR_NAME: &str = "HYPERTASK_DIR";
+const ENV_VAR_AFTER_HOOK: &str = "HYPERTASK_AFTER";
 
-pub struct CliContext {}
+pub struct CliContext {
+    data_dir: PathBuf,
+}
+
+impl CliContext {
+    pub fn new() -> Self {
+        let app_dirs = AppDirs::new(Some("hypertask-cli"), AppUI::CommandLine).unwrap();
+
+        dbg!(&app_dirs.config_dir.join("config.toml"));
+
+        Self {
+            data_dir: app_dirs.data_dir,
+        }
+    }
+}
 
 impl GetNow for CliContext {
     fn get_now(&self) -> DateTime<Utc> {
         Utc::now()
+    }
+}
+
+impl GenerateId for CliContext {
+    fn generate_id(&mut self) -> String {
+        let mut result = String::new();
+
+        for _ in 0..NUMBER_OF_CHARS_IN_FULL_ID {
+            let random = VALID_ID_CHARS
+                .chars()
+                .choose(&mut rand::thread_rng())
+                .expect("Couldn't get random char");
+
+            result.push(random);
+        }
+
+        result
     }
 }
 
@@ -44,22 +76,5 @@ impl PutTask for CliContext {
         }
 
         Ok(())
-    }
-}
-
-impl GenerateId for CliContext {
-    fn generate_id(&mut self) -> String {
-        let mut result = String::new();
-
-        for _ in 0..NUMBER_OF_CHARS_IN_FULL_ID {
-            let random = VALID_ID_CHARS
-                .chars()
-                .choose(&mut thread_rng())
-                .expect("Couldn't get random char");
-
-            result.push(random);
-        }
-
-        result
     }
 }
