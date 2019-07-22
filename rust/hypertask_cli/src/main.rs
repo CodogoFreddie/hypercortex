@@ -1,4 +1,5 @@
 extern crate hypertask_cli;
+extern crate shellexpand;
 
 use std::env;
 

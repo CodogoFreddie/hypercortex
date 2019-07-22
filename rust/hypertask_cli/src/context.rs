@@ -48,12 +48,21 @@ impl CliContext {
             File::open(&config_file_path).unwrap()
         });
 
-        serde_json::from_reader(BufReader::new(file)).map_err(|e| {
-            format!(
-                "could not open config file @ `{:?}` ({:?})",
-                config_file_path, e
-            )
-        })
+        serde_json::from_reader(BufReader::new(file))
+            .and_then(|c: CliContext| {
+                Ok(CliContext {
+                    data_dir: PathBuf::from(
+                        shellexpand::tilde(&c.data_dir.to_str().unwrap().to_string()).into_owned(),
+                    ),
+                    ..c
+                })
+            })
+            .map_err(|e| {
+                format!(
+                    "could not open config file @ `{:?}` ({:?})",
+                    config_file_path, e
+                )
+            })
     }
 }
 
