@@ -6,13 +6,11 @@ use serde::{Deserialize, Serialize};
 use serde_json;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
 use std::{env, fs};
 
 const ENV_VAR_SHELL: &str = "SHELL";
-const ENV_VAR_DIR_NAME: &str = "HYPERTASK_DIR";
-const ENV_VAR_AFTER_HOOK: &str = "HYPERTASK_AFTER";
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct CliContext {
@@ -93,17 +91,15 @@ impl PutTask for CliContext {
     fn put_task(&mut self, task: &Task) -> Result<(), String> {
         let Id(task_id) = task.get_id();
 
-        let hyper_cortex_dir = env::var(ENV_VAR_DIR_NAME)
-            .map_err(|_| format!("environment variable {} is unset", ENV_VAR_DIR_NAME))?;
-
-        let file_path = Path::new(&hyper_cortex_dir).join(task_id);
+        let file_path = self.data_dir.join(task_id);
 
         let file = File::create(file_path).map_err(|_| "Unable to create file")?;
         let buf_writer = BufWriter::new(file);
 
         serde_json::to_writer_pretty(buf_writer, &task).map_err(|_| String::from("foo?"))?;
 
-        if let (Ok(shell), Ok(after_cmd)) = (env::var(ENV_VAR_SHELL), env::var(ENV_VAR_AFTER_HOOK))
+        if let (Ok(shell), Some(after_cmd)) =
+            (&env::var(ENV_VAR_SHELL), &self.run_after_hook_script)
         {
             Command::new(shell)
                 .arg("-c")
