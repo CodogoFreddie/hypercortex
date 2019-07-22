@@ -2,6 +2,7 @@ use chrono::prelude::*;
 use hypertask_engine::prelude::*;
 use platform_dirs::{AppDirs, AppUI};
 use rand::seq::IteratorRandom;
+use serde::{Deserialize, Serialize};
 use serde_json;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
@@ -13,19 +14,46 @@ const ENV_VAR_SHELL: &str = "SHELL";
 const ENV_VAR_DIR_NAME: &str = "HYPERTASK_DIR";
 const ENV_VAR_AFTER_HOOK: &str = "HYPERTASK_AFTER";
 
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct CliContext {
     data_dir: PathBuf,
+
+    #[serde(default)]
+    run_after_hook_script: Option<String>,
 }
 
 impl CliContext {
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self, String> {
         let app_dirs = AppDirs::new(Some("hypertask-cli"), AppUI::CommandLine).unwrap();
 
-        dbg!(&app_dirs.config_dir.join("config.toml"));
+        let config_file_path = app_dirs.config_dir.join("config.json");
 
-        Self {
-            data_dir: app_dirs.data_dir,
-        }
+        let file = File::open(&config_file_path).unwrap_or_else(|_| {
+            println!(
+                "no config file found at `{}`, one has been created with default values",
+                &config_file_path.to_str().unwrap()
+            );
+
+            let default_context = CliContext {
+                data_dir: app_dirs.data_dir,
+                run_after_hook_script: None,
+            };
+
+            mkdirp::mkdirp(&app_dirs.config_dir).unwrap();
+            let file = File::create(&config_file_path).unwrap();
+            let buf_writer = BufWriter::new(&file);
+
+            serde_json::to_writer_pretty(buf_writer, &default_context).unwrap();
+
+            File::open(&config_file_path).unwrap()
+        });
+
+        serde_json::from_reader(BufReader::new(file)).map_err(|e| {
+            format!(
+                "could not open config file @ `{:?}` ({:?})",
+                config_file_path, e
+            )
+        })
     }
 }
 

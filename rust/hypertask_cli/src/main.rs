@@ -5,5 +5,7 @@ use std::env;
 fn main() {
     let args: Vec<_> = env::args().collect();
 
-    hypertask_cli::run_cli(&args).unwrap();
+    if let Err(s) = hypertask_cli::run_cli(&args) {
+        println!("{}", s)
+    }
 }

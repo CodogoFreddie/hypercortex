@@ -36,6 +36,8 @@ pub trait GenerateId {
     fn generate_id(&mut self) -> String;
 }
 
+//TODO needs a new trait that outputs an owned TaskIterator
+
 pub fn run<Context, InputIterator>(
     command: Command,
     mut context: Context,
