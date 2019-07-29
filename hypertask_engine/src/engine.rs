@@ -24,7 +24,10 @@ pub enum Command {
     Delete(Vec<Query>),
 }
 
-pub fn run(command: Command, context: &Context) -> Result<Vec<FinalisedTask>, String> {
+pub fn run<TaskIterator: Iterator<Item = Result<Task, String>>>(
+    command: Command,
+    context: &Context<TaskIterator = TaskIterator>,
+) -> Result<Vec<FinalisedTask>, String> {
     let now = context.get_now();
 
     let mut tasks_collection = match &command {
@@ -39,7 +42,7 @@ pub fn run(command: Command, context: &Context) -> Result<Vec<FinalisedTask>, St
         }
 
         Command::Read(queries) => context
-            .get_input_tasks_iter()?
+            .get_input_tasks_iter()
             .map(std::result::Result::unwrap)
             .filter(|t| queries.is_empty() || t.satisfies_queries(queries))
             .map(|t| t.finalise(&now))
@@ -47,7 +50,7 @@ pub fn run(command: Command, context: &Context) -> Result<Vec<FinalisedTask>, St
             .collect::<Vec<FinalisedTask>>(),
 
         Command::Update(queries, mutations) => context
-            .get_input_tasks_iter()?
+            .get_input_tasks_iter()
             .map(std::result::Result::unwrap)
             .filter(|t| t.satisfies_queries(queries))
             .map(|mut t| {
@@ -59,7 +62,7 @@ pub fn run(command: Command, context: &Context) -> Result<Vec<FinalisedTask>, St
             .collect::<Vec<FinalisedTask>>(),
 
         Command::Delete(queries) => context
-            .get_input_tasks_iter()?
+            .get_input_tasks_iter()
             .map(std::result::Result::unwrap)
             .filter(|t| t.satisfies_queries(queries))
             .map(|t| t.finalise(&now))

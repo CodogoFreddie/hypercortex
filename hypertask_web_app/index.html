@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <script type="module" src="/pkg/hypertask_web_app.js"></script>
+
+    <script type="module">
+      import init, {run} from '/pkg/hypertask_web_app.js';
+
+      init().then(x => {
+        console.log(
+          run(
+            {
+              Create: [
+                {
+                  SetProp: {
+                    Description: 'Hello World',
+                  },
+                },
+              ],
+            },
+            function(task) {
+              console.log('updated', task);
+            },
+            new Set([]).values(),
+          ),
+        );
+      });
+    </script>
+  </head>
+  <body></body>
+</html>
