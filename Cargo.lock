@@ -141,7 +141,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "hypertask_web_app"
+name = "hypertask_npm_package"
 version = "0.1.0"
 dependencies = [
  "chrono 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)",

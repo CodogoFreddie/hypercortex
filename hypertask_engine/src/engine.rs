@@ -1,8 +1,8 @@
-use crate::context::Context;
 use crate::id::Id;
 use crate::prop::Prop;
 use crate::tag::Tag;
 use crate::task::{FinalisedTask, Task};
+use chrono::prelude::*;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum Mutation {
@@ -24,10 +24,23 @@ pub enum Command {
     Delete(Vec<Query>),
 }
 
-pub fn run<TaskIterator: Iterator<Item = Result<Task, String>>>(
+pub trait GetNow {
+    fn get_now(&self) -> DateTime<Utc>;
+}
+
+pub trait PutTask {
+    fn put_task(&mut self, task: &Task) -> Result<(), String>;
+}
+
+pub fn run<Context, InputIterator>(
     command: Command,
-    context: &Context<TaskIterator = TaskIterator>,
-) -> Result<Vec<FinalisedTask>, String> {
+    mut context: Context,
+    mut input_iterator: InputIterator,
+) -> Result<Vec<FinalisedTask>, String>
+where
+    Context: GetNow + PutTask,
+    InputIterator: Iterator<Item = Result<Task, String>>,
+{
     let now = context.get_now();
 
     let mut tasks_collection = match &command {
@@ -41,16 +54,14 @@ pub fn run<TaskIterator: Iterator<Item = Result<Task, String>>>(
             vec![new_task.finalise(&now)]
         }
 
-        Command::Read(queries) => context
-            .get_input_tasks_iter()
+        Command::Read(queries) => input_iterator
             .map(std::result::Result::unwrap)
             .filter(|t| queries.is_empty() || t.satisfies_queries(queries))
             .map(|t| t.finalise(&now))
             .filter(|ft| ft.get_score() != &0)
             .collect::<Vec<FinalisedTask>>(),
 
-        Command::Update(queries, mutations) => context
-            .get_input_tasks_iter()
+        Command::Update(queries, mutations) => input_iterator
             .map(std::result::Result::unwrap)
             .filter(|t| t.satisfies_queries(queries))
             .map(|mut t| {
@@ -61,8 +72,7 @@ pub fn run<TaskIterator: Iterator<Item = Result<Task, String>>>(
             .map(|t| t.finalise(&now))
             .collect::<Vec<FinalisedTask>>(),
 
-        Command::Delete(queries) => context
-            .get_input_tasks_iter()
+        Command::Delete(queries) => input_iterator
             .map(std::result::Result::unwrap)
             .filter(|t| t.satisfies_queries(queries))
             .map(|t| t.finalise(&now))

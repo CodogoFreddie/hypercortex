@@ -1,4 +1,4 @@
-use rand::seq::IteratorRandom;
+//use rand::seq::IteratorRandom;
 use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, PartialEq};
 use std::fmt;
@@ -15,16 +15,17 @@ impl Id {
     }
 
     fn get_easy_type_id() -> String {
-        let mut result = String::new();
+        let result = "1adwad2ad2a".to_owned();
+        //let mut result = String::new();
 
-        for _ in 0..NUMBER_OF_CHARS_IN_FULL_ID {
-            let random = CHARS
-                .chars()
-                .choose(&mut rand::thread_rng())
-                .expect("Couldn't get random char");
+        //for _ in 0..NUMBER_OF_CHARS_IN_FULL_ID {
+        //let random = CHARS
+        //.chars()
+        //.choose(&mut rand::thread_rng())
+        //.expect("Couldn't get random char");
 
-            result.push(random);
-        }
+        //result.push(random);
+        //}
 
         result
     }
