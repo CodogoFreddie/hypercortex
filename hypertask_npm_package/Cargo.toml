@@ -1,5 +1,5 @@
 [package]
-name = "hypertask_web_app"
+name = "hypertask_npm_package"
 version = "0.1.0"
 authors = ["Freddie Ridell <contact@freddieridell.com>"]
 edition = "2018"
