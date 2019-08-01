@@ -1,4 +1,4 @@
-use crate::engine::{Mutation, Query};
+use crate::engine::{GenerateId, GetNow, Mutation, Query};
 use crate::id::Id;
 use crate::prop::Prop;
 use crate::recur::Recur;
@@ -44,17 +44,17 @@ where
 }
 
 impl Task {
-    pub fn generate(now: &DateTime<Utc>) -> Self {
+    pub fn generate<Context: GenerateId + GetNow>(context: &mut Context) -> Self {
         Self {
-            created_at: *now,
+            created_at: context.get_now(),
             description: None,
             done: None,
             due: None,
-            id: Id::generate(),
+            id: Id::generate(context),
             recur: None,
             snooze: None,
             tags: HashSet::new(),
-            updated_at: *now,
+            updated_at: context.get_now(),
             wait: None,
         }
     }

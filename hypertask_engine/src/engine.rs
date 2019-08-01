@@ -32,20 +32,24 @@ pub trait PutTask {
     fn put_task(&mut self, task: &Task) -> Result<(), String>;
 }
 
+pub trait GenerateId {
+    fn generate_id(&mut self) -> String;
+}
+
 pub fn run<Context, InputIterator>(
     command: Command,
     mut context: Context,
-    mut input_iterator: InputIterator,
+    input_iterator: InputIterator,
 ) -> Result<Vec<FinalisedTask>, String>
 where
-    Context: GetNow + PutTask,
+    Context: GetNow + PutTask + GenerateId,
     InputIterator: Iterator<Item = Result<Task, String>>,
 {
     let now = context.get_now();
 
     let mut tasks_collection = match &command {
         Command::Create(mutations) => {
-            let mut new_task = Task::generate(&now);
+            let mut new_task = Task::generate(&mut context);
 
             new_task.apply_mutations(mutations, &now);
 
