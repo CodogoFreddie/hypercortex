@@ -1,48 +1,27 @@
 use chrono::prelude::*;
 use hypertask_engine::prelude::*;
+use rand::prelude::*;
 use serde_json;
+use std::env;
 use std::fs::File;
-use std::io::{BufReader, BufWriter};
+use std::io::BufWriter;
 use std::path::Path;
 use std::process::Command;
-use std::{env, fs};
 
-const ENV_VAR_SHELL: &str = "SHELL";
-const ENV_VAR_DIR_NAME: &str = "HYPERTASK_DIR";
 const ENV_VAR_AFTER_HOOK: &str = "HYPERTASK_AFTER";
+const ENV_VAR_DIR_NAME: &str = "HYPERTASK_DIR";
+const ENV_VAR_SHELL: &str = "SHELL";
 
-pub struct CliContext { }
+pub struct CliContext {}
 
-impl Context for CliContext {
+impl GetNow for CliContext {
     fn get_now(&self) -> DateTime<Utc> {
         Utc::now()
     }
+}
 
-    fn get_input_tasks_iter(
-        &self,
-    ) -> Result<Box<dyn Iterator<Item = Result<Task, String>>>, String> {
-        let hyper_cortex_dir = env::var(ENV_VAR_DIR_NAME)
-            .map_err(|_| format!("environment variable {} is unset", ENV_VAR_DIR_NAME))?;
-
-        let paths = fs::read_dir(&hyper_cortex_dir)
-            .map_err(|_| format!("folder {} could not be found", hyper_cortex_dir.to_string()))?;
-
-        Ok(Box::new(paths.map(|path| {
-            path.map_err(|_| "Failed to open task".to_string())
-                .and_then(|file_path| {
-                    File::open(file_path.path())
-                        .map_err(|_| format!("failed to open task `{:?}`", file_path))
-                        .and_then(|file| {
-                            serde_json::from_reader::<std::io::BufReader<std::fs::File>, Task>(
-                                BufReader::new(file),
-                            )
-                            .map_err(|_| format!("failed to parse task @ `{:?}`", file_path))
-                        })
-                })
-        })))
-    }
-
-    fn put_task(&self, task: &Task) -> Result<(), String> {
+impl PutTask for CliContext {
+    fn put_task(&mut self, task: &Task) -> Result<(), String> {
         let Id(task_id) = task.get_id();
 
         let hyper_cortex_dir = env::var(ENV_VAR_DIR_NAME)
@@ -65,5 +44,22 @@ impl Context for CliContext {
         }
 
         Ok(())
+    }
+}
+
+impl GenerateId for CliContext {
+    fn generate_id(&mut self) -> String {
+        let mut result = String::new();
+
+        for _ in 0..NUMBER_OF_CHARS_IN_FULL_ID {
+            let random = VALID_ID_CHARS
+                .chars()
+                .choose(&mut thread_rng())
+                .expect("Couldn't get random char");
+
+            result.push(random);
+        }
+
+        result
     }
 }
