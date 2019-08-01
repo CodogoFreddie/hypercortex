@@ -27,13 +27,16 @@
         "eslint-plugin-react": "^7.14.3",
         "jest-cli": "^24.8.0",
         "parcel-bundler": "^1.12.3",
+        "parcel-plugin-wasm.rs": "^1.2.11",
         "prettier": "^1.18.2"
     },
     "babel": {
         "presets": [
             "@freddieridell/babel-preset"
         ],
-        "plugins": ["@babel/plugin-syntax-import-meta"]
+        "plugins": [
+            "@babel/plugin-syntax-import-meta"
+        ]
     },
     "eslintConfig": {
         "extends": "react-app"
@@ -45,6 +48,7 @@
     ],
     "prettier": {
         "tabWidth": 4,
+        "printWidth": 80,
         "trailingComma": "all",
         "useTabs": true
     },
