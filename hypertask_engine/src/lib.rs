@@ -13,7 +13,7 @@ mod task;
 
 pub mod prelude {
     pub use crate::engine::*;
-    pub use crate::id::{Id, NUMBER_OF_CHARS_IN_FULL_ID};
+    pub use crate::id::*;
     pub use crate::prop::Prop;
     pub use crate::recur::Recur;
     pub use crate::tag::{Sign, Tag};
