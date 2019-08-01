@@ -1,0 +1,51 @@
+{
+  "name": "hypertask",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "NODE_ENV=test jest --coverage true src test",
+    "build": "NODE_ENV=production babel src --out-dir lib",
+    "format": "prettier --write src/**/*",
+    "prepushOnly": "npm run format && && npm run test && npm run build",
+    "test_watch": "NODE_ENV=test jest src test --watch --bail --runInBand",
+    "watch": "NODE_ENV=staging babel src --out-dir lib --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@freddieridell/babel-preset": "^0.2.0",
+    "babel-eslint": "^10.0.2",
+    "eslint": "^6.1.0",
+    "eslint-config-react-app": "^4.0.1",
+    "eslint-plugin-flowtype": "^3.12.2",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-react": "^7.14.3",
+    "jest-cli": "^24.8.0",
+    "prettier": "^1.18.2"
+  },
+  "babel": {
+    "presets": [
+      "@freddieridell/babel-preset"
+    ]
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "files": [
+    null,
+    "/lib",
+    "/main.js"
+  ],
+  "prettier": {
+    "tabWidth": 4,
+    "trailingComma": "all",
+    "useTabs": true
+  },
+  "dependencies": {
+    "hypertask_npm_package": "file:../rust/hypertask_npm_package/pkg"
+  }
+}
