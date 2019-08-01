@@ -1,28 +1,27 @@
-import initHypertask, { run as runHypertask } from "hypertask_npm_package";
-
 import React from "react";
 
-const HypertaskContext = React.createContext({
-	loading: true,
-	tasks: {},
-	runCommand: () => {},
-});
+import { run as runHypertask } from "../../rust/hypertask_npm_package/Cargo.toml";
+import HypertaskContext from "./HypertaskContext";
+import TaskList from "./TaskList";
 
 function useHyperTask() {
-	const [taskCmdResponse, setTaskCmdResponse] = useState([]);
+	const [taskCmdResponse, setTaskCmdResponse] = React.useState([]);
 
 	const runCommand = cmd => {
 		let outputTasks = runHypertask(cmd, console.log, new Set([]).values());
 		setTaskCmdResponse(outputTasks);
 	};
 
-	return { tasks: taskCmdResponse, runCommand };
+	return {
+		tasks: taskCmdResponse,
+		runCommand,
+	};
 }
 
 const App = () => {
 	const { tasks, runCommand } = useHyperTask();
 
-	useEffect(
+	React.useEffect(
 		() =>
 			runCommand({
 				Create: [
@@ -36,11 +35,15 @@ const App = () => {
 		[],
 	);
 
-	console.log({ tasks });
+	console.log({
+		tasks,
+	});
 
 	return (
-		<HypertaskContext.Provider>
-			<div />
+		<HypertaskContext.Provider value={{ tasks, runCommand }}>
+			<TaskList />
 		</HypertaskContext.Provider>
 	);
 };
+
+export default App;
