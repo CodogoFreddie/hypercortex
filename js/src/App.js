@@ -5,6 +5,16 @@ import HypertaskContext from "./HypertaskContext";
 import TaskList from "./TaskList";
 
 function useHyperTask() {
+	React.useEffect(() => {
+		if (navigator.storage && navigator.storage.persist) {
+			navigator.storage.persisted().then(persisted => {
+				if (!persisted) {
+					navigator.storage.persist();
+				}
+			});
+		}
+	}, []);
+
 	const [taskCmdResponse, setTaskCmdResponse] = React.useState([]);
 	const [loading, setLoading] = React.useState(true);
 	const dbRef = React.useRef(null);
