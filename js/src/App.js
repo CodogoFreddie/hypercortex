@@ -6,42 +6,84 @@ import TaskList from "./TaskList";
 
 function useHyperTask() {
 	const [taskCmdResponse, setTaskCmdResponse] = React.useState([]);
+	const [loading, setLoading] = React.useState(true);
+	const dbRef = React.useRef(null);
+
+	const openRequest = window.indexedDB.open("hypertask", 1);
+
+	openRequest.onerror = function(event) {
+		console.log("Why didn't you allow my web app to use IndexedDB?!");
+	};
+	openRequest.onsuccess = function(event) {
+		const db = event.target.result;
+
+		db.onerror = function(event) {
+			console.error("Database error: " + event.target.errorCode);
+		};
+
+		dbRef.current = db;
+		setLoading(false);
+	};
+	openRequest.onupgradeneeded = function(event) {
+		const db = event.target.result;
+		const objectStore = db.createObjectStore("tasks", { keyPath: "id" });
+
+		objectStore.createIndex("id", "id", { unique: true });
+
+		objectStore.transaction.oncomplete = function(event) {
+			dbRef.current = db;
+			setLoading(false);
+		};
+	};
 
 	const runCommand = cmd => {
-		let outputTasks = runHypertask(cmd, console.log, new Set([]).values());
-		setTaskCmdResponse(outputTasks);
+		dbRef.current
+			.transaction("tasks")
+			.objectStore("tasks")
+			.getAll().onsuccess = event => {
+			const outputTasks = runHypertask(
+				cmd,
+				task => {
+					const transaction = dbRef.current.transaction(
+						["tasks"],
+						"readwrite",
+					);
+
+					transaction.onerror = event => {
+						console.error("transaction.onerror", task, event);
+					};
+
+					const objectStore = transaction.objectStore("tasks");
+					const request = objectStore.add(task);
+				},
+				event.target.result.values(),
+			);
+
+			setTaskCmdResponse(outputTasks);
+		};
 	};
 
 	return {
+		loading,
 		tasks: taskCmdResponse,
 		runCommand,
 	};
 }
 
 const App = () => {
-	const { tasks, runCommand } = useHyperTask();
+	const { loading, tasks, runCommand } = useHyperTask();
 
 	React.useEffect(
 		() =>
 			runCommand({
-				Create: [
-					{
-						SetProp: {
-							Description: "Hello World",
-						},
-					},
-				],
+				Read: [],
 			}),
 		[],
 	);
 
-	console.log({
-		tasks,
-	});
-
 	return (
 		<HypertaskContext.Provider value={{ tasks, runCommand }}>
-			<TaskList />
+			{!loading && <TaskList />}
 		</HypertaskContext.Provider>
 	);
 };
