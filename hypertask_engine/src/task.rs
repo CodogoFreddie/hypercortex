@@ -12,16 +12,23 @@ use time::Duration;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Task {
     created_at: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     done: Option<DateTime<Utc>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     due: Option<DateTime<Utc>>,
     id: Id,
+    #[serde(skip_serializing_if = "Option::is_none")]
     recur: Option<Recur>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     snooze: Option<DateTime<Utc>>,
     updated_at: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     wait: Option<DateTime<Utc>>,
 
     #[serde(serialize_with = "ordered_set")]
+    #[serde(skip_serializing_if = "HashSet::is_empty")]
     tags: HashSet<String>,
 }
 
