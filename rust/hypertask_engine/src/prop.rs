@@ -1,7 +1,7 @@
 use crate::recur::Recur;
 use chrono::prelude::*;
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub enum Prop {
     Description(String),
     Done(DateTime<Utc>),

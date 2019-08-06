@@ -1,32 +1,17 @@
-use rand::seq::IteratorRandom;
+use crate::engine::GenerateId;
 use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, PartialEq};
 use std::fmt;
 
-const CHARS: &str = "23456789abcdefghkmnpqrstwxyz";
+pub const VALID_ID_CHARS: &str = "23456789abcdefghkmnpqrstwxyz";
 pub const NUMBER_OF_CHARS_IN_FULL_ID: usize = 16;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Id(pub String);
 
 impl Id {
-    pub fn generate() -> Self {
-        Self(Id::get_easy_type_id())
-    }
-
-    fn get_easy_type_id() -> String {
-        let mut result = String::new();
-
-        for _ in 0..NUMBER_OF_CHARS_IN_FULL_ID {
-            let random = CHARS
-                .chars()
-                .choose(&mut rand::thread_rng())
-                .expect("Couldn't get random char");
-
-            result.push(random);
-        }
-
-        result
+    pub fn generate<Context: GenerateId>(context: &mut Context) -> Self {
+        Self(context.generate_id())
     }
 }
 
@@ -43,7 +28,7 @@ impl PartialEq for Id {
 impl Eq for Id {}
 
 impl fmt::Display for Id {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let Id(x) = self;
         write!(f, "{}", x)
     }
