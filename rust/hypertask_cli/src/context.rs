@@ -13,54 +13,64 @@ use std::{env, fs};
 const ENV_VAR_SHELL: &str = "SHELL";
 
 #[derive(Serialize, Deserialize, Debug, Default)]
-pub struct CliContext {
+struct ClientConfig {
+    post_run_hook: Option<String>,
+    pre_run_hook: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+struct ServerConfig {
+    port: Option<u32>,
+    post_run_hook: Option<String>,
+    pre_run_hook: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+struct Config {
     data_dir: PathBuf,
 
     #[serde(default)]
-    run_after_hook_script: Option<String>,
+    client: Option<ClientConfig>,
+
+    #[serde(default)]
+    server: Option<ServerConfig>,
+}
+
+impl Config {
+    pub fn new() -> Self {
+        let app_dirs = AppDirs::new(Some("hypertask-cli"), AppUI::CommandLine).unwrap();
+
+        Self {
+            data_dir: app_dirs.data_dir,
+            ..Default::default()
+        }
+    }
+
+    fn get_file_path() -> PathBuf {
+        AppDirs::new(Some("hypertask-cli"), AppUI::CommandLine)
+            .unwrap()
+            .config_dir
+            .join("config.toml")
+    }
+
+    pub fn create_file() -> () {
+        let default = Config::new();
+        let stringified_default =
+            toml::ser::to_string_pretty(&default).expect("can not format default config.toml");
+
+        fs::write(Config::get_file_path(), stringified_default).expect("Unable to write file");
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct CliContext {
+    config: Config,
 }
 
 impl CliContext {
     pub fn new() -> Result<Self, String> {
-        let app_dirs = AppDirs::new(Some("hypertask-cli"), AppUI::CommandLine).unwrap();
-
-        let config_file_path = app_dirs.config_dir.join("config.json");
-
-        let file = File::open(&config_file_path).unwrap_or_else(|_| {
-            println!(
-                "no config file found at `{}`, one has been created with default values",
-                &config_file_path.to_str().unwrap()
-            );
-
-            let default_context = CliContext {
-                data_dir: app_dirs.data_dir,
-                run_after_hook_script: None,
-            };
-
-            mkdirp::mkdirp(&app_dirs.config_dir).unwrap();
-            let file = File::create(&config_file_path).unwrap();
-            let buf_writer = BufWriter::new(&file);
-
-            serde_json::to_writer_pretty(buf_writer, &default_context).unwrap();
-
-            File::open(&config_file_path).unwrap()
-        });
-
-        serde_json::from_reader(BufReader::new(file))
-            .and_then(|c: CliContext| {
-                Ok(CliContext {
-                    data_dir: PathBuf::from(
-                        shellexpand::tilde(&c.data_dir.to_str().unwrap().to_string()).into_owned(),
-                    ),
-                    ..c
-                })
-            })
-            .map_err(|e| {
-                format!(
-                    "could not open config file @ `{:?}` ({:?})",
-                    config_file_path, e
-                )
-            })
+        Config::create_file();
+        Err("foo".to_owned())
     }
 }
 
@@ -91,16 +101,22 @@ impl PutTask for CliContext {
     fn put_task(&mut self, task: &Task) -> Result<(), String> {
         let Id(task_id) = task.get_id();
 
-        let file_path = self.data_dir.join(task_id);
+        let file_path = self.config.data_dir.join(task_id);
 
         let file = File::create(file_path).map_err(|_| "Unable to create file")?;
         let buf_writer = BufWriter::new(file);
 
         serde_json::to_writer_pretty(buf_writer, &task).map_err(|_| String::from("foo?"))?;
 
-        if let (Ok(shell), Some(after_cmd)) =
-            (&env::var(ENV_VAR_SHELL), &self.run_after_hook_script)
-        {
+        //TODO fix this Option nesting
+        if let (Ok(shell), Some(Some(after_cmd))) = (
+            &env::var(ENV_VAR_SHELL),
+            &self
+                .config
+                .client
+                .as_ref()
+                .map(|client| client.post_run_hook.as_ref()),
+        ) {
             Command::new(shell)
                 .arg("-c")
                 .arg(after_cmd)
@@ -151,6 +167,6 @@ impl GetTaskIterator for CliContext {
     type TaskIterator = CliTaskIterator;
 
     fn get_task_iterator(&mut self) -> Self::TaskIterator {
-        CliTaskIterator::new(&self.data_dir).unwrap()
+        CliTaskIterator::new(&self.config.data_dir).unwrap()
     }
 }
