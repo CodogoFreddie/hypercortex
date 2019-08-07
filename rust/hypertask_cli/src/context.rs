@@ -111,3 +111,46 @@ impl PutTask for CliContext {
         Ok(())
     }
 }
+
+pub struct CliTaskIterator {
+    task_files_iterator: std::fs::ReadDir,
+}
+
+impl CliTaskIterator {
+    pub fn new(data_dir: &PathBuf) -> Result<Self, String> {
+        let task_files_iterator = fs::read_dir(&data_dir)
+            .map_err(|_| format!("folder {:?} could not be found", data_dir.to_str()))?;
+
+        Ok(Self {
+            task_files_iterator,
+        })
+    }
+}
+
+impl Iterator for CliTaskIterator {
+    type Item = Result<Task, String>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.task_files_iterator.next().map(|path| {
+            path.map_err(|_| "Failed to open task".to_string())
+                .and_then(|file_path| {
+                    File::open(file_path.path())
+                        .map_err(|_| format!("failed to open task `{:?}`", file_path))
+                        .and_then(|file| {
+                            serde_json::from_reader::<std::io::BufReader<std::fs::File>, Task>(
+                                BufReader::new(file),
+                            )
+                            .map_err(|_| format!("failed to parse task @ `{:?}`", file_path))
+                        })
+                })
+        })
+    }
+}
+
+impl GetTaskIterator for CliContext {
+    type TaskIterator = CliTaskIterator;
+
+    fn get_task_iterator(&mut self) -> Self::TaskIterator {
+        CliTaskIterator::new(&self.data_dir).unwrap()
+    }
+}
