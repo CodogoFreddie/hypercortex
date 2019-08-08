@@ -37,7 +37,7 @@ struct Config {
 }
 
 impl Config {
-    pub fn new() -> Self {
+    fn new() -> Self {
         let app_dirs = AppDirs::new(Some("hypertask-cli"), AppUI::CommandLine).unwrap();
 
         Self {
@@ -53,12 +53,30 @@ impl Config {
             .join("config.toml")
     }
 
-    pub fn create_file() -> () {
+    fn create_file() -> () {
         let default = Config::new();
         let stringified_default =
             toml::ser::to_string_pretty(&default).expect("can not format default config.toml");
 
-        fs::write(Config::get_file_path(), stringified_default).expect("Unable to write file");
+        fs::write(Config::get_file_path(), stringified_default)
+            .expect("Unable to write config.toml");
+    }
+
+    fn open_file() -> Option<Self> {
+        fs::read_to_string("/etc/hosts")
+            .ok()
+            .map(|stringified_config| {
+                toml::de::from_str(&stringified_config)
+                    .expect("could not parse current config.toml")
+            })
+    }
+
+    pub fn open_from_file() -> Self {
+        Config::open_file().unwrap_or_else(|| {
+            Config::create_file();
+
+            Config::open_file().expect("couldn't open config.toml, even after creating it")
+        })
     }
 }
 
@@ -70,7 +88,13 @@ pub struct CliContext {
 impl CliContext {
     pub fn new() -> Result<Self, String> {
         Config::create_file();
-        Err("foo".to_owned())
+
+        Err(HyperTaskError::new(
+            HyperTaskErrorDomain::Context,
+            HyperTaskErrorAction::Create,
+            Some("Could not create cli context"),
+        )
+        .into())
     }
 }
 
