@@ -171,9 +171,17 @@ pub struct CliTaskIterator {
 }
 
 impl CliTaskIterator {
-    pub fn new(data_dir: &PathBuf) -> Result<Self, String> {
-        let task_files_iterator = fs::read_dir(&data_dir)
-            .map_err(|_| format!("folder {:?} could not be found", data_dir.to_str()))?;
+    pub fn new(data_dir: &PathBuf) -> HyperTaskResult<Self> {
+        let task_files_iterator = fs::read_dir(&data_dir).map_err(|e| {
+            HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Read)
+                .with_msg(|| {
+                    format!(
+                        "folder `{:}` could not be found",
+                        &data_dir.to_str().unwrap_or("")
+                    )
+                })
+                .from(e)
+        })?;
 
         Ok(Self {
             task_files_iterator,
@@ -204,7 +212,11 @@ impl Iterator for CliTaskIterator {
 impl GetTaskIterator for CliContext {
     type TaskIterator = CliTaskIterator;
 
-    fn get_task_iterator(&mut self) -> Self::TaskIterator {
-        CliTaskIterator::new(&self.config.data_dir).unwrap()
+    fn get_task_iterator(&mut self) -> HyperTaskResult<Self::TaskIterator> {
+        CliTaskIterator::new(&self.config.data_dir).map_err(|e| {
+            HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Read)
+                .msg("could not open tasks folder for reading")
+                .from(e)
+        })
     }
 }

@@ -55,7 +55,7 @@ impl fmt::Display for HyperTaskErrorAction {
 pub struct HyperTaskError {
     domain: HyperTaskErrorDomain,
     action: HyperTaskErrorAction,
-    meta: Option<&'static str>,
+    meta: Option<String>,
     source: Option<Box<dyn Error + 'static>>,
 }
 
@@ -72,7 +72,12 @@ impl HyperTaskError {
     }
 
     pub fn msg(mut self, meta: &'static str) -> Self {
-        self.meta = Some(meta);
+        self.meta = Some(meta.to_owned());
+        self
+    }
+
+    pub fn with_msg<F: Fn() -> String>(mut self, meta_factory: F) -> Self {
+        self.meta = Some(meta_factory());
         self
     }
 
@@ -84,13 +89,17 @@ impl HyperTaskError {
 
 impl fmt::Display for HyperTaskError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "HyperTaskError [{}::{}]", self.domain, self.action)?;
+        write!(f, "HyperTaskError[{}::{}]", self.domain, self.action)?;
 
-        if let Some(meta_text) = self.meta {
-            write!(f, " ({})", meta_text)
-        } else {
-            Ok(())
+        if let Some(meta_text) = &self.meta {
+            write!(f, " \"{}\"", meta_text)?
         }
+
+        if let Some(source_box) = &self.source {
+            write!(f, " ( {} )", source_box)?
+        }
+
+        Ok(())
     }
 }
 
