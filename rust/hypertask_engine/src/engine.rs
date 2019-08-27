@@ -1,3 +1,4 @@
+use crate::error::*;
 use crate::id::Id;
 use crate::prop::Prop;
 use crate::tag::Tag;
@@ -36,16 +37,20 @@ pub trait GenerateId {
     fn generate_id(&mut self) -> String;
 }
 
-pub fn run<Context, InputIterator>(
-    command: Command,
-    mut context: Context,
-    input_iterator: InputIterator,
-) -> Result<Vec<FinalisedTask>, String>
+pub trait GetTaskIterator {
+    type TaskIterator: Iterator<Item = Result<Task, String>>;
+
+    fn get_task_iterator(&mut self) -> HyperTaskResult<Self::TaskIterator>;
+}
+
+//TODO needs a new trait that outputs an owned TaskIterator
+
+pub fn run<Context>(command: Command, mut context: Context) -> HyperTaskResult<Vec<FinalisedTask>>
 where
-    Context: GetNow + PutTask + GenerateId,
-    InputIterator: Iterator<Item = Result<Task, String>>,
+    Context: GetNow + PutTask + GenerateId + GetTaskIterator,
 {
     let now = context.get_now();
+    let input_iterator = context.get_task_iterator()?;
 
     let mut tasks_collection = match &command {
         Command::Create(mutations) => {

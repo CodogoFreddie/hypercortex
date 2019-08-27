@@ -5,6 +5,7 @@ extern crate serde;
 extern crate time;
 
 mod engine;
+mod error;
 mod id;
 mod prop;
 mod recur;
@@ -13,6 +14,7 @@ mod task;
 
 pub mod prelude {
     pub use crate::engine::*;
+    pub use crate::error::*;
     pub use crate::id::*;
     pub use crate::prop::Prop;
     pub use crate::recur::Recur;

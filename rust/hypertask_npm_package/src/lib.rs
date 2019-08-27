@@ -2,12 +2,19 @@
 extern crate lazy_static;
 extern crate js_sys;
 
+<<<<<<< HEAD
+=======
+mod context;
+
+use crate::context::{WebContext, WebTaskIterator};
+>>>>>>> better-cli-config
 use chrono::prelude::*;
 use hypertask_engine::prelude::*;
 use rand::prelude::*;
 use rand::seq::IteratorRandom;
 use wasm_bindgen::prelude::*;
 
+<<<<<<< HEAD
 struct WebContext<'a> {
     updater_fn: &'a js_sys::Function,
     rng: SmallRng,
@@ -64,6 +71,8 @@ impl<'a> GenerateId for WebContext<'a> {
     }
 }
 
+=======
+>>>>>>> better-cli-config
 //#[wasm_bindgen(start)]
 #[wasm_bindgen]
 pub fn run(
@@ -71,6 +80,7 @@ pub fn run(
     updater_fn: &js_sys::Function,
     input_iter_raw: &JsValue,
 ) -> Result<JsValue, JsValue> {
+<<<<<<< HEAD
     let input_iter = js_sys::try_iter(input_iter_raw)?
         .ok_or_else(|| "need to pass iterable JS values!")?
         .map(|x| {
@@ -83,12 +93,19 @@ pub fn run(
         });
 
     let context = WebContext::new(updater_fn);
+=======
+    let context = WebContext::new(updater_fn, input_iter_raw);
+>>>>>>> better-cli-config
 
     let cmd: Command = cmd_raw
         .into_serde()
         .map_err(|_| JsValue::from_str("could not parse input command"))?;
 
+<<<<<<< HEAD
     let response: Vec<FinalisedTask> = hypertask_engine::prelude::run(cmd, context, input_iter)
+=======
+    let response: Vec<FinalisedTask> = hypertask_engine::prelude::run(cmd, context)
+>>>>>>> better-cli-config
         .map_err(|_| "Error running hypertask engine".to_owned())?;
 
     Ok(JsValue::from_serde(&response).map_err(|_| "Error stringifying output")?)

@@ -77,7 +77,7 @@ pub fn render_table(finalised_tasks: &[FinalisedTask]) {
     println!("{}", Style::new().underline().paint(header_string));
 
     let lines = if let Some((_, height)) = term_size::dimensions() {
-        height - 3
+        height - 5
     } else {
         40
     };
