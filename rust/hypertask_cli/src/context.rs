@@ -78,7 +78,7 @@ impl Config {
             .ok()
             .map(|stringified_config| {
                 toml::de::from_str(&stringified_config).map_err(|e| {
-                    HyperTaskError::new(HyperTaskErrorDomain::Config, HyperTaskErrorAction::Create)
+                    HyperTaskError::new(HyperTaskErrorDomain::Config, HyperTaskErrorAction::Read)
                         .msg("could not parse current config.toml")
                         .from(e)
                 })
