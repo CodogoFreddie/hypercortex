@@ -29,6 +29,7 @@ pub struct Task {
 
     #[serde(serialize_with = "ordered_set")]
     #[serde(skip_serializing_if = "HashSet::is_empty")]
+    #[serde(default)]
     tags: HashSet<String>,
 }
 
