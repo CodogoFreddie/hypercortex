@@ -3,9 +3,11 @@ use std::fmt;
 
 #[derive(Debug)]
 pub enum HyperTaskErrorDomain {
-    Task,
     Config,
     Context,
+    Mutation,
+    Query,
+    Task,
 }
 
 impl fmt::Display for HyperTaskErrorDomain {
@@ -16,6 +18,8 @@ impl fmt::Display for HyperTaskErrorDomain {
             match self {
                 HyperTaskErrorDomain::Config => "config",
                 HyperTaskErrorDomain::Context => "context",
+                HyperTaskErrorDomain::Mutation => "mutation",
+                HyperTaskErrorDomain::Query => "query",
                 HyperTaskErrorDomain::Task => "task",
             }
         )
@@ -25,9 +29,10 @@ impl fmt::Display for HyperTaskErrorDomain {
 #[derive(Debug)]
 pub enum HyperTaskErrorAction {
     Create,
-    Read,
-    Write,
     Delete,
+    Read,
+    Run,
+    Write,
 }
 
 impl fmt::Display for HyperTaskErrorAction {
@@ -36,10 +41,11 @@ impl fmt::Display for HyperTaskErrorAction {
             f,
             "{}",
             match self {
-                HyperTaskErrorAction::Read => "read",
-                HyperTaskErrorAction::Write => "write",
                 HyperTaskErrorAction::Create => "create",
                 HyperTaskErrorAction::Delete => "delete",
+                HyperTaskErrorAction::Read => "read",
+                HyperTaskErrorAction::Run => "run",
+                HyperTaskErrorAction::Write => "write",
             }
         )
     }
@@ -50,39 +56,51 @@ pub struct HyperTaskError {
     domain: HyperTaskErrorDomain,
     action: HyperTaskErrorAction,
     meta: Option<&'static str>,
+    source: Option<Box<dyn Error + 'static>>,
 }
 
 pub type HyperTaskResult<T> = Result<T, HyperTaskError>;
 
 impl HyperTaskError {
-    pub fn new(
-        domain: HyperTaskErrorDomain,
-        action: HyperTaskErrorAction,
-        meta: Option<&'static str>,
-    ) -> Self {
+    pub fn new(domain: HyperTaskErrorDomain, action: HyperTaskErrorAction) -> Self {
         Self {
             domain,
             action,
-            meta,
+            meta: None,
+            source: None,
         }
+    }
+
+    pub fn msg(mut self, meta: &'static str) -> Self {
+        self.meta = Some(meta);
+        self
+    }
+
+    pub fn from<E: 'static + Error>(mut self, source: E) -> Self {
+        self.source = Some(Box::new(source));
+        self
     }
 }
 
 impl fmt::Display for HyperTaskError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "HyperTaskError [ {} | {} ]", self.domain, self.action).and_then(|x: ()| {
-            if let Some(meta_text) = self.meta {
-                write!(f, " ({})", meta_text)
-            } else {
-                Ok(x)
-            }
-        })
+        write!(f, "HyperTaskError [{}::{}]", self.domain, self.action)?;
+
+        if let Some(meta_text) = self.meta {
+            write!(f, " ({})", meta_text)
+        } else {
+            Ok(())
+        }
     }
 }
 
 impl Error for HyperTaskError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        None
+        if let Some(source_box) = &self.source {
+            Some(source_box.as_ref())
+        } else {
+            None
+        }
     }
 }
 

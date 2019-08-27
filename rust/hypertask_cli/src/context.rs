@@ -53,29 +53,48 @@ impl Config {
             .join("config.toml")
     }
 
-    fn create_file() -> () {
+    //creates the config file
+    fn create_file() -> HyperTaskResult<()> {
         let default = Config::new();
         let stringified_default =
             toml::ser::to_string_pretty(&default).expect("can not format default config.toml");
 
         fs::write(Config::get_file_path(), stringified_default)
-            .expect("Unable to write config.toml");
+            .map_err(|e| {
+                HyperTaskError::new(HyperTaskErrorDomain::Config, HyperTaskErrorAction::Create)
+                    .msg("creating config file")
+                    .from(e)
+            })
+            .map(|_| ())
     }
 
-    fn open_file() -> Option<Self> {
-        fs::read_to_string("/etc/hosts")
+    //opens the config file
+    //None if the file doesn't exist
+    //Some(Err) if the file can't be parsed
+    //Some(Ok(Config)) otherwise
+    fn open_file() -> Option<HyperTaskResult<Self>> {
+        fs::read_to_string(Config::get_file_path())
             .ok()
             .map(|stringified_config| {
-                toml::de::from_str(&stringified_config)
-                    .expect("could not parse current config.toml")
+                toml::de::from_str(&stringified_config).map_err(|e| {
+                    HyperTaskError::new(HyperTaskErrorDomain::Config, HyperTaskErrorAction::Create)
+                        .msg("could not parse current config.toml")
+                        .from(e)
+                })
             })
     }
 
-    pub fn open_from_file() -> Self {
+    //opens the config file, creates it with defaults if it doesn't exist
+    pub fn open_from_file() -> HyperTaskResult<Self> {
         Config::open_file().unwrap_or_else(|| {
             Config::create_file();
 
-            Config::open_file().expect("couldn't open config.toml, even after creating it")
+            Config::open_file().unwrap_or_else(|| {
+                Err(
+                    HyperTaskError::new(HyperTaskErrorDomain::Config, HyperTaskErrorAction::Create)
+                        .msg("could not open created config.toml"),
+                )
+            })
         })
     }
 }
@@ -86,15 +105,10 @@ pub struct CliContext {
 }
 
 impl CliContext {
-    pub fn new() -> Result<Self, String> {
-        Config::create_file();
+    pub fn new() -> HyperTaskResult<Self> {
+        let config = Config::open_from_file()?;
 
-        Err(HyperTaskError::new(
-            HyperTaskErrorDomain::Context,
-            HyperTaskErrorAction::Create,
-            Some("Could not create cli context"),
-        )
-        .into())
+        Ok(Self { config })
     }
 }
 
