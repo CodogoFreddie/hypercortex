@@ -76,8 +76,14 @@ pub fn render_table(finalised_tasks: &[FinalisedTask]) {
 
     println!("{}", Style::new().underline().paint(header_string));
 
+    let lines = if let Some((_, height)) = term_size::dimensions() {
+        height - 3
+    } else {
+        40
+    };
+
     //print the tasks
-    for (task_hash, task) in hash_mapped_tasks.iter().take(40) {
+    for (task_hash, task) in hash_mapped_tasks.iter().take(lines) {
         let task_string = HEADER_ORDER
             .iter()
             .map(|header| {
