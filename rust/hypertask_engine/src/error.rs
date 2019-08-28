@@ -92,11 +92,7 @@ impl fmt::Display for HyperTaskError {
         write!(f, "HyperTaskError[{}::{}]", self.domain, self.action)?;
 
         if let Some(meta_text) = &self.meta {
-            write!(f, " \"{}\"", meta_text)?
-        }
-
-        if let Some(source_box) = &self.source {
-            write!(f, " ( {} )", source_box)?
+            write!(f, ": {}", meta_text)?
         }
 
         Ok(())
@@ -116,5 +112,17 @@ impl Error for HyperTaskError {
 impl From<HyperTaskError> for String {
     fn from(error: HyperTaskError) -> Self {
         format!("{}", error)
+    }
+}
+
+pub fn print_error_chain(err: &(dyn Error + 'static)) -> () {
+    print_error_chain_recursive(err, 1)
+}
+
+pub fn print_error_chain_recursive(err: &(dyn Error + 'static), i: u32) -> () {
+    println!("Error {}: {}", i, err);
+
+    if let Some(boxed_source) = err.source() {
+        print_error_chain_recursive(boxed_source, i + 1);
     }
 }

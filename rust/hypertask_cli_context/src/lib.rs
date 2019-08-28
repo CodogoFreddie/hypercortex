@@ -15,16 +15,22 @@ use std::{env, fs};
 const ENV_VAR_SHELL: &str = "SHELL";
 
 #[derive(Serialize, Deserialize, Debug, Default)]
-struct ClientConfig {
+pub struct ClientConfig {
     post_run_hook: Option<String>,
     pre_run_hook: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
-struct ServerConfig {
-    port: Option<u32>,
-    post_run_hook: Option<String>,
-    pre_run_hook: Option<String>,
+pub struct ServerConfig {
+    port: Option<u16>,
+    post_run_hook: String,
+    pre_run_hook: String,
+}
+
+impl ServerConfig {
+    pub fn get_port(&self) -> Option<u16> {
+        self.port
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -46,6 +52,10 @@ impl Config {
             data_dir: app_dirs.data_dir,
             ..Default::default()
         }
+    }
+
+    pub fn get_server_config(&self) -> &Option<ServerConfig> {
+        &self.server
     }
 
     fn get_file_path() -> PathBuf {
@@ -130,6 +140,10 @@ impl CliContext {
         let config = Config::open_from_file()?;
 
         Ok(Self { config })
+    }
+
+    pub fn get_config(&self) -> &Config {
+        &self.config
     }
 }
 
