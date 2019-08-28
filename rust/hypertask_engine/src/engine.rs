@@ -30,7 +30,7 @@ pub trait GetNow {
 }
 
 pub trait PutTask {
-    fn put_task(&mut self, task: &Task) -> Result<(), String>;
+    fn put_task(&mut self, task: &Task) -> HyperTaskResult<()>;
 }
 
 pub trait GenerateId {
@@ -58,7 +58,7 @@ where
 
             new_task.apply_mutations(mutations, &now);
 
-            context.put_task(&new_task).unwrap();
+            context.put_task(&new_task)?;
 
             vec![new_task.finalise(&now)]
         }
@@ -73,13 +73,13 @@ where
         Command::Update(queries, mutations) => input_iterator
             .map(std::result::Result::unwrap)
             .filter(|t| t.satisfies_queries(queries))
-            .map(|mut t| {
-                t.apply_mutations(mutations, &now);
-                context.put_task(&t).unwrap();
-                t
+            .map(|mut task| {
+                task.apply_mutations(mutations, &now);
+                context.put_task(&task)?;
+                Ok(task)
             })
-            .map(|t| t.finalise(&now))
-            .collect::<Vec<FinalisedTask>>(),
+            .map(|task_result| task_result.map(|task| task.finalise(&now)))
+            .collect::<HyperTaskResult<Vec<FinalisedTask>>>()?,
 
         Command::Delete(queries) => input_iterator
             .map(std::result::Result::unwrap)

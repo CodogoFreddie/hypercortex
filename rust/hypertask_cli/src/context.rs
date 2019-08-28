@@ -5,6 +5,7 @@ use rand::seq::IteratorRandom;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 use serde_json;
+use shellexpand;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::path::PathBuf;
@@ -98,6 +99,25 @@ impl Config {
             })
         })
     }
+
+    pub fn get_data_dir(&self) -> HyperTaskResult<PathBuf> {
+        let data_dir_path_string = self.data_dir.to_str().ok_or(
+            HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Read)
+                .msg("can't read data_dir"),
+        )?;
+
+        shellexpand::full(data_dir_path_string)
+            .map(|expanded_data_dir| {
+                let mut path = PathBuf::new();
+                path.push(expanded_data_dir.into_owned());
+                path
+            })
+            .map_err(|e| {
+                HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Read)
+                    .with_msg(|| format!("can't expand data_dir `{}`", data_dir_path_string))
+                    .from(e)
+            })
+    }
 }
 
 #[derive(Debug, Default)]
@@ -120,15 +140,28 @@ impl GetNow for CliContext {
 }
 
 impl PutTask for CliContext {
-    fn put_task(&mut self, task: &Task) -> Result<(), String> {
+    fn put_task(&mut self, task: &Task) -> HyperTaskResult<()> {
         let Id(task_id) = task.get_id();
 
-        let file_path = self.config.data_dir.join(task_id);
+        let file_path = self.config.get_data_dir()?.join(task_id);
 
-        let file = File::create(file_path).map_err(|_| "Unable to create file")?;
+        let file = File::create(file_path).map_err(|e| {
+            HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Write)
+                .with_msg(|| {
+                    format!(
+                        "could not create file handle for task with id `{}`",
+                        task_id
+                    )
+                })
+                .from(e)
+        })?;
         let buf_writer = BufWriter::new(file);
 
-        serde_json::to_writer_pretty(buf_writer, &task).map_err(|_| String::from("foo?"))?;
+        serde_json::to_writer_pretty(buf_writer, &task).map_err(|e| {
+            HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Write)
+                .with_msg(|| format!("could not serialize task with id `{}`", task_id))
+                .from(e)
+        })?;
 
         //TODO fix this Option nesting
         if let (Ok(shell), Some(Some(after_cmd))) = (
@@ -143,7 +176,13 @@ impl PutTask for CliContext {
                 .arg("-c")
                 .arg(after_cmd)
                 .output()
-                .map_err(|_| "Failed to execute command")?;
+                .map_err(|e| {
+                    HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Run)
+                        .with_msg(|| {
+                            format!("could not run the post write shell command `{}`", after_cmd)
+                        })
+                        .from(e)
+                })?;
         }
 
         Ok(())
@@ -214,7 +253,7 @@ impl GetTaskIterator for CliContext {
     type TaskIterator = CliTaskIterator;
 
     fn get_task_iterator(&mut self) -> HyperTaskResult<Self::TaskIterator> {
-        CliTaskIterator::new(&self.config.data_dir).map_err(|e| {
+        CliTaskIterator::new(&self.config.get_data_dir()?).map_err(|e| {
             HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Read)
                 .msg("could not open tasks folder for reading")
                 .from(e)
