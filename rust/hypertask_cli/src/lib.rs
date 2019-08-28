@@ -5,13 +5,12 @@ extern crate lazy_static;
 extern crate ansi_term;
 extern crate hypertask_engine;
 
-mod context;
 mod parse_args;
 mod render;
 
-use crate::context::CliContext;
 use crate::parse_args::parse_cli_args;
 use crate::render::render_table;
+use hypertask_cli_context::CliContext;
 use hypertask_engine::prelude::*;
 use serde_json;
 use std::fs::File;

@@ -28,7 +28,7 @@ struct ServerConfig {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
-struct Config {
+pub struct Config {
     data_dir: PathBuf,
 
     #[serde(default)]

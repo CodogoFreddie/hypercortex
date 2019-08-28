@@ -1,0 +1,15 @@
+[package]
+name = "hypertask_cli_context"
+version = "0.1.0"
+authors = ["Freddie Ridell <contact@freddieridell.com>"]
+edition = "2018"
+
+[dependencies]
+hypertask_engine={ path= "../hypertask_engine" }
+chrono = { version = "0.4", features = ["serde"] }
+platform-dirs = "0.2.0"
+rand = "0.6.5" 
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0" }
+shellexpand = "1.0.0"
+toml = "0.5.1"   
