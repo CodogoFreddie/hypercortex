@@ -38,9 +38,9 @@ pub trait GenerateId {
 }
 
 pub trait GetTaskIterator {
-    type TaskIterator: Iterator<Item = Result<Task, String>>;
+    type TaskIterator: Iterator<Item = HyperTaskResult<Task>>;
 
-    fn get_task_iterator(&mut self) -> HyperTaskResult<Self::TaskIterator>;
+    fn get_task_iterator(&self) -> HyperTaskResult<Self::TaskIterator>;
 }
 
 //TODO needs a new trait that outputs an owned TaskIterator

@@ -13,37 +13,49 @@ use rand::prelude::*;
 use rocket::config::{Config, Environment};
 use rocket::State;
 use rocket_contrib::json::Json;
+use std::sync::RwLock;
 
 #[get("/")]
-fn get_tasks(context: State<CliContext>) -> Json<()> {
-    Json(())
+fn get_tasks(context: State<RwLock<CliContext>>) -> HyperTaskResult<Json<Vec<Task>>> {
+    let mut task_iterator = context.read().unwrap().get_task_iterator()?;
+
+    let task_vec = task_iterator.collect::<HyperTaskResult<Vec<Task>>>()?;
+
+    Ok(Json(task_vec))
 }
 
-#[post("/", data = "<task>")]
-fn put_task(context: State<CliContext>, task: Json<Task>) -> Json<()> {
-    //println!("{:?}", context.data_dir);
+#[post("/", data = "<task_json>")]
+fn post_task(
+    context: State<RwLock<CliContext>>,
+    task_json: Json<Task>,
+) -> HyperTaskResult<Json<()>> {
+    let Json(task) = task_json;
 
-    //Json(Task::generate(&mut cli_context))
-    Json(())
+    context.write().unwrap().put_task(&task)?;
+
+    Ok(Json(()))
 }
 
 fn run() -> HyperTaskResult<()> {
-    let cli_context = CliContext::new()?;
+    let cli_context = CliContext::new_for_server()?;
 
-    let server_config = cli_context
-        .get_config()
-        .get_server_config()
+    let port = &cli_context.get_server_port().unwrap_or(4232);
+
+    let default_address = ("localhost".to_owned());
+    let address = cli_context
+        .get_server_address()
         .as_ref()
-        .ok_or(
-            HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Read)
-                .msg("config.toml does not contain a [server] section"),
-        )?;
+        .unwrap_or(&default_address);
 
-    let port = server_config.get_port().unwrap_or(1234);
+    #[cfg(debug_assertions)]
+    let rocket_environment = Environment::Development;
 
-    let config = Config::build(Environment::Staging)
-        //.address("1.2.3.4")
-        .port(port)
+    #[cfg(not(debug_assertions))]
+    let rocket_environment = Environment::Production;
+
+    let config = Config::build(rocket_environment)
+        .address(address)
+        .port(*port)
         .finalize()
         .map_err(|e| {
             HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Run)
@@ -51,8 +63,8 @@ fn run() -> HyperTaskResult<()> {
         })?;
 
     rocket::custom(config)
-        .manage(cli_context)
-        .mount("/", routes![get_tasks])
+        .manage(RwLock::new(cli_context))
+        .mount("/", routes![get_tasks, post_task])
         .launch();
 
     Ok(())

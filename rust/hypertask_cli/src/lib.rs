@@ -20,7 +20,7 @@ use std::{env, fs};
 const ENV_VAR_DIR_NAME: &str = "HYPERTASK_DIR";
 
 pub fn run_cli(args: &[String]) -> Result<(), String> {
-    let cli_context = CliContext::new()?;
+    let cli_context = CliContext::new_for_client()?;
 
     let command = parse_cli_args(args.iter().skip(1))?;
     let tasks_to_display = run(command, cli_context)?;
