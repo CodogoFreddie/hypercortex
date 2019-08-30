@@ -9,7 +9,7 @@ pub struct WebTaskIterator {
 }
 
 impl WebTaskIterator {
-    pub fn new(input_iter_raw: &JsValue) -> Result<Self, String> {
+    pub fn new(input_iter_raw: &JsValue) -> HyperTaskResult<Self> {
         //TODO get rid of these unwraps
         let input_iter_from_js = js_sys::try_iter(input_iter_raw).unwrap().unwrap();
         Ok(Self { input_iter_from_js })
@@ -17,17 +17,29 @@ impl WebTaskIterator {
 }
 
 impl Iterator for WebTaskIterator {
-    type Item = Result<Task, String>;
+    type Item = HyperTaskResult<Task>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.input_iter_from_js.next().map(|x| {
-            x.and_then(|js_val| {
-                js_val
-                    .into_serde()
-                    .map_err(|_| JsValue::from_str("Error parsing task"))
-            })
-            .map_err(|_| "Error getting task".to_owned())
-        })
+        let next_item: Option<HyperTaskResult<Task>> =
+            self.input_iter_from_js
+                .next()
+                .map(|x: Result<JsValue, JsValue>| {
+                    x.map_err(|e| {
+                        HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Read)
+                    })
+                    .and_then(|js_val| {
+                        let x: Result<Task, HyperTaskError> = js_val.into_serde().map_err(|e| {
+                            HyperTaskError::new(
+                                HyperTaskErrorDomain::Task,
+                                HyperTaskErrorAction::Read,
+                            )
+                        });
+
+                        x
+                    })
+                });
+
+        next_item
     }
 }
 
@@ -63,12 +75,15 @@ impl<'a> GetNow for WebContext<'a> {
 }
 
 impl<'a> PutTask for WebContext<'a> {
-    fn put_task(&mut self, task: &Task) -> Result<(), String> {
+    fn put_task(&mut self, task: &Task) -> HyperTaskResult<()> {
         let js_task = JsValue::from_serde(task).unwrap();
 
         self.updater_fn
             .call1(&JsValue::null(), &js_task)
-            .map_err(|_| format!("Could not update task `{}`", task.get_id()))?;
+            .map_err(|e| {
+                HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Read)
+                    .with_msg(|| format!("Could not update task `{}`", task.get_id()))
+            })?;
 
         Ok(())
     }
@@ -94,8 +109,7 @@ impl<'a> GenerateId for WebContext<'a> {
 impl<'a> GetTaskIterator for WebContext<'a> {
     type TaskIterator = WebTaskIterator;
 
-    fn get_task_iterator(&mut self) -> Self::TaskIterator {
-        //TODO get rid of these unwraps
-        WebTaskIterator::new(self.input_iter_raw).unwrap()
+    fn get_task_iterator(&self) -> HyperTaskResult<Self::TaskIterator> {
+        WebTaskIterator::new(self.input_iter_raw)
     }
 }

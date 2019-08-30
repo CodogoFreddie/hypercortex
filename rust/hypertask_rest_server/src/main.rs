@@ -11,9 +11,45 @@ use hypertask_cli_context::*;
 use hypertask_engine::prelude::*;
 use rand::prelude::*;
 use rocket::config::{Config, Environment};
+use rocket::fairing::{Fairing, Info, Kind};
+use rocket::http::{ContentType, Header, Method};
 use rocket::State;
+use rocket::{Request, Response};
 use rocket_contrib::json::Json;
+use std::io::Cursor;
 use std::sync::RwLock;
+
+pub struct CORS();
+
+impl Fairing for CORS {
+    fn info(&self) -> Info {
+        Info {
+            name: "Add CORS headers to requests",
+            kind: Kind::Response,
+        }
+    }
+
+    fn on_response(&self, request: &Request, response: &mut Response) {
+        if request.method() == Method::Options || response.content_type() == Some(ContentType::JSON)
+        {
+            response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
+            response.set_header(Header::new(
+                "Access-Control-Allow-Methods",
+                "POST, GET, OPTIONS",
+            ));
+            response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
+            response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
+        }
+
+        if request.method() == Method::Options {
+            response.set_header(ContentType::Plain);
+            response.set_sized_body(Cursor::new(""));
+        }
+    }
+}
+
+#[options("/")]
+fn noop() -> () {}
 
 #[get("/")]
 fn get_tasks(context: State<RwLock<CliContext>>) -> HyperTaskResult<Json<Vec<Task>>> {
@@ -26,8 +62,8 @@ fn get_tasks(context: State<RwLock<CliContext>>) -> HyperTaskResult<Json<Vec<Tas
 
 #[post("/", data = "<task_json>")]
 fn post_task(
-    context: State<RwLock<CliContext>>,
     task_json: Json<Task>,
+    context: State<RwLock<CliContext>>,
 ) -> HyperTaskResult<Json<()>> {
     let Json(task) = task_json;
 
@@ -64,7 +100,8 @@ fn run() -> HyperTaskResult<()> {
 
     rocket::custom(config)
         .manage(RwLock::new(cli_context))
-        .mount("/", routes![get_tasks, post_task])
+        .attach(CORS())
+        .mount("/", routes![get_tasks, post_task, noop])
         .launch();
 
     Ok(())

@@ -8,7 +8,6 @@ const Task = ({ task: { description } }) => {
 
 const TaskList = () => {
 	const { tasks } = React.useContext(HypertaskContext);
-	console.log({ tasks });
 
 	return tasks.map(({ score, task }) => (
 		<Task key={task.id} task={task} score={score} />

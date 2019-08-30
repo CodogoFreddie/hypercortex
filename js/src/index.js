@@ -1,4 +1,3 @@
-import { run } from "../../rust/hypertask_npm_package/Cargo.toml";
 import React from "react";
 import ReactDOM from "react-dom";
 
