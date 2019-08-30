@@ -1,5 +1,7 @@
 import React from "react";
-import { run as runHypertask } from "../../rust/hypertask_npm_package/src/lib.rs";
+import { run as runHypertask } from "../../../rust/hypertask_npm_package/src/lib.rs";
+
+import syncDbWithServer from "./syncDbWithServer";
 
 const HypertaskContext = React.createContext({
 	tasks: {},
@@ -61,45 +63,43 @@ export function useHyperTask() {
 		[],
 	);
 
-	const runCommand = cmd => {
-		if (!dbRef.current) {
-			return;
-		}
+	const syncDbWithRemote = React.useCallback(() => {
+		return syncDbWithServer(dbRef.current, "http://localhost:4523");
+	}, [dbRef]);
 
-		dbRef.current
-			.transaction("tasks")
-			.objectStore("tasks")
-			.getAll().onsuccess = event => {
-			const outputTasks = runHypertask(
-				cmd,
-				task => {
-					const transaction = dbRef.current.transaction(
-						["tasks"],
-						"readwrite",
-					);
+	const runCommand = React.useCallback(
+		cmd => {
+			if (!dbRef.current) {
+				return;
+			}
 
-					transaction.onerror = event => {
-						console.error("transaction.onerror", task, event);
-					};
+			dbRef.current
+				.transaction("tasks")
+				.objectStore("tasks")
+				.getAll().onsuccess = event => {
+				const outputTasks = runHypertask(
+					cmd,
+					task => {
+						const transaction = dbRef.current.transaction(
+							["tasks"],
+							"readwrite",
+						);
 
-					const objectStore = transaction.objectStore("tasks");
-					const request = objectStore.add(task);
+						transaction.onerror = event => {
+							console.error("transaction.onerror", task, event);
+						};
 
-					fetch("http://localhost:4523/", {
-						method: "POST",
-						body: JSON.stringify(task),
-						headers: {
-							Accept: "application/json",
-							"Content-Type": "application/json",
-						},
-					});
-				},
-				event.target.result.values(),
-			);
+						const objectStore = transaction.objectStore("tasks");
+						const request = objectStore.add(task);
+					},
+					event.target.result.values(),
+				);
 
-			setTaskCmdResponse(outputTasks);
-		};
-	};
+				setTaskCmdResponse(outputTasks);
+			};
+		},
+		[dbRef],
+	);
 
 	React.useEffect(
 		//load the db
@@ -113,24 +113,7 @@ export function useHyperTask() {
 						Read: [],
 					});
 				})
-				.then(() => fetch("http://localhost:4523/"))
-				.then(x => x.json())
-				.then(tasks => {
-					tasks.forEach(task => {
-						const transaction = dbRef.current.transaction(
-							["tasks"],
-							"readwrite",
-						);
-
-						transaction.onerror = event => {
-							console.error("transaction.onerror", task, event);
-						};
-
-						const objectStore = transaction.objectStore("tasks");
-
-						const request = objectStore.put(task);
-					});
-				})
+				.then(() => syncDbWithRemote())
 				.then(() => {
 					runCommand({
 						Read: [],
@@ -138,7 +121,7 @@ export function useHyperTask() {
 				})
 				.catch(console.error);
 		},
-		[],
+		[syncDbWithRemote],
 	);
 
 	return {
