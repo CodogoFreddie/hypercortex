@@ -20,9 +20,11 @@ pub fn run(
 ) -> Result<JsValue, JsValue> {
     let context = WebContext::new(updater_fn, input_iter_raw);
 
-    let cmd: Command = cmd_raw
-        .into_serde()
-        .map_err(|_| JsValue::from_str("could not parse input command"))?;
+    let cmd: Command = cmd_raw.into_serde().map_err(|e| {
+        JsValue::from_str(
+            format!("[{:?}] ({:?}) could not parse input command", cmd_raw, e).as_str(),
+        )
+    })?;
 
     let response: Vec<FinalisedTask> = hypertask_engine::prelude::run(cmd, context)
         .map_err(|_| "Error running hypertask engine".to_owned())?;

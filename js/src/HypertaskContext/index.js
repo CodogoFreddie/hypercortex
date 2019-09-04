@@ -1,5 +1,5 @@
 import React from "react";
-import { run as runHypertask } from "../../../rust/hypertask_npm_package/src/lib.rs";
+import { run as runHypertask } from "../../../rust/hypertask_npm_package/pkg/hypertask_npm_package_bg.wasm";
 
 import syncDbWithServer from "./syncDbWithServer";
 
