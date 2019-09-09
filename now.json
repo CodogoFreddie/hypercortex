@@ -1,0 +1,22 @@
+{
+  "name": "hyper-task",
+  "scope": "freddieridell",
+  "version": 2,
+  "public": false,
+  "builds": [
+    {
+      "src": "js/package.json",
+      "use": "@now/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+
+  "routes": [
+    {
+      "src": "(?<path>/.*)",
+      "dest": "/js$path"
+    }
+  ]
+}
