@@ -52,6 +52,7 @@
 	"dependencies": {
 		"@emotion/core": "^10.0.16",
 		"@emotion/styled": "^10.0.15",
+		"@freddieridell/hypertask_npm_package": "^0.1.2",
 		"@freddieridell/little-bonsai-styles": "^0.5.1",
 		"emotion-theming": "^10.0.14",
 		"hypertask_npm_package": "file:../rust/hypertask_npm_package/pkg",

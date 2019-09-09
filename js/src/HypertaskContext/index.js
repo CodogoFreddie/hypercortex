@@ -76,7 +76,7 @@ export function useHyperTask() {
 				.transaction("tasks")
 				.objectStore("tasks")
 				.getAll().onsuccess = event => {
-				import("../../../rust/hypertask_npm_package/pkg").then(
+				import("@freddieridell/hypertask_npm_package").then(
 					({ run: runHypertask }) => {
 						const outputTasks = runHypertask(
 							cmd,
