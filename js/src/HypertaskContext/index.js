@@ -1,5 +1,4 @@
 import React from "react";
-import { run as runHypertask } from "../../../rust/hypertask_npm_package/pkg/hypertask_npm_package_bg.wasm";
 
 import syncDbWithServer from "./syncDbWithServer";
 
@@ -77,25 +76,35 @@ export function useHyperTask() {
 				.transaction("tasks")
 				.objectStore("tasks")
 				.getAll().onsuccess = event => {
-				const outputTasks = runHypertask(
-					cmd,
-					task => {
-						const transaction = dbRef.current.transaction(
-							["tasks"],
-							"readwrite",
+				import("../../../rust/hypertask_npm_package/pkg").then(
+					({ run: runHypertask }) => {
+						const outputTasks = runHypertask(
+							cmd,
+							task => {
+								const transaction = dbRef.current.transaction(
+									["tasks"],
+									"readwrite",
+								);
+
+								transaction.onerror = event => {
+									console.error(
+										"transaction.onerror",
+										task,
+										event,
+									);
+								};
+
+								const objectStore = transaction.objectStore(
+									"tasks",
+								);
+								const request = objectStore.add(task);
+							},
+							event.target.result.values(),
 						);
 
-						transaction.onerror = event => {
-							console.error("transaction.onerror", task, event);
-						};
-
-						const objectStore = transaction.objectStore("tasks");
-						const request = objectStore.add(task);
+						setTaskCmdResponse(outputTasks);
 					},
-					event.target.result.values(),
 				);
-
-				setTaskCmdResponse(outputTasks);
 			};
 		},
 		[dbRef],

@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 
 import App from "./App";
 
-export function start() {
+function start() {
 	ReactDOM.render(<App />, document.getElementById("app"));
 }
 

@@ -53,7 +53,7 @@ const Task = ({ task: { description, tags } }) => {
 			{tags && (
 				<TaskTags>
 					{tags.map(tag => (
-						<TaskTag>{tag}</TaskTag>
+						<TaskTag key={tag}>{tag}</TaskTag>
 					))}
 				</TaskTags>
 			)}
