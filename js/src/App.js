@@ -2,21 +2,29 @@ import React from "react";
 import { ThemeProvider } from "emotion-theming";
 import { corePallete, buildScheme } from "@freddieridell/little-bonsai-styles";
 
-import HypertaskContext, { useHyperTask } from "./HypertaskContext";
-import TaskList from "./TaskList";
+import useHyperTask from "./useHyperTask";
+
+import QueryRenderer from "./components/QueryRenderer";
+import TaskList from "./components/TaskList";
+import Config, { configHasBeenSet } from "./components/Config";
 
 //{"Create":[{"SetProp":{"Description":"test"}}]}
 
 const theme = buildScheme(corePallete);
 
 const App = () => {
-	const { loading, tasks, runCommand } = useHyperTask();
+	const { clientState, query, tasks, setQuery, runMutation } = useHyperTask();
+
+	if (!configHasBeenSet()) {
+		return <Config />;
+	}
 
 	return (
 		<ThemeProvider theme={theme}>
-			<HypertaskContext.Provider value={{ tasks, runCommand }}>
-				{!loading && <TaskList />}
-			</HypertaskContext.Provider>
+			<QueryRenderer query={query} setQuery={setQuery} />
+			{clientState !== "LOADING" && (
+				<TaskList {...{ tasks, setQuery, runMutation, query }} />
+			)}
 		</ThemeProvider>
 	);
 };

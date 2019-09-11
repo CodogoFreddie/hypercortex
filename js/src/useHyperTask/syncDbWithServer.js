@@ -25,7 +25,7 @@ function getAllLocalTasks(db) {
 }
 
 function getAllRemoteTasks(url) {
-	return fetch("http://localhost:4523/")
+	return fetch(localStorage.apiURL)
 		.then(x => x.json())
 		.then(R.indexBy(R.prop("id")));
 }
@@ -61,9 +61,10 @@ export default function syncDbWithServer(db, url) {
 						if (
 							!remoteTask ||
 							(remoteTask &&
+								localTask &&
 								localTask.updated_at > remoteTask.updated_at)
 						) {
-							fetch("http://localhost:4523/", {
+							return fetch(localStorage.apiURL, {
 								method: "POST",
 								body: JSON.stringify(task),
 								headers: {
@@ -74,6 +75,8 @@ export default function syncDbWithServer(db, url) {
 								.then(done)
 								.catch(fail);
 						}
+
+						done();
 					}),
 			);
 		})

@@ -3,15 +3,17 @@ import styled from "@emotion/styled";
 import * as R from "ramda";
 import { createShadow, calm } from "@freddieridell/little-bonsai-styles";
 
-import HypertaskContext from "../HypertaskContext";
-
 import Task from "../Task";
 
-const TaskList = () => {
-	const { tasks, runCommand } = React.useContext(HypertaskContext);
-
+const TaskList = ({ tasks, setQuery, query }) => {
 	return tasks.map(({ score, task }) => (
-		<Task key={task.id} task={task} score={score} runCommand={runCommand} />
+		<Task
+			key={task.id}
+			task={task}
+			score={score}
+			setQuery={setQuery}
+			query={query}
+		/>
 	));
 };
 

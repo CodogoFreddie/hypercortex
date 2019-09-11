@@ -45,14 +45,29 @@ const caplitalizeFirst = R.pipe(
 	R.join(""),
 );
 
-const Task = ({ task: { description, tags } }) => {
+const Task = ({ task: { description, tags }, setQuery, query }) => {
 	return (
 		<TaskStyled>
 			<TaskDescription>{caplitalizeFirst(description)}</TaskDescription>
 			{tags && (
 				<TaskTags>
 					{tags.map(tag => (
-						<TaskTag key={tag}>{tag}</TaskTag>
+						<TaskTag
+							key={tag}
+							onClick={() => {
+								setQuery([
+									...query,
+									{
+										Tag: {
+											sign: "Plus",
+											name: tag,
+										},
+									},
+								]);
+							}}
+						>
+							{tag}
+						</TaskTag>
 					))}
 				</TaskTags>
 			)}
