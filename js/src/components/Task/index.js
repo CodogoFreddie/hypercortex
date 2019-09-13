@@ -2,6 +2,10 @@ import React from "react";
 import styled from "@emotion/styled";
 import * as R from "ramda";
 import { createShadow, calm } from "@freddieridell/little-bonsai-styles";
+import toDate from "date-fns/fp/toDate";
+import parseISO from "date-fns/fp/parseISO";
+import format from "date-fns/fp/format";
+import formatDistanceWithOptions from "date-fns/fp/formatDistanceWithOptions";
 
 const TaskStyled = styled.div(
 	calm({
@@ -39,16 +43,33 @@ const TaskTag = styled.li(
 	}),
 );
 
+const TaskDate = styled.div(calm({}));
+
 const caplitalizeFirst = R.pipe(
 	R.split(""),
 	R.over(R.lensIndex(0), x => x.toUpperCase()),
 	R.join(""),
 );
 
-const Task = ({ task: { description, tags }, setQuery, query }) => {
+const formatDate = R.pipe(
+	R.tap(console.log),
+	parseISO,
+	R.tap(console.log),
+	R.when(
+		Boolean,
+		R.converge(R.append, [
+			R.always([]),
+			format("yyyy-MM-dd BBB"),
+			formatDistanceWithOptions({ addSuffix: true }, new Date()),
+		]),
+	),
+);
+
+const Task = ({ task: { description, tags, due }, setQuery, query }) => {
 	return (
 		<TaskStyled>
 			<TaskDescription>{caplitalizeFirst(description)}</TaskDescription>
+			{due && <TaskDate>{formatDate(due)}</TaskDate>}
 			{tags && (
 				<TaskTags>
 					{tags.map(tag => (

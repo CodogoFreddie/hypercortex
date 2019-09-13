@@ -9,7 +9,7 @@ const HypertaskContext = React.createContext({
 	runCommand: () => {},
 });
 
-export default function useHyperTask() {
+export default function useHyperTask({ apiURL }) {
 	useDataPersistence();
 
 	const [clientState, setClientState] = React.useState("LOADING");
@@ -71,7 +71,7 @@ export default function useHyperTask() {
 	const syncDbWithRemote = React.useCallback(() => {
 		setClientState("SYNCING");
 
-		return syncDbWithServer(dbRef.current, localStorage.apiURL).then(() => {
+		return syncDbWithServer(dbRef.current, apiURL).then(() => {
 			setClientState("SYNCED");
 		});
 	}, [dbRef]);

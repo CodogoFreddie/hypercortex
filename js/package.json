@@ -54,6 +54,7 @@
 		"@emotion/styled": "^10.0.15",
 		"@freddieridell/hypertask_npm_package": "^0.1.2",
 		"@freddieridell/little-bonsai-styles": "^0.5.1",
+		"date-fns": "^2.1.0",
 		"emotion-theming": "^10.0.14",
 		"hypertask_npm_package": "file:../rust/hypertask_npm_package/pkg",
 		"react": "^16.9.0",

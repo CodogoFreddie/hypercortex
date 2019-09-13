@@ -25,7 +25,7 @@ function getAllLocalTasks(db) {
 }
 
 function getAllRemoteTasks(url) {
-	return fetch(localStorage.apiURL)
+	return fetch(url)
 		.then(x => x.json())
 		.then(R.indexBy(R.prop("id")));
 }
@@ -64,7 +64,7 @@ export default function syncDbWithServer(db, url) {
 								localTask &&
 								localTask.updated_at > remoteTask.updated_at)
 						) {
-							return fetch(localStorage.apiURL, {
+							return fetch(url, {
 								method: "POST",
 								body: JSON.stringify(task),
 								headers: {
