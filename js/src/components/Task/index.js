@@ -7,6 +7,8 @@ import parseISO from "date-fns/fp/parseISO";
 import format from "date-fns/fp/format";
 import formatDistanceWithOptions from "date-fns/fp/formatDistanceWithOptions";
 
+import Tag from "../Tag";
+
 const TaskStyled = styled.div(
 	calm({
 		display: "flex",
@@ -37,12 +39,6 @@ const TaskTags = styled.ul(
 	}),
 );
 
-const TaskTag = styled.li(
-	calm({
-		marginLeft: R.path(["theme", "size", "space", 5]),
-	}),
-);
-
 const TaskDate = styled.div(calm({}));
 
 const caplitalizeFirst = R.pipe(
@@ -52,9 +48,7 @@ const caplitalizeFirst = R.pipe(
 );
 
 const formatDate = R.pipe(
-	R.tap(console.log),
 	parseISO,
-	R.tap(console.log),
 	R.when(
 		Boolean,
 		R.converge(R.append, [
@@ -73,9 +67,10 @@ const Task = ({ task: { description, tags, due }, setQuery, query }) => {
 			{tags && (
 				<TaskTags>
 					{tags.map(tag => (
-						<TaskTag
+						<Tag
 							key={tag}
 							onClick={() => {
+								console.log("ONCLICK");
 								setQuery([
 									...query,
 									{
@@ -88,7 +83,7 @@ const Task = ({ task: { description, tags, due }, setQuery, query }) => {
 							}}
 						>
 							{tag}
-						</TaskTag>
+						</Tag>
 					))}
 				</TaskTags>
 			)}

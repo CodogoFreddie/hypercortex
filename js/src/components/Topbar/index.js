@@ -3,6 +3,8 @@ import styled from "@emotion/styled";
 import { calm } from "@freddieridell/little-bonsai-styles";
 import * as R from "ramda";
 
+import Tag from "../Tag";
+
 const TopbarStyled = styled.header(
 	calm({
 		backgroundColor: R.path([
@@ -51,27 +53,6 @@ const QueryRenderer = styled.ul(
 	}),
 );
 
-const RenderedQuery = styled.li(
-	calm({
-		alignItems: "center",
-		backgroundColor: R.path(["theme", "color", "symantic", "background"]),
-		borderRadius: R.path(["theme", "size", "space", 2]),
-		color: R.path(["theme", "color", "symantic", "text"]),
-		cursor: "pointer",
-		display: "flex",
-		fontSize: R.path(["theme", "size", "font", 2]),
-		height: R.path(["theme", "size", "space", 5]),
-		justifyContent: "center",
-		padding: R.path(["theme", "size", "space", 1]),
-		paddingLeft: R.path(["theme", "size", "space", 2]),
-		paddingRight: R.path(["theme", "size", "space", 2]),
-
-		span: {
-			display: "block",
-		},
-	}),
-);
-
 const Topbar = ({ query, setQuery }) => {
 	return (
 		<React.Fragment>
@@ -81,7 +62,7 @@ const Topbar = ({ query, setQuery }) => {
 				<QueryRenderer>
 					<span>Active Queries:</span>
 					{query.map(({ Tag: { name } }) => (
-						<RenderedQuery
+						<Tag
 							key={name}
 							onClick={() => {
 								setQuery(
@@ -93,8 +74,8 @@ const Topbar = ({ query, setQuery }) => {
 								);
 							}}
 						>
-							<span>{name}</span>
-						</RenderedQuery>
+							{name}
+						</Tag>
 					))}
 				</QueryRenderer>
 			)}

@@ -13,7 +13,7 @@ const Modal = props => {
 			"top: 0;",
 		].join(" ");
 
-		const modalRoot = document.getElementById("modal-root");
+		const modalRoot = document.body;
 
 		modalRoot.appendChild(thisModalRef.current);
 
