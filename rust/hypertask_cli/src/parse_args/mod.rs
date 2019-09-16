@@ -150,8 +150,6 @@ fn parse_relative_date_shortcut(token: &str) -> DateTime<Utc> {
         (_, u) => panic!("{} is not a valid unit", u),
     };
 
-    println!("{:?}, {:?}", number, unit);
-
     Utc::now() + increment
 }
 

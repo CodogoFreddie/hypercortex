@@ -18,7 +18,7 @@ pub fn run_string_as_shell_command(cmd: &String) -> HyperTaskResult<String> {
                     .from(e)
             })
             .and_then(|output| {
-                std::str::from_utf8(&output.stdout)
+                let stdout = std::str::from_utf8(&output.stdout)
                     .map(|s| s.to_owned())
                     .map_err(|e| {
                         HyperTaskError::new(
@@ -27,12 +27,30 @@ pub fn run_string_as_shell_command(cmd: &String) -> HyperTaskResult<String> {
                         )
                         .with_msg(|| {
                             format!(
-                                "could not return the output of the post write shell command `{}`",
+                                "could not return the stdout of the post write shell command `{}`",
                                 cmd
                             )
                         })
                         .from(e)
-                    })
+                    })?;
+
+                let stderr = std::str::from_utf8(&output.stderr)
+                    .map(|s| s.to_owned())
+                    .map_err(|e| {
+                        HyperTaskError::new(
+                            HyperTaskErrorDomain::Context,
+                            HyperTaskErrorAction::Run,
+                        )
+                        .with_msg(|| {
+                            format!(
+                                "could not return the stderr of the post write shell command `{}`",
+                                cmd
+                            )
+                        })
+                        .from(e)
+                    })?;
+
+                Ok(format!("{}{}", stdout, stderr))
             })
     } else {
         Err(
@@ -46,6 +64,7 @@ pub fn run_string_as_shell_command(cmd: &String) -> HyperTaskResult<String> {
 pub struct ConfigForUse {
     pub data_dir: PathBuf,
     pub hook_after: Option<String>,
+    pub hook_on_edit: Option<String>,
     pub hook_before: Option<String>,
     pub server_port: Option<u16>,
     pub server_address: Option<String>,
@@ -57,10 +76,12 @@ impl ConfigForUse {
         let data_dir = config.get_data_dir()?;
 
         let mut hook_after = None;
+        let mut hook_on_edit = None;
         let mut hook_before = None;
 
         if let Some(hooks) = config.client.and_then(|client| client.hooks) {
             hook_after = hooks.after;
+            hook_on_edit = hooks.on_edit;
             hook_before = hooks.before;
         };
 
@@ -69,6 +90,7 @@ impl ConfigForUse {
             server_port: None,
             server_address: None,
             hook_after,
+            hook_on_edit,
             hook_before,
         })
     }
@@ -87,6 +109,7 @@ impl ConfigForUse {
             server_port: Some(server_config.port),
             server_address: server_config.address,
             hook_after: server_config.hooks.after,
+            hook_on_edit: None,
             hook_before: server_config.hooks.before,
         })
     }

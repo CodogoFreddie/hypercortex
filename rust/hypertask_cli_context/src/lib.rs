@@ -1,7 +1,8 @@
 mod config_file;
 mod config_for_use;
 
-use crate::config_for_use::{run_string_as_shell_command, ConfigForUse};
+pub use crate::config_for_use::run_string_as_shell_command;
+use crate::config_for_use::ConfigForUse;
 use chrono::prelude::*;
 use hypertask_engine::prelude::*;
 use rand::seq::IteratorRandom;
@@ -29,6 +30,10 @@ impl CliContext {
         Ok(Self {
             config: ConfigForUse::new_for_server()?,
         })
+    }
+
+    pub fn get_after_hook(&self) -> &Option<String> {
+        &self.config.hook_after
     }
 
     pub fn get_data_dir(&self) -> &PathBuf {
@@ -75,8 +80,9 @@ impl PutTask for CliContext {
         })?;
 
         //TODO fix this Option nesting
-        if let Some(after_cmd) = &self.config.hook_after {
-            run_string_as_shell_command(after_cmd)?;
+        if let Some(on_edit_cmd) = &self.config.hook_on_edit {
+            let output = run_string_as_shell_command(on_edit_cmd)?;
+            println!("{}", output);
         }
 
         Ok(())

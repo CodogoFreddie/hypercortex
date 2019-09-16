@@ -7,6 +7,7 @@ use std::path::PathBuf;
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct HooksConfig {
     pub after: Option<String>,
+    pub on_edit: Option<String>,
     pub before: Option<String>,
 }
 
