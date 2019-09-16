@@ -1,5 +1,3 @@
-#![feature(generic_associated_types)]
-
 #[macro_use]
 extern crate lazy_static;
 extern crate ansi_term;
@@ -36,10 +34,5 @@ pub fn run_cli(args: &[String]) -> Result<(), String> {
 
     render_table(&tasks_to_display);
 
-    if let Some(after_cmd) = after_hook {
-        let output = run_string_as_shell_command(after_cmd)?;
-
-        println!("\n{}", output);
-    }
     Ok(())
 }

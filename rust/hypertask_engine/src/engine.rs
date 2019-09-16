@@ -33,6 +33,10 @@ pub trait PutTask {
     fn put_task(&mut self, task: &Task) -> HyperTaskResult<()>;
 }
 
+pub trait FinalizeMutations {
+    fn finalize_mutations(&self) -> HyperTaskResult<()>;
+}
+
 pub trait GenerateId {
     fn generate_id(&mut self) -> String;
 }
@@ -43,26 +47,14 @@ pub trait GetTaskIterator {
     fn get_task_iterator(&self) -> HyperTaskResult<Self::TaskIterator>;
 }
 
-//TODO needs a new trait that outputs an owned TaskIterator
-
 pub fn run<Context>(command: Command, mut context: Context) -> HyperTaskResult<Vec<FinalisedTask>>
 where
-    Context: GetNow + PutTask + GenerateId + GetTaskIterator,
+    Context: GetNow + PutTask + GenerateId + GetTaskIterator + FinalizeMutations,
 {
     let now = context.get_now();
     let input_iterator = context.get_task_iterator()?;
 
-    let mut tasks_collection = match &command {
-        Command::Create(mutations) => {
-            let mut new_task = Task::generate(&mut context);
-
-            new_task.apply_mutations(mutations, &now);
-
-            context.put_task(&new_task)?;
-
-            vec![new_task.finalise(&now)]
-        }
-
+    let mut tasks_collection: Vec<FinalisedTask> = match &command {
         Command::Read(queries) => input_iterator
             .map(std::result::Result::unwrap)
             .filter(|t| queries.is_empty() || t.satisfies_queries(queries))
@@ -70,22 +62,47 @@ where
             .filter(|ft| ft.get_score() != &0)
             .collect::<Vec<FinalisedTask>>(),
 
-        Command::Update(queries, mutations) => input_iterator
-            .map(std::result::Result::unwrap)
-            .filter(|t| t.satisfies_queries(queries))
-            .map(|mut task| {
-                task.apply_mutations(mutations, &now);
-                context.put_task(&task)?;
-                Ok(task)
-            })
-            .map(|task_result| task_result.map(|task| task.finalise(&now)))
-            .collect::<HyperTaskResult<Vec<FinalisedTask>>>()?,
+        Command::Create(mutations) => {
+            let mut new_task = Task::generate(&mut context);
 
-        Command::Delete(queries) => input_iterator
-            .map(std::result::Result::unwrap)
-            .filter(|t| t.satisfies_queries(queries))
-            .map(|t| t.finalise(&now))
-            .collect::<Vec<FinalisedTask>>(),
+            new_task.apply_mutations(mutations, &now);
+
+            context.put_task(&new_task)?;
+
+            let output: Vec<FinalisedTask> = vec![new_task.finalise(&now)];
+
+            context.finalize_mutations()?;
+            output
+        }
+
+        Command::Update(queries, mutations) => {
+            let output = input_iterator
+                .map(std::result::Result::unwrap)
+                .filter(|t| t.satisfies_queries(queries))
+                .map(|mut task| {
+                    task.apply_mutations(mutations, &now);
+                    context.put_task(&task)?;
+                    Ok(task)
+                })
+                .map(|task_result| task_result.map(|task| task.finalise(&now)))
+                .collect::<HyperTaskResult<Vec<FinalisedTask>>>()?;
+
+            context.finalize_mutations()?;
+
+            output
+        }
+
+        Command::Delete(queries) => {
+            let output = input_iterator
+                .map(std::result::Result::unwrap)
+                .filter(|t| t.satisfies_queries(queries))
+                .map(|t| t.finalise(&now))
+                .collect::<Vec<FinalisedTask>>();
+
+            context.finalize_mutations()?;
+
+            output
+        }
     };
 
     tasks_collection.sort_unstable();

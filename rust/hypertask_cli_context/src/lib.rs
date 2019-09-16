@@ -82,7 +82,6 @@ impl PutTask for CliContext {
         //TODO fix this Option nesting
         if let Some(on_edit_cmd) = &self.config.hook_on_edit {
             let output = run_string_as_shell_command(on_edit_cmd)?;
-            println!("{}", output);
         }
 
         Ok(())
@@ -172,6 +171,17 @@ impl GetTaskIterator for CliContext {
             HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Read)
                 .msg("could not open tasks folder for reading")
                 .from(e)
+        })
+    }
+}
+
+impl FinalizeMutations for CliContext {
+    fn finalize_mutations(&self) -> HyperTaskResult<()> {
+        Ok(if let Some(after_cmd) = self.config.hook_after.clone() {
+            match run_string_as_shell_command(&after_cmd) {
+                Ok(output) => println!("{}", output),
+                Err(output) => println!("{}", output),
+            }
         })
     }
 }
