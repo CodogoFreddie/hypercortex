@@ -113,3 +113,9 @@ impl<'a> GetTaskIterator for WebContext<'a> {
         WebTaskIterator::new(self.input_iter_raw)
     }
 }
+
+impl<'a> FinalizeMutations for WebContext<'a> {
+    fn finalize_mutations(&self) -> HyperTaskResult<()> {
+        Ok(())
+    }
+}
