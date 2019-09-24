@@ -130,7 +130,7 @@ fn end_of_year() -> DateTime<Utc> {
 }
 
 lazy_static! {
-    static ref DATE_SHORTCUT_REGEX: Regex = Regex::new(r"(\d+)([dwmy])").unwrap();
+    static ref DATE_SHORTCUT_REGEX: Regex = Regex::new(r"(\d+)([hdwmy])").unwrap();
 }
 
 fn is_relative_date_shortcut(token: &str) -> bool {
@@ -143,6 +143,7 @@ fn parse_relative_date_shortcut(token: &str) -> DateTime<Utc> {
     let unit = caps.get(2).unwrap().as_str();
 
     let increment = match (number, unit) {
+        (n, "h") => Duration::hours(n),
         (n, "d") => Duration::days(n),
         (n, "w") => Duration::weeks(n),
         (n, "m") => Duration::seconds(n * 60 * 60 * 24 * 365 / 12),

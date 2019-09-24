@@ -18,14 +18,6 @@ use std::{env, fs};
 const ENV_VAR_DIR_NAME: &str = "HYPERTASK_DIR";
 
 pub fn run_cli(args: &[String]) -> Result<(), String> {
-    //println!(
-    //"{}",
-    //serde_json::to_string(&Command::Create(vec![Mutation::SetProp(
-    //Prop::Description("test".to_owned())
-    //)]))
-    //.unwrap()
-    //);
-
     let cli_context = CliContext::new_for_client()?;
     let after_hook = &cli_context.get_after_hook().clone();
 
