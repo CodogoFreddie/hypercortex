@@ -33,6 +33,7 @@ pub enum HyperTaskErrorAction {
     Read,
     Run,
     Write,
+    Parse,
 }
 
 impl fmt::Display for HyperTaskErrorAction {
@@ -42,6 +43,7 @@ impl fmt::Display for HyperTaskErrorAction {
             "{}",
             match self {
                 HyperTaskErrorAction::Create => "create",
+                HyperTaskErrorAction::Parse => "parse",
                 HyperTaskErrorAction::Delete => "delete",
                 HyperTaskErrorAction::Read => "read",
                 HyperTaskErrorAction::Run => "run",
