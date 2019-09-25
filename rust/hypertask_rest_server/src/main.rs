@@ -7,7 +7,6 @@ extern crate hypertask_engine;
 
 use chrono::prelude::*;
 use clap::{App, Arg, SubCommand};
-use hypertask_cli_context::*;
 use hypertask_engine::prelude::*;
 use rand::prelude::*;
 use rocket::config::{Config, Environment};

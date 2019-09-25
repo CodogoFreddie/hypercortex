@@ -1,7 +1,6 @@
 [workspace]
 members = [
 	"hypertask_cli",
-	"hypertask_cli_context",
 	"hypertask_config_file_opener",
 	"hypertask_engine",
 	"hypertask_npm_package",

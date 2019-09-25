@@ -8,7 +8,6 @@ edition = "2018"
 [dependencies]
 chrono = "0.4.7" 
 clap = "2.33.0"
-hypertask_cli_context={path = "../hypertask_cli_context"}
 hypertask_engine = { path = "../hypertask_engine" }
 rand = "0.7.0"  
 rocket = "0.4.2"

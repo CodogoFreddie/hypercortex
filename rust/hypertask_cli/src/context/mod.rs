@@ -1,12 +1,13 @@
-mod config_file;
-mod config_for_use;
+mod run_string_as_shell_command;
 
-pub use crate::config_for_use::run_string_as_shell_command;
-use crate::config_for_use::ConfigForUse;
 use chrono::prelude::*;
+use hypertask_config_file_opener::{ConfigFileGetter, ConfigFileOpener};
 use hypertask_engine::prelude::*;
+use platform_dirs::{AppDirs, AppUI};
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
+use run_string_as_shell_command::run_string_as_shell_command;
+use serde::{Deserialize, Serialize};
 use serde_json;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
@@ -14,38 +15,42 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::{env, fs};
 
-#[derive(Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct HooksConfig {
+    pub after: Option<String>,
+    pub on_edit: Option<String>,
+    pub before: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct CliConfig {
+    data_dir: PathBuf,
+
+    pub hooks: Option<HooksConfig>,
+}
+
+impl Default for CliConfig {
+    fn default() -> Self {
+        let platform_dirs::AppDirs { data_dir, .. } =
+            AppDirs::new(Some("hypertask-cli"), AppUI::CommandLine).unwrap();
+
+        return Self {
+            data_dir,
+            hooks: None,
+        };
+    }
+}
+
 pub struct CliContext {
-    config: ConfigForUse,
+    config_file_getter: ConfigFileGetter<CliConfig>,
 }
 
 impl CliContext {
-    pub fn new_for_client() -> HyperTaskResult<Self> {
-        Ok(Self {
-            config: ConfigForUse::new_for_client()?,
-        })
-    }
+    pub fn new() -> HyperTaskResult<CliContext> {
+        let mut config_file_opener = ConfigFileOpener::new("client.toml")?;
+        let config_file_getter = config_file_opener.parse()?;
 
-    pub fn new_for_server() -> HyperTaskResult<Self> {
-        Ok(Self {
-            config: ConfigForUse::new_for_server()?,
-        })
-    }
-
-    pub fn get_after_hook(&self) -> &Option<String> {
-        &self.config.hook_after
-    }
-
-    pub fn get_data_dir(&self) -> &PathBuf {
-        &self.config.data_dir
-    }
-
-    pub fn get_server_port(&self) -> &Option<u16> {
-        &self.config.server_port
-    }
-
-    pub fn get_server_address(&self) -> &Option<String> {
-        &self.config.server_address
+        Ok(CliContext { config_file_getter })
     }
 }
 
@@ -59,7 +64,7 @@ impl PutTask for CliContext {
     fn put_task(&mut self, task: &Task) -> HyperTaskResult<()> {
         let Id(task_id) = task.get_id();
 
-        let file_path = self.get_data_dir().join(task_id);
+        let file_path = self.config_file_getter.get_config().data_dir.join(task_id);
 
         let file = File::create(file_path).map_err(|e| {
             HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Write)
@@ -80,8 +85,12 @@ impl PutTask for CliContext {
         })?;
 
         //TODO fix this Option nesting
-        if let Some(on_edit_cmd) = &self.config.hook_on_edit {
-            let output = run_string_as_shell_command(on_edit_cmd)?;
+        if let Some(HooksConfig {
+            on_edit: Some(on_edit_cmd),
+            ..
+        }) = &self.config_file_getter.get_config().hooks
+        {
+            let output = run_string_as_shell_command(&on_edit_cmd)?;
         }
 
         Ok(())
@@ -135,7 +144,7 @@ impl Iterator for CliTaskIterator {
         self.task_files_iterator.next().map(|path| {
             path.map_err(|e| {
                 HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Read)
-                    .msg("could not open task folder for reading")
+                    .msg("could not open task path for reading")
                     .from(e)
             })
             .and_then(|file_path| {
@@ -167,7 +176,7 @@ impl GetTaskIterator for CliContext {
     type TaskIterator = CliTaskIterator;
 
     fn get_task_iterator(&self) -> HyperTaskResult<Self::TaskIterator> {
-        CliTaskIterator::new(self.get_data_dir()).map_err(|e| {
+        CliTaskIterator::new(&self.config_file_getter.get_config().data_dir).map_err(|e| {
             HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Read)
                 .msg("could not open tasks folder for reading")
                 .from(e)
@@ -177,11 +186,15 @@ impl GetTaskIterator for CliContext {
 
 impl FinalizeMutations for CliContext {
     fn finalize_mutations(&self) -> HyperTaskResult<()> {
-        Ok(if let Some(after_cmd) = self.config.hook_after.clone() {
-            match run_string_as_shell_command(&after_cmd) {
-                Ok(output) => println!("{}", output),
-                Err(output) => println!("{}", output),
+        if let Some(hooks) = &self.config_file_getter.get_config().hooks {
+            if let Some(after_cmd) = &hooks.after {
+                match run_string_as_shell_command(after_cmd) {
+                    Ok(output) => println!("{}", output),
+                    Err(output) => println!("{}", output),
+                }
             }
-        })
+        };
+
+        Ok(())
     }
 }

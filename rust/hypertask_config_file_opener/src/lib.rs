@@ -8,10 +8,20 @@ use std::fs;
 use std::marker::PhantomData;
 use std::path::PathBuf;
 
-pub struct ConfigFileOpener<'a, T: Default + Clone + Deserialize<'a> + Serialize> {
+pub struct ConfigFileOpener<'a, T: Default + Deserialize<'a> + Serialize> {
     config: Option<T>,
     config_source: String,
     phantom: PhantomData<&'a T>,
+}
+
+pub struct ConfigFileGetter<T> {
+    config: T,
+}
+
+impl<T> ConfigFileGetter<T> {
+    pub fn get_config(&self) -> &T {
+        &self.config
+    }
 }
 
 impl<'a, T: 'a + Clone + Default + Deserialize<'a> + Serialize> ConfigFileOpener<'a, T> {
@@ -52,13 +62,18 @@ impl<'a, T: 'a + Clone + Default + Deserialize<'a> + Serialize> ConfigFileOpener
     }
 
     pub fn new(config_file_name: &str) -> HyperTaskResult<Self> {
-        let platform_dirs::AppDirs { config_dir, .. } =
-            AppDirs::new(Some("hypertask-cli"), AppUI::CommandLine).unwrap();
+        let mut config_file_path: PathBuf = AppDirs::new(Some("hypertask-cli"), AppUI::CommandLine)
+            .unwrap()
+            .config_dir;
 
-        let config_file_path = config_dir.join(config_file_name);
+        config_file_path.push(config_file_name);
+
+        dbg!(&config_file_path);
 
         let config_source = Self::unwrap_stringified_file_creating_default(
-            &config_file_name,
+            &config_file_path
+                .to_str()
+                .expect("could not stringify client config file path"),
             fs::read_to_string(&config_file_path),
         )?;
 
@@ -69,19 +84,13 @@ impl<'a, T: 'a + Clone + Default + Deserialize<'a> + Serialize> ConfigFileOpener
         })
     }
 
-    pub fn parse(&'a mut self) -> HyperTaskResult<()> {
+    pub fn parse(&'a mut self) -> HyperTaskResult<ConfigFileGetter<T>> {
         let config: T = toml::de::from_str(&self.config_source).map_err(|e| {
             HyperTaskError::new(HyperTaskErrorDomain::Config, HyperTaskErrorAction::Parse)
                 .from(e)
                 .with_msg(|| format!("could not parse config"))
         })?;
 
-        self.config = Some(config.clone());
-
-        Ok(())
-    }
-
-    pub fn get_config(&self) -> &Option<T> {
-        &self.config
+        Ok(ConfigFileGetter { config })
     }
 }
