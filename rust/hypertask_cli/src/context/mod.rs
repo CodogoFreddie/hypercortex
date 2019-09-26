@@ -1,12 +1,11 @@
-mod run_string_as_shell_command;
-
 use chrono::prelude::*;
-use hypertask_config_file_opener::{ConfigFileGetter, ConfigFileOpener};
+use hypertask_config_file_opener::{
+    run_string_as_shell_command, ConfigFileGetter, ConfigFileOpener, ShellExpand,
+};
 use hypertask_engine::prelude::*;
 use platform_dirs::{AppDirs, AppUI};
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
-use run_string_as_shell_command::run_string_as_shell_command;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::fs::File;
@@ -27,6 +26,19 @@ pub struct CliConfig {
     data_dir: PathBuf,
 
     pub hooks: Option<HooksConfig>,
+}
+
+impl ShellExpand for CliConfig {
+    fn shell_expand(&mut self) -> () {
+        let data_dir_str: &str = self
+            .data_dir
+            .to_str()
+            .expect("could not string from data_dir");
+
+        let expanded_data_dir = shellexpand::tilde(data_dir_str);
+
+        self.data_dir = PathBuf::from(expanded_data_dir.into_owned());
+    }
 }
 
 impl Default for CliConfig {

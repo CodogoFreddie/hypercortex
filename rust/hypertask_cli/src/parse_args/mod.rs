@@ -68,7 +68,7 @@ pub fn parse_as_tag(token: &str) -> Option<Tag> {
     }
 }
 
-pub fn parse_as_query(token: &str) -> Result<Query, String> {
+pub fn parse_as_query(token: &str) -> HyperTaskResult<Query> {
     if let Some(tag) = parse_as_tag(token) {
         return Ok(Query::Tag(tag));
     };
@@ -77,7 +77,10 @@ pub fn parse_as_query(token: &str) -> Result<Query, String> {
         return Ok(Query::Id(id));
     };
 
-    Err(format!("`{}` is not a valid query parameter", token))
+    Err(
+        HyperTaskError::new(HyperTaskErrorDomain::Input, HyperTaskErrorAction::Parse)
+            .with_msg(|| format!("`{}` is not a valid query parameter", token)),
+    )
 }
 
 fn parse_weekday(weekday: Weekday) -> DateTime<Utc> {
@@ -154,7 +157,7 @@ fn parse_relative_date_shortcut(token: &str) -> DateTime<Utc> {
     Utc::now() + increment
 }
 
-pub fn parse_as_date_time(token: &str) -> Result<DateTime<Utc>, String> {
+pub fn parse_as_date_time(token: &str) -> HyperTaskResult<DateTime<Utc>> {
     match token {
         "now" => Ok(Utc::now()),
         "mon" => Ok(parse_weekday(Weekday::Mon)),
@@ -169,24 +172,34 @@ pub fn parse_as_date_time(token: &str) -> Result<DateTime<Utc>, String> {
         "eom" => Ok(end_of_month()),
         "eoy" => Ok(end_of_year()),
         x if is_relative_date_shortcut(&x) => Ok(parse_relative_date_shortcut(&x)),
-        _ => Err(format!("`{}` is a malformed DateTime value", token)),
+        _ => Err(
+            HyperTaskError::new(HyperTaskErrorDomain::Input, HyperTaskErrorAction::Parse)
+                .with_msg(|| format!("`{}` is a malformed DateTime value", token)),
+        ),
     }
 }
 
-fn parse_as_recur(token: &str) -> Result<Recur, String> {
-    let caps = DATE_SHORTCUT_REGEX
-        .captures(token)
-        .ok_or_else(|| format!("{} is not a valid recurence format", token))?;
+fn parse_as_recur(token: &str) -> HyperTaskResult<Recur> {
+    let caps = DATE_SHORTCUT_REGEX.captures(token).ok_or_else(|| {
+        HyperTaskError::new(HyperTaskErrorDomain::Input, HyperTaskErrorAction::Parse)
+            .with_msg(|| format!("{} is not a valid recurence format", token))
+    })?;
 
     let number = caps
         .get(1)
-        .ok_or_else(|| format!("{} is not a valid recurence format", token))?
+        .ok_or_else(|| {
+            HyperTaskError::new(HyperTaskErrorDomain::Input, HyperTaskErrorAction::Parse)
+                .with_msg(|| format!("{} is not a valid recurence format", token))
+        })?
         .as_str()
         .parse::<i64>()
         .unwrap();
     let unit = caps
         .get(2)
-        .ok_or_else(|| format!("{} is not a valid recurence format", token))?
+        .ok_or_else(|| {
+            HyperTaskError::new(HyperTaskErrorDomain::Input, HyperTaskErrorAction::Parse)
+                .with_msg(|| format!("{} is not a valid recurence format", token))
+        })?
         .as_str();
 
     let recur = match (number, unit) {
@@ -200,7 +213,7 @@ fn parse_as_recur(token: &str) -> Result<Recur, String> {
     Ok(recur)
 }
 
-pub fn parse_as_prop(token: &str) -> Option<Result<Prop, String>> {
+pub fn parse_as_prop(token: &str) -> Option<HyperTaskResult<Prop>> {
     let colon_index = match token.chars().position(|c| c == ':') {
         Some(i) => i,
         None => return None,
@@ -242,11 +255,14 @@ pub fn parse_as_prop(token: &str) -> Option<Result<Prop, String>> {
             };
             Ok(Prop::Recur(Some(value)))
         }
-        _ => Err(format!("`{}` is a malformed prop parameter", token)),
+        _ => Err(
+            HyperTaskError::new(HyperTaskErrorDomain::Input, HyperTaskErrorAction::Parse)
+                .with_msg(|| format!("`{}` is a malformed prop parameter", token)),
+        ),
     })
 }
 
-pub fn parse_as_mutation(token: &str) -> Result<Mutation, String> {
+pub fn parse_as_mutation(token: &str) -> HyperTaskResult<Mutation> {
     if let Some(tag) = parse_as_tag(token) {
         return Ok(Mutation::SetTag(tag));
     };
@@ -282,18 +298,28 @@ fn merge_description_mutations(mut mutations: Vec<Mutation>) -> Vec<Mutation> {
     output
 }
 
-pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> Result<Command, String> {
+pub fn parse_cli_args<'a>(args: impl Iterator<Item = &'a String>) -> HyperTaskResult<Command> {
     let (query_tokens, command, mutation_tokens) = partition_args(args);
 
-    let parsed_queries: Vec<Query> = (query_tokens
+    let parsed_queries: Vec<Query> = query_tokens
         .iter()
         .map(|q| parse_as_query(q))
-        .collect::<Result<Vec<Query>, String>>())?;
+        .collect::<HyperTaskResult<Vec<Query>>>()
+        .map_err(|e| {
+            HyperTaskError::new(HyperTaskErrorDomain::Input, HyperTaskErrorAction::Parse)
+                .from(e)
+                .msg("could not parse queries")
+        })?;
 
     let parsed_mutations: Vec<Mutation> = mutation_tokens
         .iter()
         .map(|m| parse_as_mutation(m))
-        .collect::<Result<Vec<Mutation>, String>>()?;
+        .collect::<HyperTaskResult<Vec<Mutation>>>()
+        .map_err(|e| {
+            HyperTaskError::new(HyperTaskErrorDomain::Input, HyperTaskErrorAction::Parse)
+                .from(e)
+                .msg("could not parse queries")
+        })?;
 
     let parsed_mutations_with_merged_description = merge_description_mutations(parsed_mutations);
 

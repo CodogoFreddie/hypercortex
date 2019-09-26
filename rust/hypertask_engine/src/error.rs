@@ -5,6 +5,7 @@ use std::fmt;
 pub enum HyperTaskErrorDomain {
     Config,
     Context,
+    Input,
     Mutation,
     Query,
     Task,
@@ -18,6 +19,7 @@ impl fmt::Display for HyperTaskErrorDomain {
             match self {
                 HyperTaskErrorDomain::Config => "config",
                 HyperTaskErrorDomain::Context => "context",
+                HyperTaskErrorDomain::Input => "input",
                 HyperTaskErrorDomain::Mutation => "mutation",
                 HyperTaskErrorDomain::Query => "query",
                 HyperTaskErrorDomain::Task => "task",
@@ -30,10 +32,10 @@ impl fmt::Display for HyperTaskErrorDomain {
 pub enum HyperTaskErrorAction {
     Create,
     Delete,
+    Parse,
     Read,
     Run,
     Write,
-    Parse,
 }
 
 impl fmt::Display for HyperTaskErrorAction {
@@ -43,8 +45,8 @@ impl fmt::Display for HyperTaskErrorAction {
             "{}",
             match self {
                 HyperTaskErrorAction::Create => "create",
-                HyperTaskErrorAction::Parse => "parse",
                 HyperTaskErrorAction::Delete => "delete",
+                HyperTaskErrorAction::Parse => "parse",
                 HyperTaskErrorAction::Read => "read",
                 HyperTaskErrorAction::Run => "run",
                 HyperTaskErrorAction::Write => "write",

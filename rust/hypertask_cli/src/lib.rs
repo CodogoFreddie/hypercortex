@@ -3,6 +3,7 @@ extern crate lazy_static;
 extern crate ansi_term;
 extern crate hypertask_config_file_opener;
 extern crate hypertask_engine;
+extern crate shellexpand;
 
 mod context;
 mod parse_args;
@@ -17,9 +18,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::{env, fs};
 
-const ENV_VAR_DIR_NAME: &str = "HYPERTASK_DIR";
-
-pub fn run_cli(args: &[String]) -> Result<(), String> {
+pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
     let cli_context = CliContext::new()?;
 
     let command = parse_cli_args(args.iter().skip(1))?;
