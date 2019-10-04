@@ -198,52 +198,15 @@ impl Task {
         self
     }
 
-    pub fn finalise(self, now: &DateTime<Utc>) -> FinalisedTask {
-        FinalisedTask {
-            score: self.get_score(now),
+    pub fn finalise(self, stack_machine: &mut StackMachine) -> HyperTaskResult<FinalisedTask> {
+        Ok(FinalisedTask {
+            score: self.get_score(stack_machine)?,
             task: self,
-        }
+        })
     }
 
-    fn get_score(&self, now: &DateTime<Utc>) -> u64 {
-        //this is perfectly fine for now, but I'd like to aim to replace this with
-        //something user-configureable, possibly https://github.com/jonathandturner/rhai
-
-        let mut score: u64 = 0;
-
-        if self.done.is_some() {
-            return 0;
-        }
-
-        if let Some(wait) = self.wait {
-            if wait > *now {
-                return 0;
-            }
-        }
-
-        if let Some(snooze) = self.snooze {
-            if snooze > *now {
-                return 0;
-            }
-        }
-
-        if let Some(due) = self.due {
-            score += if self.tags.contains("timely") && due < *now {
-                2 * (2_147_483_647 - (due.timestamp() as u64))
-            } else {
-                (2_147_483_647 - (due.timestamp() as u64))
-            };
-        } else {
-            score += (*now - self.updated_at).num_seconds() as u64;
-        }
-
-        score += if self.tags.contains("urgent") {
-            score
-        } else {
-            0
-        };
-
-        score
+    fn get_score(&self, stack_machine: &mut StackMachine) -> HyperTaskResult<f64> {
+        stack_machine.run_on(self)
     }
 
     pub fn is_overdue(&self, now: &DateTime<Utc>) -> bool {
@@ -266,27 +229,27 @@ impl Task {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FinalisedTask {
     task: Task,
-    score: u64,
+    score: f64,
 }
 
 impl FinalisedTask {
     pub fn get_task(&self) -> &Task {
         &self.task
     }
-    pub fn get_score(&self) -> &u64 {
+    pub fn get_score(&self) -> &f64 {
         &self.score
     }
 }
 
 impl PartialOrd for FinalisedTask {
     fn partial_cmp(&self, other: &FinalisedTask) -> Option<Ordering> {
-        Some(self.score.cmp(&other.score).reverse())
+        self.score.partial_cmp(&other.score).map(|x| x.reverse())
     }
 }
 
 impl Ord for FinalisedTask {
     fn cmp(&self, other: &FinalisedTask) -> Ordering {
-        self.score.cmp(&other.score).reverse()
+        self.partial_cmp(other).unwrap_or(Ordering::Equal)
     }
 }
 
