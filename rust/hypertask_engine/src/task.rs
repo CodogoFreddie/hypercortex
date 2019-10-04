@@ -1,4 +1,5 @@
-use crate::engine::{GenerateId, GetNow, Mutation, Query};
+use crate::engine::{HyperTaskEngineContext, Mutation, Query};
+use crate::error::*;
 use crate::id::Id;
 use crate::prop::Prop;
 use crate::recur::Recur;
@@ -45,7 +46,12 @@ where
 }
 
 impl Task {
-    pub fn generate<Context: GenerateId + GetNow>(context: &mut Context) -> Self {
+    pub fn generate<
+        InputIterator: Iterator<Item = HyperTaskResult<Task>>,
+        Context: HyperTaskEngineContext<InputIterator>,
+    >(
+        context: &mut Context,
+    ) -> Self {
         Self {
             created_at: context.get_now(),
             description: None,

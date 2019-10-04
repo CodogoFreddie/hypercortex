@@ -1,7 +1,8 @@
-use crate::engine::GetNow;
+use crate::engine::HyperTaskEngineContext;
 use crate::error::*;
 use crate::task::Task;
 use chrono::prelude::*;
+use std::marker::PhantomData;
 use std::rc::Rc;
 
 #[derive(Clone)]
@@ -56,10 +57,15 @@ fn sanitize_date_time(dt: &Option<DateTime<Utc>>) -> f64 {
     dt.map(|date_time| date_time.timestamp()).unwrap_or(0) as f64
 }
 
-pub struct StackMachine<'a, Context: GetNow> {
+pub struct StackMachine<
+    'a,
+    InputIterator: Iterator<Item = HyperTaskResult<Task>>,
+    Context: HyperTaskEngineContext<InputIterator>,
+> {
     stack: Vec<RPNSymbol>,
     instructions: Rc<Vec<RPNSymbol>>,
     context: &'a Context,
+    phantom: PhantomData<InputIterator>,
 }
 
 macro_rules! stack_machine_binary_method {
@@ -81,22 +87,28 @@ macro_rules! stack_machine_unary_method {
     };
 }
 
-impl<'a, Context: GetNow> StackMachine<'a, Context> {
+impl<
+        'a,
+        InputIterator: Iterator<Item = HyperTaskResult<Task>>,
+        Context: HyperTaskEngineContext<InputIterator>,
+    > StackMachine<'a, InputIterator, Context>
+{
     fn new(instructions: Vec<RPNSymbol>, context: &'a Context) -> Self {
         Self {
             stack: Vec::with_capacity((instructions.len() as f64).sqrt() as usize),
             instructions: Rc::new(instructions),
             context,
+            phantom: PhantomData,
         }
     }
 
     fn pop(&mut self) -> HyperTaskResult<RPNSymbol> {
         self.stack.pop().ok_or(
-            (HyperTaskError::new(
+            HyperTaskError::new(
                 HyperTaskErrorDomain::ScoreCalculator,
                 HyperTaskErrorAction::Run,
             )
-            .msg("tried to pop an empty stack")),
+            .msg("tried to pop an empty stack"),
         )
     }
 
@@ -151,21 +163,21 @@ impl<'a, Context: GetNow> StackMachine<'a, Context> {
         run_equal,
         lhs,
         rhs,
-        if (lhs == rhs) { 1.0 } else { 0.0 },
+        if lhs == rhs { 1.0 } else { 0.0 },
         "could not compare for equality"
     );
     stack_machine_binary_method!(
         run_greater_than,
         lhs,
         rhs,
-        if (lhs > rhs) { 1.0 } else { 0.0 },
+        if lhs > rhs { 1.0 } else { 0.0 },
         "could not compare for greater than"
     );
     stack_machine_binary_method!(
         run_less_than,
         lhs,
         rhs,
-        if (lhs < rhs) { 1.0 } else { 0.0 },
+        if lhs < rhs { 1.0 } else { 0.0 },
         "could not compare for less than"
     );
 
@@ -202,7 +214,7 @@ impl<'a, Context: GetNow> StackMachine<'a, Context> {
     fn run_get_tag(&mut self, task: &Task) -> HyperTaskResult<()> {
         let tag_name = self.pop_symbol()?;
 
-        let replace = if (task.get_tags().contains(&tag_name)) {
+        let replace = if task.get_tags().contains(&tag_name) {
             1.0
         } else {
             0.0

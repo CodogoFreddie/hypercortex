@@ -1,4 +1,6 @@
-use crate::engine::GenerateId;
+use crate::engine::HyperTaskEngineContext;
+use crate::error::*;
+use crate::task::Task;
 use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, PartialEq};
 use std::fmt;
@@ -10,7 +12,12 @@ pub const NUMBER_OF_CHARS_IN_FULL_ID: usize = 16;
 pub struct Id(pub String);
 
 impl Id {
-    pub fn generate<Context: GenerateId>(context: &mut Context) -> Self {
+    pub fn generate<
+        InputIterator: Iterator<Item = HyperTaskResult<Task>>,
+        Context: HyperTaskEngineContext<InputIterator>,
+    >(
+        context: &mut Context,
+    ) -> Self {
         Self(context.generate_id())
     }
 }

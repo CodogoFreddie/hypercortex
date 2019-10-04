@@ -13,10 +13,6 @@ use crate::context::CliContext;
 use crate::parse_args::parse_cli_args;
 use crate::render::render_table;
 use hypertask_engine::prelude::*;
-use serde_json;
-use std::fs::File;
-use std::io::BufReader;
-use std::{env, fs};
 
 pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
     let cli_context = CliContext::new()?;

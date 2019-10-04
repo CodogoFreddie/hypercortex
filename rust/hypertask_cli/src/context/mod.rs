@@ -53,79 +53,6 @@ impl Default for CliConfig {
     }
 }
 
-pub struct CliContext {
-    config_file_getter: ConfigFileGetter<CliConfig>,
-}
-
-impl CliContext {
-    pub fn new() -> HyperTaskResult<CliContext> {
-        let mut config_file_opener = ConfigFileOpener::new("client.toml")?;
-        let config_file_getter = config_file_opener.parse()?;
-
-        Ok(CliContext { config_file_getter })
-    }
-}
-
-impl GetNow for CliContext {
-    fn get_now(&self) -> DateTime<Utc> {
-        Utc::now()
-    }
-}
-
-impl PutTask for CliContext {
-    fn put_task(&mut self, task: &Task) -> HyperTaskResult<()> {
-        let Id(task_id) = task.get_id();
-
-        let file_path = self.config_file_getter.get_config().data_dir.join(task_id);
-
-        let file = File::create(file_path).map_err(|e| {
-            HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Write)
-                .with_msg(|| {
-                    format!(
-                        "could not create file handle for task with id `{}`",
-                        task_id
-                    )
-                })
-                .from(e)
-        })?;
-        let buf_writer = BufWriter::new(file);
-
-        serde_json::to_writer_pretty(buf_writer, &task).map_err(|e| {
-            HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Write)
-                .with_msg(|| format!("could not serialize task with id `{}`", task_id))
-                .from(e)
-        })?;
-
-        //TODO fix this Option nesting
-        if let Some(HooksConfig {
-            on_edit: Some(on_edit_cmd),
-            ..
-        }) = &self.config_file_getter.get_config().hooks
-        {
-            let output = run_string_as_shell_command(&on_edit_cmd)?;
-        }
-
-        Ok(())
-    }
-}
-
-impl GenerateId for CliContext {
-    fn generate_id(&mut self) -> String {
-        let mut result = String::new();
-
-        for _ in 0..NUMBER_OF_CHARS_IN_FULL_ID {
-            let random = VALID_ID_CHARS
-                .chars()
-                .choose(&mut thread_rng())
-                .expect("Couldn't get random char");
-
-            result.push(random);
-        }
-
-        result
-    }
-}
-
 pub struct CliTaskIterator {
     task_files_iterator: std::fs::ReadDir,
 }
@@ -184,7 +111,74 @@ impl Iterator for CliTaskIterator {
     }
 }
 
-impl GetTaskIterator<CliTaskIterator> for CliContext {
+pub struct CliContext {
+    config_file_getter: ConfigFileGetter<CliConfig>,
+}
+
+impl CliContext {
+    pub fn new() -> HyperTaskResult<CliContext> {
+        let mut config_file_opener = ConfigFileOpener::new("client.toml")?;
+        let config_file_getter = config_file_opener.parse()?;
+
+        Ok(CliContext { config_file_getter })
+    }
+}
+
+impl HyperTaskEngineContext<CliTaskIterator> for CliContext {
+    fn get_now(&self) -> DateTime<Utc> {
+        Utc::now()
+    }
+
+    fn put_task(&mut self, task: &Task) -> HyperTaskResult<()> {
+        let Id(task_id) = task.get_id();
+
+        let file_path = self.config_file_getter.get_config().data_dir.join(task_id);
+
+        let file = File::create(file_path).map_err(|e| {
+            HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Write)
+                .with_msg(|| {
+                    format!(
+                        "could not create file handle for task with id `{}`",
+                        task_id
+                    )
+                })
+                .from(e)
+        })?;
+        let buf_writer = BufWriter::new(file);
+
+        serde_json::to_writer_pretty(buf_writer, &task).map_err(|e| {
+            HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Write)
+                .with_msg(|| format!("could not serialize task with id `{}`", task_id))
+                .from(e)
+        })?;
+
+        //TODO fix this Option nesting
+        if let Some(HooksConfig {
+            on_edit: Some(on_edit_cmd),
+            ..
+        }) = &self.config_file_getter.get_config().hooks
+        {
+            let output = run_string_as_shell_command(&on_edit_cmd)?;
+        }
+
+        Ok(())
+    }
+
+    fn generate_id(&mut self) -> String {
+        let mut result = String::new();
+
+        for _ in 0..NUMBER_OF_CHARS_IN_FULL_ID {
+            let random = VALID_ID_CHARS
+                .chars()
+                .choose(&mut thread_rng())
+                .expect("Couldn't get random char");
+
+            result.push(random);
+        }
+
+        result
+    }
+
     fn get_task_iterator(&self) -> HyperTaskResult<CliTaskIterator> {
         CliTaskIterator::new(&self.config_file_getter.get_config().data_dir).map_err(|e| {
             HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Read)
@@ -192,9 +186,7 @@ impl GetTaskIterator<CliTaskIterator> for CliContext {
                 .from(e)
         })
     }
-}
 
-impl FinalizeMutations for CliContext {
     fn finalize_mutations(&self) -> HyperTaskResult<()> {
         if let Some(hooks) = &self.config_file_getter.get_config().hooks {
             if let Some(after_cmd) = &hooks.after {
