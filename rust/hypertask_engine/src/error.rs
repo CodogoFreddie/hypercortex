@@ -8,6 +8,7 @@ pub enum HyperTaskErrorDomain {
     Input,
     Mutation,
     Query,
+    ScoreCalculator,
     Task,
 }
 
@@ -22,6 +23,7 @@ impl fmt::Display for HyperTaskErrorDomain {
                 HyperTaskErrorDomain::Input => "input",
                 HyperTaskErrorDomain::Mutation => "mutation",
                 HyperTaskErrorDomain::Query => "query",
+                HyperTaskErrorDomain::ScoreCalculator => "scoreCalculator",
                 HyperTaskErrorDomain::Task => "task",
             }
         )
