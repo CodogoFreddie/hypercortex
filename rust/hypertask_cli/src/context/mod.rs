@@ -8,11 +8,28 @@ use rand::seq::IteratorRandom;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 use serde_json;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::path::PathBuf;
 use std::process::Command;
 use std::{env, fs};
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct DataDirConfig(PathBuf);
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(untagged)]
+pub enum ScoreCalculatorConfig {
+    Single(String),
+    Multiple(Vec<String>),
+}
+
+impl Default for ScoreCalculatorConfig {
+    fn default() -> Self {
+        ScoreCalculatorConfig::Single("now @ due : -".to_string())
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct HooksConfig {
@@ -21,9 +38,11 @@ pub struct HooksConfig {
     pub before: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct CliConfig {
-    data_dir: PathBuf,
+    data_dir: DataDirConfig,
+
+    score_calculator: ScoreCalculatorConfig,
 
     pub hooks: Option<HooksConfig>,
 }
@@ -32,24 +51,13 @@ impl ShellExpand for CliConfig {
     fn shell_expand(&mut self) -> () {
         let data_dir_str: &str = self
             .data_dir
+            .0
             .to_str()
             .expect("could not string from data_dir");
 
         let expanded_data_dir = shellexpand::tilde(data_dir_str);
 
-        self.data_dir = PathBuf::from(expanded_data_dir.into_owned());
-    }
-}
-
-impl Default for CliConfig {
-    fn default() -> Self {
-        let platform_dirs::AppDirs { data_dir, .. } =
-            AppDirs::new(Some("hypertask-cli"), AppUI::CommandLine).unwrap();
-
-        return Self {
-            data_dir,
-            hooks: None,
-        };
+        self.data_dir = DataDirConfig(PathBuf::from(expanded_data_dir.into_owned()));
     }
 }
 
@@ -132,7 +140,12 @@ impl HyperTaskEngineContext<CliTaskIterator> for CliContext {
     fn put_task(&mut self, task: &Task) -> HyperTaskResult<()> {
         let Id(task_id) = task.get_id();
 
-        let file_path = self.config_file_getter.get_config().data_dir.join(task_id);
+        let file_path = self
+            .config_file_getter
+            .get_config()
+            .data_dir
+            .0
+            .join(task_id);
 
         let file = File::create(file_path).map_err(|e| {
             HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Write)
@@ -180,7 +193,7 @@ impl HyperTaskEngineContext<CliTaskIterator> for CliContext {
     }
 
     fn get_task_iterator(&self) -> HyperTaskResult<CliTaskIterator> {
-        CliTaskIterator::new(&self.config_file_getter.get_config().data_dir).map_err(|e| {
+        CliTaskIterator::new(&self.config_file_getter.get_config().data_dir.0).map_err(|e| {
             HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Read)
                 .msg("could not open tasks folder for reading")
                 .from(e)
@@ -198,5 +211,26 @@ impl HyperTaskEngineContext<CliTaskIterator> for CliContext {
         };
 
         Ok(())
+    }
+
+    fn get_stack_machine(&self) -> HyperTaskResult<StackMachine> {
+        let mut env = HashMap::new();
+
+        env.insert("now", self.get_now().timestamp() as f64);
+
+        env.insert("month", Local::now().month() as f64);
+        env.insert(
+            "day_of_week",
+            Local::now().weekday().number_from_monday() as f64,
+        );
+        env.insert("hour", Local::now().hour() as f64);
+        env.insert("minute", Local::now().minute() as f64);
+
+        let program = match &self.config_file_getter.get_config().score_calculator {
+            ScoreCalculatorConfig::Single(s) => RPNSymbol::parse_program(s),
+            ScoreCalculatorConfig::Multiple(ss) => RPNSymbol::parse_programs(&ss[..]),
+        };
+
+        Ok(StackMachine::new(program, env))
     }
 }

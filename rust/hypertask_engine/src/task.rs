@@ -3,6 +3,7 @@ use crate::error::*;
 use crate::id::Id;
 use crate::prop::Prop;
 use crate::recur::Recur;
+use crate::rpn::StackMachine;
 use crate::tag::{Sign, Tag};
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize, Serializer};

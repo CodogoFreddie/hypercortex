@@ -2,16 +2,17 @@ use crate::engine::HyperTaskEngineContext;
 use crate::error::*;
 use crate::task::Task;
 use chrono::prelude::*;
-use std::marker::PhantomData;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 #[derive(Clone)]
 pub enum RPNSymbol {
     Add,
+    Branch,
     Divide,
     Duplicate,
     Equal,
-    GetContext,
+    GetEnvironment,
     GetProp,
     GetTag,
     GreaterThan,
@@ -23,18 +24,36 @@ pub enum RPNSymbol {
     Rem,
     Sqrt,
     Subtract,
+    Swap,
     Symbol(String),
 }
 
 impl RPNSymbol {
-    fn parse(s: &str) -> Self {
+    pub fn parse_programs(ss: &[String]) -> Vec<Self> {
+        let mut acc = vec![];
+
+        for s in ss {
+            for symbol in s.split_whitespace() {
+                acc.push(Self::parse(symbol));
+            }
+        }
+
+        acc
+    }
+
+    pub fn parse_program(s: &str) -> Vec<Self> {
+        s.split_whitespace().map(Self::parse).collect::<Vec<Self>>()
+    }
+
+    pub fn parse(s: &str) -> Self {
         use RPNSymbol::*;
         match s {
             "+" => Add,
+            "?" => Branch,
             "/" => Divide,
             "&" => Duplicate,
             "=" => Equal,
-            "@" => GetContext,
+            "$" => GetEnvironment,
             ":" => GetProp,
             "#" => GetTag,
             ">" => GreaterThan,
@@ -43,7 +62,8 @@ impl RPNSymbol {
             "*" => Multiply,
             "^" => Pow,
             "%" => Rem,
-            "$" => Sqrt,
+            "_" => Sqrt,
+            "@" => Swap,
             "-" => Subtract,
             x => match x.parse::<f64>() {
                 Ok(n) => Number(n),
@@ -55,17 +75,6 @@ impl RPNSymbol {
 
 fn sanitize_date_time(dt: &Option<DateTime<Utc>>) -> f64 {
     dt.map(|date_time| date_time.timestamp()).unwrap_or(0) as f64
-}
-
-pub struct StackMachine<
-    'a,
-    InputIterator: Iterator<Item = HyperTaskResult<Task>>,
-    Context: HyperTaskEngineContext<InputIterator>,
-> {
-    stack: Vec<RPNSymbol>,
-    instructions: Rc<Vec<RPNSymbol>>,
-    context: &'a Context,
-    phantom: PhantomData<InputIterator>,
 }
 
 macro_rules! stack_machine_binary_method {
@@ -87,18 +96,18 @@ macro_rules! stack_machine_unary_method {
     };
 }
 
-impl<
-        'a,
-        InputIterator: Iterator<Item = HyperTaskResult<Task>>,
-        Context: HyperTaskEngineContext<InputIterator>,
-    > StackMachine<'a, InputIterator, Context>
-{
-    fn new(instructions: Vec<RPNSymbol>, context: &'a Context) -> Self {
+pub struct StackMachine {
+    stack: Vec<RPNSymbol>,
+    instructions: Rc<Vec<RPNSymbol>>,
+    environment: HashMap<&'static str, f64>,
+}
+
+impl StackMachine {
+    pub fn new(instructions: Vec<RPNSymbol>, environment: HashMap<&'static str, f64>) -> Self {
         Self {
             stack: Vec::with_capacity((instructions.len() as f64).sqrt() as usize),
             instructions: Rc::new(instructions),
-            context,
-            phantom: PhantomData,
+            environment,
         }
     }
 
@@ -223,34 +232,55 @@ impl<
         self.push_number(replace)
     }
 
-    fn run_get_context(&mut self) -> HyperTaskResult<()> {
-        let context_name = self.pop_symbol()?;
+    fn run_get_environment(&mut self) -> HyperTaskResult<()> {
+        let environment_name = self.pop_symbol()?;
 
-        let replace = match context_name.as_str() {
-            "now" => self.context.get_now().timestamp() as f64,
+        let replace = self.environment.get(environment_name.as_str()).ok_or(
+            HyperTaskError::new(
+                HyperTaskErrorDomain::ScoreCalculator,
+                HyperTaskErrorAction::Run,
+            )
+            .with_msg(|| format!("`{}` is not a valid environment name", &environment_name)),
+        )?;
 
-            _ => {
-                return Err(HyperTaskError::new(
-                    HyperTaskErrorDomain::ScoreCalculator,
-                    HyperTaskErrorAction::Run,
-                )
-                .with_msg(|| format!("`{}` is not a valid context name", &context_name)));
-            }
-        };
-
-        self.push_number(replace)
+        self.push_number(replace.clone())
     }
 
-    fn run_on(&mut self, task: &Task) -> HyperTaskResult<f64> {
+    fn run_swap(&mut self) -> HyperTaskResult<()> {
+        let one = self.pop()?;
+        let two = self.pop()?;
+        self.stack.push(one);
+        self.stack.push(two);
+        Ok(())
+    }
+
+    fn run_branch(&mut self) -> HyperTaskResult<()> {
+        let query = self.pop_number()?;
+        let if_true = self.pop()?;
+        let if_false = self.pop()?;
+
+        let to_push = if query == 0.0 || query.is_infinite() || query.is_nan() {
+            if_false
+        } else {
+            if_true
+        };
+
+        self.stack.push(to_push);
+
+        Ok(())
+    }
+
+    pub fn run_on(&mut self, task: &Task) -> HyperTaskResult<f64> {
         self.stack.clear();
 
         for instruction in &*(self.instructions.clone()) {
             match instruction {
                 RPNSymbol::Add => self.run_add(),
+                RPNSymbol::Branch => self.run_branch(),
                 RPNSymbol::Divide => self.run_divide(),
                 RPNSymbol::Duplicate => self.run_duplicate(),
                 RPNSymbol::Equal => self.run_equal(),
-                RPNSymbol::GetContext => self.run_get_context(),
+                RPNSymbol::GetEnvironment => self.run_get_environment(),
                 RPNSymbol::GetProp => self.run_get_prop(task),
                 RPNSymbol::GetTag => self.run_get_tag(task),
                 RPNSymbol::GreaterThan => self.run_greater_than(),
@@ -260,18 +290,14 @@ impl<
                 RPNSymbol::Pow => self.run_pow(),
                 RPNSymbol::Rem => self.run_rem(),
                 RPNSymbol::Sqrt => self.run_sqrt(),
+                RPNSymbol::Swap => self.run_swap(),
                 RPNSymbol::Subtract => self.run_subtract(),
 
-                RPNSymbol::Number(n) => Err(HyperTaskError::new(
-                    HyperTaskErrorDomain::ScoreCalculator,
-                    HyperTaskErrorAction::Run,
-                )
-                .msg("can't run a number as an operation")),
-                RPNSymbol::Symbol(s) => Err(HyperTaskError::new(
-                    HyperTaskErrorDomain::ScoreCalculator,
-                    HyperTaskErrorAction::Run,
-                )
-                .msg("can't run a symbol as an operation")),
+                RPNSymbol::Number(n) => self.push_number(*n),
+                RPNSymbol::Symbol(s) => {
+                    self.stack.push(RPNSymbol::Symbol(s.to_string()));
+                    Ok(())
+                }
             }?
         }
 

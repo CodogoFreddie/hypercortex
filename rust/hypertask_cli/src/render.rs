@@ -6,7 +6,7 @@ use std::collections::HashMap;
 
 const GUTTER_WIDTH: usize = 2;
 
-const HEADER_ORDER: &[&str] = &["id", "description", "tags", "due", "recur"];
+const HEADER_ORDER: &[&str] = &["id", "score", "description", "tags", "due", "recur"];
 
 fn task_to_renderable_hash_map(finalised_task: &FinalisedTask) -> HashMap<&str, String> {
     let mut hm = HashMap::<&str, String>::new();
@@ -14,6 +14,8 @@ fn task_to_renderable_hash_map(finalised_task: &FinalisedTask) -> HashMap<&str, 
 
     let Id(id) = task.get_id();
     hm.insert("id", id.to_string());
+
+    hm.insert("score", format!("{:.6}", finalised_task.get_score()));
 
     if let Some(description) = task.get_description() {
         hm.insert("description", description.to_string());

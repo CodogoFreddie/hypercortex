@@ -1,6 +1,7 @@
 use crate::error::*;
 use crate::id::Id;
 use crate::prop::Prop;
+use crate::rpn::StackMachine;
 use crate::tag::Tag;
 use crate::task::{FinalisedTask, Task};
 use chrono::prelude::*;
@@ -26,11 +27,12 @@ pub enum Command {
 }
 
 pub trait HyperTaskEngineContext<TaskIterator: Iterator<Item = HyperTaskResult<Task>>> {
-    fn get_now(&self) -> DateTime<Utc>;
-    fn put_task(&mut self, task: &Task) -> HyperTaskResult<()>;
     fn finalize_mutations(&self) -> HyperTaskResult<()>;
     fn generate_id(&mut self) -> String;
+    fn get_now(&self) -> DateTime<Utc>;
+    fn get_stack_machine(&self) -> HyperTaskResult<StackMachine>;
     fn get_task_iterator(&self) -> HyperTaskResult<TaskIterator>;
+    fn put_task(&mut self, task: &Task) -> HyperTaskResult<()>;
 }
 
 struct TaskEngine<
@@ -141,8 +143,17 @@ where
     Context: HyperTaskEngineContext<InputIterator>,
 {
     let now = context.get_now();
+    let mut stack_machine = context.get_stack_machine()?;
+
     let mut task_collection = TaskEngine::new(command, context)?
-        .map(|task_result| task_result.map(|task| task.finalise(&now)))
+        .map(|task_result| task_result.and_then(|task| task.finalise(&mut stack_machine)))
+        .filter(|finalised_task| {
+            if let Ok(ft) = finalised_task {
+                ft.get_score() != &0.0
+            } else {
+                true
+            }
+        })
         .collect::<HyperTaskResult<Vec<FinalisedTask>>>()?;
 
     task_collection.sort_unstable();
