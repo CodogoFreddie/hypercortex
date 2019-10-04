@@ -4,6 +4,7 @@ use crate::prop::Prop;
 use crate::tag::Tag;
 use crate::task::{FinalisedTask, Task};
 use chrono::prelude::*;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum Mutation {
@@ -41,116 +42,123 @@ pub trait GenerateId {
     fn generate_id(&mut self) -> String;
 }
 
-pub trait GetTaskIterator {
-    type TaskIterator: Iterator<Item = HyperTaskResult<Task>>;
-
-    fn get_task_iterator(&self) -> HyperTaskResult<Self::TaskIterator>;
+pub trait GetTaskIterator<TaskIterator: Iterator<Item = HyperTaskResult<Task>>> {
+    fn get_task_iterator(&self) -> HyperTaskResult<TaskIterator>;
 }
 
-fn score_and_sort_task_iterator(
-    &mut task_iterator: impl Iterator<Item = Task>,
-) -> HyperTaskResult<Vec<FinalisedTask>> {
-    vec![];
+struct TaskEngine<
+    InputIterator: Iterator<Item = HyperTaskResult<Task>>,
+    Context: GetNow + PutTask + GenerateId + GetTaskIterator<InputIterator> + FinalizeMutations,
+> {
+    command: Command,
+    input_iterator: InputIterator,
+    context: Context,
+    now: DateTime<Utc>,
+    done: bool,
 }
 
-fn read<Context>(
-    mut context: Context,
-    now: &DateTime<Utc>,
-    input_iterator: &impl Iterator<Item = Task>,
-    queries: &[Query],
-) -> HyperTaskResult<Vec<FinalisedTask>>
-where
-    Context: GetNow + PutTask + GenerateId + GetTaskIterator + FinalizeMutations,
+impl<
+        InputIterator: Iterator<Item = HyperTaskResult<Task>>,
+        Context: GetNow + PutTask + GenerateId + GetTaskIterator<InputIterator> + FinalizeMutations,
+    > TaskEngine<InputIterator, Context>
 {
-    let output_iterator = input_iterator
-        .map(std::result::Result::unwrap)
-        .filter(|t| queries.is_empty() || t.satisfies_queries(queries))
-        .map(|t| t.finalise(&now))
-        .filter(|ft| ft.get_score() != &0);
+    pub fn new(command: Command, context: Context) -> HyperTaskResult<Self> {
+        let now = context.get_now();
+        let input_iterator = context.get_task_iterator()?;
 
-    let output_collection = output_iterator.collect::<Vec<FinalisedTask>>();
+        Ok(Self {
+            command,
+            input_iterator,
+            context,
+            now: Utc::now(),
+            done: false,
+        })
+    }
 
-    Ok(output_collection)
+    fn yield_next_task(&mut self) -> Option<HyperTaskResult<Task>> {
+        if (self.done) {
+            return None;
+        }
+
+        match &self.command {
+            Command::Read(queries) => match self.input_iterator.next()? {
+                Err(e) => Some(Err(e)),
+                Ok(next_task) => {
+                    if (queries.len() == 0 || next_task.satisfies_queries(&queries)) {
+                        Some(Ok(next_task))
+                    } else {
+                        self.next()
+                    }
+                }
+            },
+
+            Command::Create(mutations) => {
+                let mut new_task = Task::generate(&mut self.context);
+                new_task.apply_mutations(mutations, &self.now);
+
+                self.done = true;
+
+                Some(self.context.put_task(&new_task).map(|_| new_task))
+            }
+
+            Command::Update(queries, mutations) => match self.input_iterator.next()? {
+                Err(e) => Some(Err(e)),
+                Ok(mut next_task) => {
+                    if (next_task.satisfies_queries(&queries)) {
+                        next_task.apply_mutations(mutations, &self.now);
+
+                        Some(self.context.put_task(&next_task).map(|_| next_task))
+                    } else {
+                        self.next()
+                    }
+                }
+            },
+
+            Command::Delete(query) => {
+                panic!("fuck you");
+                None
+            }
+        }
+    }
 }
 
-fn create<Context>(
-    mut context: Context,
-    mutations: &[Mutation],
-) -> HyperTaskResult<Vec<FinalisedTask>>
-where
-    Context: GetNow + PutTask + GenerateId + GetTaskIterator + FinalizeMutations,
+impl<
+        InputIterator: Iterator<Item = HyperTaskResult<Task>>,
+        Context: GetNow + PutTask + GenerateId + GetTaskIterator<InputIterator> + FinalizeMutations,
+    > Iterator for TaskEngine<InputIterator, Context>
 {
-    let mut new_task = Task::generate(&mut context);
-    new_task.apply_mutations(mutations, &now);
-    context.put_task(&new_task)?;
+    type Item = HyperTaskResult<Task>;
 
-    let output: Vec<FinalisedTask> = vec![new_task.finalise(&now)];
-
-    context.finalize_mutations()?;
-
-    Ok(output)
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.yield_next_task() {
+            Some(task) => Some(task),
+            None => {
+                match self.command {
+                    Command::Read(_) => {}
+                    _ => {
+                        self.context.finalize_mutations();
+                    }
+                };
+                None
+            }
+        }
+    }
 }
 
-fn update<Context>(
+pub fn run<InputIterator, Context>(
+    command: Command,
     mut context: Context,
-    queries: &[Query],
-    mutations: &[Mutation],
 ) -> HyperTaskResult<Vec<FinalisedTask>>
 where
-    Context: GetNow + PutTask + GenerateId + GetTaskIterator + FinalizeMutations,
+    InputIterator: Iterator<Item = HyperTaskResult<Task>>,
+    Context: GetNow + PutTask + GenerateId + GetTaskIterator<InputIterator> + FinalizeMutations,
 {
     let now = context.get_now();
-    let input_iterator = context.get_task_iterator()?;
-
-    let output = input_iterator
-        .map(std::result::Result::unwrap)
-        .filter(|t| t.satisfies_queries(queries))
-        .map(|mut task| {
-            task.apply_mutations(mutations, &now);
-            context.put_task(&task)?;
-            Ok(task)
-        })
+    let mut task_collection = TaskEngine::new(command, context)?
         .map(|task_result| task_result.map(|task| task.finalise(&now)))
         .collect::<HyperTaskResult<Vec<FinalisedTask>>>()?;
 
-    context.finalize_mutations()?;
+    task_collection.sort_unstable();
 
-    Ok(output)
-}
-
-fn delete<Context>(mut context: Context, queries: &[Query]) -> HyperTaskResult<Vec<FinalisedTask>>
-where
-    Context: GetNow + PutTask + GenerateId + GetTaskIterator + FinalizeMutations,
-{
-    let now = context.get_now();
-    let input_iterator = context.get_task_iterator()?;
-
-    let output = input_iterator
-        .map(std::result::Result::unwrap)
-        .filter(|t| t.satisfies_queries(queries))
-        .map(|t| t.finalise(&now))
-        .collect::<Vec<FinalisedTask>>();
-
-    context.finalize_mutations()?;
-
-    Ok(output)
-}
-
-pub fn run<Context>(command: Command, mut context: Context) -> HyperTaskResult<Vec<FinalisedTask>>
-where
-    Context: GetNow + PutTask + GenerateId + GetTaskIterator + FinalizeMutations,
-{
-    let now = context.get_now();
-    let input_iterator = context.get_task_iterator()?;
-
-    let mut tasks_collection = match command {
-        Command::Read(queries) => read(context, &now, &input_iterator, &queries),
-        Command::Create(mutations) => create(context, &mutations),
-        Command::Update(queries, mutations) => update(context, &queries, &mutations),
-        Command::Delete(queries) => delete(context, &queries),
-    }?;
-
-    tasks_collection.sort_unstable();
-
-    Ok(tasks_collection)
+    Ok(task_collection)
 }

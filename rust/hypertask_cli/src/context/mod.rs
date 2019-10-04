@@ -184,10 +184,8 @@ impl Iterator for CliTaskIterator {
     }
 }
 
-impl GetTaskIterator for CliContext {
-    type TaskIterator = CliTaskIterator;
-
-    fn get_task_iterator(&self) -> HyperTaskResult<Self::TaskIterator> {
+impl GetTaskIterator<CliTaskIterator> for CliContext {
+    fn get_task_iterator(&self) -> HyperTaskResult<CliTaskIterator> {
         CliTaskIterator::new(&self.config_file_getter.get_config().data_dir).map_err(|e| {
             HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Read)
                 .msg("could not open tasks folder for reading")
