@@ -4,5 +4,4 @@ members = [
 	"hypertask_config_file_opener",
 	"hypertask_engine",
 	"hypertask_npm_package",
-	"hypertask_rest_server",
 ]
