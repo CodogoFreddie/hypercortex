@@ -76,7 +76,7 @@ impl<
                     if queries.len() == 0 || next_task.satisfies_queries(&queries) {
                         Some(Ok(next_task))
                     } else {
-                        self.next()
+                        self.yield_next_task()
                     }
                 }
             },
@@ -98,7 +98,7 @@ impl<
 
                         Some(self.context.put_task(&next_task).map(|_| next_task))
                     } else {
-                        self.next()
+                        self.yield_next_task()
                     }
                 }
             },
