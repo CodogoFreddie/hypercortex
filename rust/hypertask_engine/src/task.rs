@@ -108,7 +108,7 @@ impl Task {
         for query in queries {
             match query {
                 Query::Id(id) => {
-                    if id == &self.id {
+                    if id.sub_eq(&self.id) {
                         return true;
                     } else {
                         continue;
@@ -212,17 +212,17 @@ impl Task {
 
     pub fn is_overdue(&self, now: &DateTime<Utc>) -> bool {
         if let Some(due) = self.due {
-            return due < *now;
+            due < *now
         } else {
-            return false;
+            false
         }
     }
 
     pub fn is_soon_due(&self, now: &DateTime<Utc>) -> bool {
         if let Some(due) = self.due {
-            return due < (*now + Duration::days(3));
+            due < (*now + Duration::days(3))
         } else {
-            return false;
+            false
         }
     }
 }

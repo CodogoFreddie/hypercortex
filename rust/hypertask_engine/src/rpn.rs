@@ -1,4 +1,3 @@
-use crate::engine::HyperTaskEngineContext;
 use crate::error::*;
 use crate::task::Task;
 use chrono::prelude::*;
@@ -67,7 +66,7 @@ impl RPNSymbol {
             "-" => Subtract,
             x => match x.parse::<f64>() {
                 Ok(n) => Number(n),
-                Err(s) => Symbol(x.to_string()),
+                Err(_) => Symbol(x.to_string()),
             },
         }
     }
@@ -80,8 +79,8 @@ fn sanitize_date_time(dt: &Option<DateTime<Utc>>) -> f64 {
 macro_rules! stack_machine_binary_method {
     ($name:ident, $a: ident, $b: ident, $op:expr, $msg:expr) => {
         fn $name(&mut self) -> HyperTaskResult<()> {
-            let $a = self.pop_number().map_err( |e| { HyperTaskError::new( HyperTaskErrorDomain::ScoreCalculator, HyperTaskErrorAction::Run).msg($msg) }) ?;
-            let $b = self.pop_number().map_err( |e| { HyperTaskError::new( HyperTaskErrorDomain::ScoreCalculator, HyperTaskErrorAction::Run).msg($msg) }) ?;
+            let $a = self.pop_number().map_err( |e| { HyperTaskError::new( HyperTaskErrorDomain::ScoreCalculator, HyperTaskErrorAction::Run).msg($msg).from(e) }) ?;
+            let $b = self.pop_number().map_err( |e| { HyperTaskError::new( HyperTaskErrorDomain::ScoreCalculator, HyperTaskErrorAction::Run).msg($msg).from(e) }) ?;
             self.push_number($op)
         }
     };
@@ -90,7 +89,7 @@ macro_rules! stack_machine_binary_method {
 macro_rules! stack_machine_unary_method {
     ($name:ident, $a: ident, $op:expr, $msg:expr) => {
         fn $name(&mut self) -> HyperTaskResult<()> {
-            let $a = self.pop_number().map_err( |e| { HyperTaskError::new( HyperTaskErrorDomain::ScoreCalculator, HyperTaskErrorAction::Run).msg($msg) }) ?;
+            let $a = self.pop_number().map_err( |e| { HyperTaskError::new( HyperTaskErrorDomain::ScoreCalculator, HyperTaskErrorAction::Run).msg($msg).from(e) }) ?;
             self.push_number($op)
         }
     };
@@ -112,13 +111,13 @@ impl StackMachine {
     }
 
     fn pop(&mut self) -> HyperTaskResult<RPNSymbol> {
-        self.stack.pop().ok_or(
+        self.stack.pop().ok_or_else(|| {
             HyperTaskError::new(
                 HyperTaskErrorDomain::ScoreCalculator,
                 HyperTaskErrorAction::Run,
             )
-            .msg("tried to pop an empty stack"),
-        )
+            .msg("tried to pop an empty stack")
+        })
     }
 
     fn pop_number(&mut self) -> HyperTaskResult<f64> {
@@ -172,7 +171,11 @@ impl StackMachine {
         run_equal,
         lhs,
         rhs,
-        if lhs == rhs { 1.0 } else { 0.0 },
+        if (lhs - rhs).abs() < std::f64::EPSILON {
+            1.0
+        } else {
+            0.0
+        },
         "could not compare for equality"
     );
     stack_machine_binary_method!(
@@ -235,15 +238,18 @@ impl StackMachine {
     fn run_get_environment(&mut self) -> HyperTaskResult<()> {
         let environment_name = self.pop_symbol()?;
 
-        let replace = self.environment.get(environment_name.as_str()).ok_or(
-            HyperTaskError::new(
-                HyperTaskErrorDomain::ScoreCalculator,
-                HyperTaskErrorAction::Run,
-            )
-            .with_msg(|| format!("`{}` is not a valid environment name", &environment_name)),
-        )?;
+        let replace = *self
+            .environment
+            .get(environment_name.as_str())
+            .ok_or_else(|| {
+                HyperTaskError::new(
+                    HyperTaskErrorDomain::ScoreCalculator,
+                    HyperTaskErrorAction::Run,
+                )
+                .with_msg(|| format!("`{}` is not a valid environment name", &environment_name))
+            })?;
 
-        self.push_number(replace.clone())
+        self.push_number(replace)
     }
 
     fn run_swap(&mut self) -> HyperTaskResult<()> {

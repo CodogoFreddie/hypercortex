@@ -3,17 +3,15 @@ use hypertask_config_file_opener::{
     run_string_as_shell_command, ConfigFileGetter, ConfigFileOpener, ShellExpand,
 };
 use hypertask_engine::prelude::*;
-use platform_dirs::{AppDirs, AppUI};
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::collections::HashMap;
+use std::fs;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::path::PathBuf;
-use std::process::Command;
-use std::{env, fs};
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct DataDirConfig(PathBuf);
@@ -48,7 +46,7 @@ pub struct CliConfig {
 }
 
 impl ShellExpand for CliConfig {
-    fn shell_expand(&mut self) -> () {
+    fn shell_expand(&mut self) {
         let data_dir_str: &str = self
             .data_dir
             .0
@@ -171,7 +169,7 @@ impl HyperTaskEngineContext<CliTaskIterator> for CliContext {
             ..
         }) = &self.config_file_getter.get_config().hooks
         {
-            let output = run_string_as_shell_command(&on_edit_cmd)?;
+            run_string_as_shell_command(&on_edit_cmd)?;
         }
 
         Ok(())

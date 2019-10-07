@@ -1,17 +1,12 @@
-#[macro_use]
-extern crate lazy_static;
 extern crate js_sys;
+extern crate lazy_static;
 
 mod context;
 
-use crate::context::{WebContext, WebTaskIterator};
-use chrono::prelude::*;
+use crate::context::WebContext;
 use hypertask_engine::prelude::*;
-use rand::prelude::*;
-use rand::seq::IteratorRandom;
 use wasm_bindgen::prelude::*;
 
-//#[wasm_bindgen(start)]
 #[wasm_bindgen]
 pub fn run(
     cmd_raw: &JsValue,

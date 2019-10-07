@@ -13,7 +13,6 @@ pub trait ShellExpand {
     fn shell_expand(&mut self) -> ();
 }
 pub struct ConfigFileOpener<'a, T: ShellExpand + Default + Deserialize<'a> + Serialize> {
-    config: Option<T>,
     config_source: String,
     phantom: PhantomData<&'a T>,
 }
@@ -56,7 +55,7 @@ impl<'a, T: 'a + ShellExpand + Clone + Default + Deserialize<'a> + Serialize>
         match stringified_file {
             Ok(s) => Ok(s),
             Err(_) => {
-                Self::create_file(config_file_path);
+                Self::create_file(config_file_path)?;
 
                 fs::read_to_string(config_file_path).map_err(|e| {
                     HyperTaskError::new(HyperTaskErrorDomain::Config, HyperTaskErrorAction::Read)
@@ -82,7 +81,6 @@ impl<'a, T: 'a + ShellExpand + Clone + Default + Deserialize<'a> + Serialize>
         )?;
 
         Ok(Self {
-            config: None,
             config_source,
             phantom: PhantomData,
         })
@@ -92,7 +90,7 @@ impl<'a, T: 'a + ShellExpand + Clone + Default + Deserialize<'a> + Serialize>
         let mut config: T = toml::de::from_str(&self.config_source).map_err(|e| {
             HyperTaskError::new(HyperTaskErrorDomain::Config, HyperTaskErrorAction::Parse)
                 .from(e)
-                .with_msg(|| format!("could not parse config"))
+                .with_msg(|| "could not parse config".to_string())
         })?;
 
         config.shell_expand();

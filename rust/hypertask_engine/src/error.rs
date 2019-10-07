@@ -121,11 +121,11 @@ impl From<HyperTaskError> for String {
     }
 }
 
-pub fn print_error_chain(err: &(dyn Error + 'static)) -> () {
+pub fn print_error_chain(err: &(dyn Error + 'static)) {
     print_error_chain_recursive(err, 1)
 }
 
-pub fn print_error_chain_recursive(err: &(dyn Error + 'static), i: u32) -> () {
+pub fn print_error_chain_recursive(err: &(dyn Error + 'static), i: u32) {
     println!("Error {}: {}", i, err);
 
     if let Some(boxed_source) = err.source() {

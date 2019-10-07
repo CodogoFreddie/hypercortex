@@ -2,6 +2,7 @@ use chrono::prelude::*;
 use hypertask_engine::prelude::*;
 use rand::prelude::*;
 use rand::seq::IteratorRandom;
+use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
 pub struct WebTaskIterator {
@@ -24,7 +25,7 @@ impl Iterator for WebTaskIterator {
             self.input_iter_from_js
                 .next()
                 .map(|x: Result<JsValue, JsValue>| {
-                    x.map_err(|e| {
+                    x.map_err(|_| {
                         HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Read)
                     })
                     .and_then(|js_val| {
@@ -33,6 +34,7 @@ impl Iterator for WebTaskIterator {
                                 HyperTaskErrorDomain::Task,
                                 HyperTaskErrorAction::Read,
                             )
+                            .from(e)
                         });
 
                         x
@@ -63,7 +65,7 @@ impl<'a> WebContext<'a> {
     }
 }
 
-impl<'a> GetNow for WebContext<'a> {
+impl<'a> HyperTaskEngineContext<WebTaskIterator> for WebContext<'a> {
     fn get_now(&self) -> DateTime<Utc> {
         let iso_string: String = js_sys::Date::new_0().to_iso_string().as_string().unwrap();
 
@@ -72,24 +74,20 @@ impl<'a> GetNow for WebContext<'a> {
 
         DateTime::<Utc>::from(fixed_offset)
     }
-}
 
-impl<'a> PutTask for WebContext<'a> {
     fn put_task(&mut self, task: &Task) -> HyperTaskResult<()> {
         let js_task = JsValue::from_serde(task).unwrap();
 
         self.updater_fn
             .call1(&JsValue::null(), &js_task)
-            .map_err(|e| {
+            .map_err(|_| {
                 HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Read)
                     .with_msg(|| format!("Could not update task `{}`", task.get_id()))
             })?;
 
         Ok(())
     }
-}
 
-impl<'a> GenerateId for WebContext<'a> {
     fn generate_id(&mut self) -> String {
         let mut result = String::new();
 
@@ -104,18 +102,28 @@ impl<'a> GenerateId for WebContext<'a> {
 
         result
     }
-}
 
-impl<'a> GetTaskIterator for WebContext<'a> {
-    type TaskIterator = WebTaskIterator;
-
-    fn get_task_iterator(&self) -> HyperTaskResult<Self::TaskIterator> {
+    fn get_task_iterator(&self) -> HyperTaskResult<WebTaskIterator> {
         WebTaskIterator::new(self.input_iter_raw)
     }
-}
 
-impl<'a> FinalizeMutations for WebContext<'a> {
     fn finalize_mutations(&self) -> HyperTaskResult<()> {
         Ok(())
+    }
+
+    fn get_stack_machine(&self) -> HyperTaskResult<StackMachine> {
+        let mut env = HashMap::new();
+
+        let now = self.get_now();
+
+        env.insert("now", now.timestamp() as f64);
+        env.insert("month", f64::from(now.month()));
+        env.insert("day_of_week", f64::from(now.weekday().number_from_monday()));
+        env.insert("hour", f64::from(now.hour()));
+        env.insert("minute", f64::from(now.minute()));
+
+        let program = RPNSymbol::parse_program(&"now @ due : -".to_string());
+
+        Ok(StackMachine::new(program, env))
     }
 }

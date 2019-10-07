@@ -59,7 +59,7 @@ impl<
             command,
             input_iterator,
             context,
-            now: Utc::now(),
+            now,
             done: false,
         })
     }
@@ -73,7 +73,7 @@ impl<
             Command::Read(queries) => match self.input_iterator.next()? {
                 Err(e) => Some(Err(e)),
                 Ok(next_task) => {
-                    if queries.len() == 0 || next_task.satisfies_queries(&queries) {
+                    if queries.is_empty() || next_task.satisfies_queries(&queries) {
                         Some(Ok(next_task))
                     } else {
                         self.yield_next_task()
@@ -103,9 +103,8 @@ impl<
                 }
             },
 
-            Command::Delete(query) => {
+            Command::Delete(_) => {
                 panic!("fuck you");
-                None
             }
         }
     }
@@ -119,37 +118,38 @@ impl<
     type Item = HyperTaskResult<Task>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.yield_next_task() {
-            Some(task) => Some(task),
-            None => {
-                match self.command {
-                    Command::Read(_) => {}
-                    _ => {
-                        self.context.finalize_mutations();
-                    }
-                };
-                None
-            }
+        let next_task = self.yield_next_task();
+
+        if next_task.is_some() {
+            return next_task;
+        }
+
+        if let Command::Read(_) = self.command {
+            return None;
+        }
+
+        match self.context.finalize_mutations() {
+            Ok(_) => None,
+            Err(e) => Some(Err(e)),
         }
     }
 }
 
 pub fn run<InputIterator, Context>(
     command: Command,
-    mut context: Context,
+    context: Context,
 ) -> HyperTaskResult<Vec<FinalisedTask>>
 where
     InputIterator: Iterator<Item = HyperTaskResult<Task>>,
     Context: HyperTaskEngineContext<InputIterator>,
 {
-    let now = context.get_now();
     let mut stack_machine = context.get_stack_machine()?;
 
     let mut task_collection = TaskEngine::new(command, context)?
         .map(|task_result| task_result.and_then(|task| task.finalise(&mut stack_machine)))
         .filter(|finalised_task| {
             if let Ok(ft) = finalised_task {
-                ft.get_score() != &0.0
+                (ft.get_score() - 0.0).abs() > std::f64::EPSILON
             } else {
                 true
             }
