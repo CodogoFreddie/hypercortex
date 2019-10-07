@@ -116,11 +116,11 @@ impl<'a> HyperTaskEngineContext<WebTaskIterator> for WebContext<'a> {
 
         let now = self.get_now();
 
-        env.insert("now", now.timestamp() as f64);
-        env.insert("month", f64::from(now.month()));
         env.insert("day_of_week", f64::from(now.weekday().number_from_monday()));
         env.insert("hour", f64::from(now.hour()));
         env.insert("minute", f64::from(now.minute()));
+        env.insert("month", f64::from(now.month()));
+        env.insert("now", now.timestamp() as f64);
 
         let program = RPNSymbol::parse_program(&"now @ due : -".to_string());
 

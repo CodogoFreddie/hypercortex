@@ -214,15 +214,13 @@ impl HyperTaskEngineContext<CliTaskIterator> for CliContext {
     fn get_stack_machine(&self) -> HyperTaskResult<StackMachine> {
         let mut env = HashMap::new();
 
-        env.insert("now", self.get_now().timestamp() as f64);
+        let now = self.get_now();
 
-        env.insert("month", Local::now().month() as f64);
-        env.insert(
-            "day_of_week",
-            Local::now().weekday().number_from_monday() as f64,
-        );
-        env.insert("hour", Local::now().hour() as f64);
-        env.insert("minute", Local::now().minute() as f64);
+        env.insert("day_of_week", f64::from(now.weekday().number_from_monday()));
+        env.insert("hour", f64::from(now.hour()));
+        env.insert("minute", f64::from(now.minute()));
+        env.insert("month", f64::from(now.month()));
+        env.insert("now", now.timestamp() as f64);
 
         let program = match &self.config_file_getter.get_config().score_calculator {
             ScoreCalculatorConfig::Single(s) => RPNSymbol::parse_program(s),
