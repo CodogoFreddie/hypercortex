@@ -16,6 +16,24 @@ use std::path::PathBuf;
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct DataDirConfig(PathBuf);
 
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct HooksConfig {
+    pub after: Option<String>,
+    pub on_edit: Option<String>,
+    pub before: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct RenderConfig {
+    score_precision: u32,
+}
+
+impl Default for RenderConfig {
+    fn default() -> Self {
+        Self { score_precision: 3 }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum ScoreCalculatorConfig {
@@ -30,19 +48,11 @@ impl Default for ScoreCalculatorConfig {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
-pub struct HooksConfig {
-    pub after: Option<String>,
-    pub on_edit: Option<String>,
-    pub before: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct CliConfig {
     data_dir: DataDirConfig,
-
-    score_calculator: ScoreCalculatorConfig,
-
     pub hooks: Option<HooksConfig>,
+    render: RenderConfig,
+    score_calculator: ScoreCalculatorConfig,
 }
 
 impl ShellExpand for CliConfig {

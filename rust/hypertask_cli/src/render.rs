@@ -8,6 +8,17 @@ const GUTTER_WIDTH: usize = 2;
 
 const HEADER_ORDER: &[&str] = &["id", "score", "description", "tags", "due", "recur"];
 
+fn render_score_to_significant_figures(score: &f64, figures: &i32) -> String {
+    let exponent = score.log10().floor() as i32;
+    let x = 10.0_f64.powi(exponent - figures - 1);
+    let precision = i32::max(figures - 1 - exponent, 0);
+    let output = (score / x).floor() * x;
+
+    dbg!(&(precision, score));
+
+    format!("{:.precision$}", output, precision = precision as usize)
+}
+
 fn task_to_renderable_hash_map(finalised_task: &FinalisedTask) -> HashMap<&str, String> {
     let mut hm = HashMap::<&str, String>::new();
     let task = finalised_task.get_task();
@@ -15,7 +26,10 @@ fn task_to_renderable_hash_map(finalised_task: &FinalisedTask) -> HashMap<&str, 
     let Id(id) = task.get_id();
     hm.insert("id", id.to_string());
 
-    hm.insert("score", format!("{:.6}", finalised_task.get_score()));
+    hm.insert(
+        "score",
+        render_score_to_significant_figures(finalised_task.get_score(), &3),
+    );
 
     if let Some(description) = task.get_description() {
         hm.insert("description", description.to_string());
@@ -49,11 +63,18 @@ pub fn render_table(finalised_tasks: &[FinalisedTask]) {
     let mut widths = HashMap::<&str, usize>::new();
     let mut hash_mapped_tasks: Vec<(HashMap<&str, String>, &Task)> = vec![];
 
+    //let lines = 20;
+    let lines = if let Some((_, height)) = term_size::dimensions() {
+        height - 5
+    } else {
+        40
+    };
+
     //calculate column widths
     for header in HEADER_ORDER {
         widths.insert(header, header.len());
     }
-    for finalised_task in finalised_tasks {
+    for finalised_task in finalised_tasks.iter().take(lines) {
         let hash_map = task_to_renderable_hash_map(&finalised_task);
         for (key, value) in &hash_map {
             let length = value.len();
@@ -78,14 +99,8 @@ pub fn render_table(finalised_tasks: &[FinalisedTask]) {
 
     println!("{}", Style::new().underline().paint(header_string));
 
-    let lines = if let Some((_, height)) = term_size::dimensions() {
-        height - 5
-    } else {
-        40
-    };
-
     //print the tasks
-    for (task_hash, task) in hash_mapped_tasks.iter().take(lines) {
+    for (task_hash, task) in hash_mapped_tasks {
         let task_string = HEADER_ORDER
             .iter()
             .map(|header| {
