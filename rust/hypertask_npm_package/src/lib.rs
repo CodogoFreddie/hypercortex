@@ -7,6 +7,9 @@ use crate::context::WebContext;
 use hypertask_engine::prelude::*;
 use wasm_bindgen::prelude::*;
 
+#[global_allocator]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
 #[wasm_bindgen]
 pub fn run(
     cmd_raw: &JsValue,

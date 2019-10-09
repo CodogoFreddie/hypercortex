@@ -3,7 +3,7 @@ name = "hypertask_npm_package"
 version = "0.2.0"
 authors = ["Freddie Ridell <contact@freddieridell.com>"]
 edition = "2018"
-description = "The WASM NPM for hypertask task manager"
+description = "The WASM NPM package for hypertask task manager"
 homepage = "https://github.com/FreddieRidell/hypertask"
 keywords = [ "task", "todo", "wasm" ]
 license = "MIT"
@@ -20,6 +20,7 @@ lazy_static = "1.3.0"
 serde = "^1.0.59"
 serde_derive = "^1.0.59"
 serde_json = "1.0.40" 
+wee_alloc = "0.4.5"  
 
 [dependencies.rand]
 version = "0.7.0"
