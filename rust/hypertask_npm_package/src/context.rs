@@ -122,7 +122,7 @@ impl<'a> HyperTaskEngineContext<WebTaskIterator> for WebContext<'a> {
         env.insert("month", f64::from(now.month()));
         env.insert("now", now.timestamp() as f64);
 
-        let program = RPNSymbol::parse_program(&"now @ due : -".to_string());
+        let program = RPNSymbol::parse_program(&"now $ due : -".to_string());
 
         Ok(StackMachine::new(program, env))
     }

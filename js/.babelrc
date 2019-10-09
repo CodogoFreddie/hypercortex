@@ -1,6 +1,0 @@
-{
-        "presets": [
-            "@freddieridell/babel-preset"
-        ],
-        "plugins": ["@babel/plugin-syntax-import-meta"]
-    }

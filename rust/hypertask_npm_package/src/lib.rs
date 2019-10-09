@@ -22,7 +22,7 @@ pub fn run(
     })?;
 
     let response: Vec<FinalisedTask> = hypertask_engine::prelude::run(cmd, context)
-        .map_err(|_| "Error running hypertask engine".to_owned())?;
+        .map_err(|e| format!("Error running hypertask engine: {}", e))?;
 
     Ok(JsValue::from_serde(&response).map_err(|_| "Error stringifying output")?)
 }

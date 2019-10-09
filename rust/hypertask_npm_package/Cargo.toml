@@ -3,9 +3,9 @@ name = "hypertask_npm_package"
 version = "0.1.2"
 authors = ["Freddie Ridell <contact@freddieridell.com>"]
 edition = "2018"
-description = "A sample project with wasm-pack"
+description = "the hypertask npm package"
 license = "MIT/Apache-2.0"
-repository = "https://github.com/yourgithubusername/hello-wasm"
+repository = "https://github.com/FreddieRidell/hypertask/"
 
 [lib]
 crate-type = ["cdylib"]

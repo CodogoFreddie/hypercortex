@@ -1,22 +1,6 @@
 {
-  "name": "hyper-task",
-  "scope": "freddieridell",
   "version": 2,
-  "public": false,
-  "builds": [
-    {
-      "src": "js/package.json",
-      "use": "@now/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
-
-  "routes": [
-    {
-      "src": "(?<path>/.*)",
-      "dest": "/js$path"
-    }
-  ]
+  "name": "hypertask",
+  "builds": [{ "src": "js/package.json", "use": "@now/next" }],
+  "routes": [{ "src": "/(?<id>.*)", "dest": "/js/$id" }]
 }
