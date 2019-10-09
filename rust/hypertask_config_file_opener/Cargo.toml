@@ -1,13 +1,16 @@
 [package]
 name = "hypertask_config_file_opener"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Freddie Ridell <contact@freddieridell.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "A config file opening utility for hypertask"
+homepage = "https://github.com/FreddieRidell/hypertask"
+keywords = [ ]
+license = "MIT"
+repository = "https://github.com/FreddieRidell/hypertask"
 
 [dependencies]
-hypertask_engine={ path= "../hypertask_engine" }
+hypertask_engine={ version = "0.2.0", path= "../hypertask_engine" }
 platform-dirs = "0.2.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }

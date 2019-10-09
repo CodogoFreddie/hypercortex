@@ -205,12 +205,12 @@ dependencies = [
 
 [[package]]
 name = "hypertask_cli"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "ansi_term 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "hypertask_config_file_opener 0.1.0",
- "hypertask_engine 0.1.2",
+ "hypertask_config_file_opener 0.2.0",
+ "hypertask_engine 0.2.0",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "mkdirp 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "platform-dirs 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -226,9 +226,9 @@ dependencies = [
 
 [[package]]
 name = "hypertask_config_file_opener"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
- "hypertask_engine 0.1.2",
+ "hypertask_engine 0.2.0",
  "platform-dirs 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.99 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.40 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -237,7 +237,7 @@ dependencies = [
 
 [[package]]
 name = "hypertask_engine"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -248,10 +248,10 @@ dependencies = [
 
 [[package]]
 name = "hypertask_npm_package"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "hypertask_engine 0.1.2",
+ "hypertask_engine 0.2.0",
  "js-sys 0.3.27 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
