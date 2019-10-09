@@ -14,8 +14,6 @@ fn render_score_to_significant_figures(score: &f64, figures: &i32) -> String {
     let precision = i32::max(figures - 1 - exponent, 0);
     let output = (score / x).floor() * x;
 
-    dbg!(&(precision, score));
-
     format!("{:.precision$}", output, precision = precision as usize)
 }
 
