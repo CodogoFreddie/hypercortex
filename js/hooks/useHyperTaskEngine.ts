@@ -2,6 +2,8 @@ import * as React from "react";
 import * as git from "isomorphic-git";
 import * as LightningFS from "@isomorphic-git/lightning-fs";
 
+import { Config } from "./useConfig";
+
 export type Prop = {
 	Description: string;
 };
@@ -27,14 +29,6 @@ export type HyperTaskRunFunction = (
 
 type HyperTaskRunFunctionRef = {
 	current: HyperTaskRunFunction | null | undefined;
-};
-
-export type Config = {
-	kind: "git";
-	remote: string;
-	username: string;
-	token: string;
-	scoringFunction: string;
 };
 
 const GIT_DIR = "/hypertask";

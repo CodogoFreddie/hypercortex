@@ -1,8 +1,10 @@
 import * as React from "react";
+import Router from "next/router";
 
 import { GIT_PASSWORD } from "../../.env";
 
 import useHyperTaskEngine, { Task } from "../hooks/useHyperTaskEngine";
+import useConfig from "../hooks/useConfig";
 
 const emptyTaskArray: Task[] = [];
 const emptyTaskSet = new Set(emptyTaskArray);
@@ -10,13 +12,16 @@ const emptyTaskSet = new Set(emptyTaskArray);
 const Home = () => {
 	const [isLoading, setIsLoading] = React.useState(true);
 
-	const run = useHyperTaskEngine({
-		remote: "https://github.com/FreddieRidell/cortex.git",
-		kind: "git",
-		username: "FreddieRidell",
-		token: GIT_PASSWORD,
-		scoringFunction: "due :",
-	});
+	const [config, setConfig] = useConfig();
+
+	console.log({ config, Router });
+	if (!config && process.browser) {
+		Router.push("/config");
+
+		return null;
+	}
+
+	const run = useHyperTaskEngine(config);
 
 	React.useEffect(() => {
 		if (!run) {
