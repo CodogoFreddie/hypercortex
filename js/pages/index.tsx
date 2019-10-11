@@ -14,7 +14,6 @@ const Home = () => {
 
 	const [config, setConfig] = useConfig();
 
-	console.log({ config, Router });
 	if (!config && process.browser) {
 		Router.push("/config");
 
@@ -23,23 +22,21 @@ const Home = () => {
 
 	const run = useHyperTaskEngine(config);
 
-	React.useEffect(() => {
+	const allTasks = React.useMemo(() => {
 		if (!run) {
-			return;
+			return [];
 		}
 
-		try {
-			run(
-				{ Create: [{ SetProp: { Description: "test" } }] },
-				task => {},
-				emptyTaskSet.values()
-			);
-		} catch (e) {
-			console.error(e);
-		}
+		return run({ Read: [] });
 	}, [run]);
 
-	return <div>home</div>;
+	return (
+		<div>
+			{allTasks.map(({ score, task: { description } }) => (
+				<div>{[score, description].join(" ")}</div>
+			))}
+		</div>
+	);
 };
 
 export default Home;

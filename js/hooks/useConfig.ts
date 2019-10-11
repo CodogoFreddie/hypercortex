@@ -6,6 +6,7 @@ export type Config = {
 	username: string;
 	token: string;
 	scoringFunction: string;
+	taskDir: string;
 } | null;
 
 type SetConfig =
@@ -22,7 +23,6 @@ export default function useConfig(): [Config, SetConfig] {
 	);
 
 	React.useEffect(() => {
-		console.log("hello", global, window, localStorage_);
 		localStorage_[CONFIG_KEY] = JSON.stringify(config);
 	}, [config]);
 

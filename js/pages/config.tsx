@@ -19,6 +19,7 @@ const Config = () => {
 				username: "",
 				token: "",
 				scoringFunction: "due :",
+				taskDir: "",
 			});
 		}
 	}, [config]);
@@ -46,6 +47,12 @@ const Config = () => {
 				label="Token"
 				value={config.token}
 				onChange={token => setConfig(R.assoc("token", token))}
+			/>
+			<TextInput
+				kind="text"
+				label="Task Directory"
+				value={config.taskDir}
+				onChange={taskDir => setConfig(R.assoc("taskDir", taskDir))}
 			/>
 			<TextInput
 				kind="text"
