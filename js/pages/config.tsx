@@ -9,7 +9,7 @@ import TextInput from "../components/TextInput";
 import Button from "../components/Button";
 
 const Config = () => {
-	const [config, setConfig] = useConfig();
+	const [config, setConfig, configIsComplete] = useConfig();
 
 	React.useEffect(() => {
 		if (!config) {
@@ -63,7 +63,7 @@ const Config = () => {
 				}
 			/>
 
-			<Button onClick={() => Router.pop()}>Back</Button>
+			<a href="/">Done</a>
 		</Shell>
 	);
 };

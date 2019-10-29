@@ -12,9 +12,9 @@ const emptyTaskSet = new Set(emptyTaskArray);
 const Home = () => {
 	const [isLoading, setIsLoading] = React.useState(true);
 
-	const [config, setConfig] = useConfig();
+	const [config, setConfig, configIsComplete] = useConfig();
 
-	if (!config && process.browser) {
+	if (!configIsComplete && process.browser) {
 		Router.push("/config");
 
 		return null;
@@ -32,8 +32,10 @@ const Home = () => {
 
 	return (
 		<div>
-			{allTasks.map(({ score, task: { description } }) => (
-				<div>{[score, description].join(" ")}</div>
+			{allTasks.map(({ score, task: { id, description } }) => (
+				<div key={id}>
+					{[score.toPrecision(3), description].join(" ")}
+				</div>
 			))}
 		</div>
 	);

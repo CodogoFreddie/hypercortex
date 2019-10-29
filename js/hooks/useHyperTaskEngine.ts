@@ -66,6 +66,11 @@ function loadGit(config: Config) {
 						})
 					)
 				)
+				.then(() =>
+					git
+						.checkout({ dir: GIT_DIR, ref: "master" })
+						.then(console.log)
+				)
 		)
 		.catch(console.error);
 }
@@ -115,7 +120,8 @@ export default function useHyperTaskEngine(
 			hypertaskRunFunction.current(
 				cmd,
 				task => console.log("update", task),
-				Object.values(tasksCache)
+				Object.values(tasksCache),
+				config.scoringFunction
 			),
 
 		[tasksCache]

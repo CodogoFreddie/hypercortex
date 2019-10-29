@@ -51,16 +51,22 @@ pub struct WebContext<'a> {
     updater_fn: &'a js_sys::Function,
     rng: SmallRng,
     input_iter_raw: &'a JsValue,
+    stack_machine_program: String,
 }
 
 impl<'a> WebContext<'a> {
-    pub fn new(updater_fn: &'a js_sys::Function, input_iter_raw: &'a JsValue) -> Self {
+    pub fn new(
+        updater_fn: &'a js_sys::Function,
+        input_iter_raw: &'a JsValue,
+        stack_machine_program: String,
+    ) -> Self {
         let epoch_milis = js_sys::Date::now();
 
         Self {
             rng: SmallRng::seed_from_u64(epoch_milis as u64),
             updater_fn,
             input_iter_raw,
+            stack_machine_program,
         }
     }
 }
@@ -122,7 +128,7 @@ impl<'a> HyperTaskEngineContext<WebTaskIterator> for WebContext<'a> {
         env.insert("month", f64::from(now.month()));
         env.insert("now", now.timestamp() as f64);
 
-        let program = RPNSymbol::parse_program(&"now $ due : -".to_string());
+        let program = RPNSymbol::parse_program(&self.stack_machine_program);
 
         Ok(StackMachine::new(program, env))
     }

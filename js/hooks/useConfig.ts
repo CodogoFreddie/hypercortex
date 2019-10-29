@@ -15,7 +15,7 @@ type SetConfig =
 
 const CONFIG_KEY = "config";
 
-export default function useConfig(): [Config, SetConfig] {
+export default function useConfig(): [Config, SetConfig, boolean] {
 	const localStorage_ = process.browser ? localStorage : {};
 
 	const [config, setConfig] = React.useState(
@@ -26,5 +26,16 @@ export default function useConfig(): [Config, SetConfig] {
 		localStorage_[CONFIG_KEY] = JSON.stringify(config);
 	}, [config]);
 
-	return [config, setConfig];
+	return [
+		config,
+		setConfig,
+		Boolean(
+			config &&
+				config.remote.length &&
+				config.username.length &&
+				config.token.length &&
+				config.scoringFunction.length &&
+				config.taskDir.length
+		),
+	];
 }

@@ -15,8 +15,11 @@ pub fn run(
     cmd_raw: &JsValue,
     updater_fn: &js_sys::Function,
     input_iter_raw: &JsValue,
+    stack_machine_program_raw: &JsValue,
 ) -> Result<JsValue, JsValue> {
-    let context = WebContext::new(updater_fn, input_iter_raw);
+    let stack_machine_program = stack_machine_program_raw.as_string().unwrap();
+
+    let context = WebContext::new(updater_fn, input_iter_raw, stack_machine_program);
 
     let cmd: Command = cmd_raw.into_serde().map_err(|e| {
         JsValue::from_str(
