@@ -9,9 +9,10 @@ use chrono::prelude::*;
 use serde::{Deserialize, Serialize, Serializer};
 use std::cmp::Ordering;
 use std::collections::HashSet;
+use std::hash::{Hash, Hasher};
 use time::Duration;
 
-#[derive(Serialize, Deserialize, Debug, Hash)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Task {
     created_at: DateTime<Utc>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -44,6 +45,24 @@ where
     vec.sort();
 
     vec.serialize(serializer)
+}
+
+impl Hash for Task {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.created_at.hash(state);
+        self.description.hash(state);
+        self.done.hash(state);
+        self.due.hash(state);
+        self.id.hash(state);
+        self.recur.hash(state);
+        self.snooze.hash(state);
+        self.updated_at.hash(state);
+        self.wait.hash(state);
+
+        let mut tags_vec: Vec<&String> = self.tags.iter().collect();
+        tags_vec.sort();
+        tags_vec.hash(state);
+    }
 }
 
 impl Task {

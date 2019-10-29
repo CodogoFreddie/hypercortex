@@ -8,3 +8,5 @@ members = [
 	"hypertask_sync_daemon",
 	"hypertask_sync_server",
 ]
+
+default-run = "task"

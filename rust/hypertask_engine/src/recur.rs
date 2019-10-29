@@ -2,13 +2,14 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use time::Duration;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Hash)]
 pub enum Recur {
     Day(i64),
     Week(i64),
     Month(i64),
     Year(i64),
 }
+
 impl From<&Recur> for Duration {
     fn from(recur: &Recur) -> Self {
         match recur {
