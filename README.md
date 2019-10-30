@@ -26,3 +26,6 @@ This is a cool idea, but almost definitly one I want to do after v0.2 has shippe
   - would allow for a hosted db to store your tasks
   - equal access for cli and web client
   - SQL databases probably wouldn't work, I want to use a schema-less system so the schema is defined by the client
+
+Does it actually make more sense to have a local cache, and an `upstream` driver that can be used to propagate changes?
+So each client has two components: one that handles updating the local cache, and one that syncronises the local cache with the `upstream`?

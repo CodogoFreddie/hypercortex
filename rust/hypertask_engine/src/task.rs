@@ -11,7 +11,7 @@ use std::cmp::Ordering;
 use std::collections::HashSet;
 use time::Duration;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Hash)]
 pub struct Task {
     created_at: DateTime<Utc>,
     #[serde(skip_serializing_if = "Option::is_none")]
