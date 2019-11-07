@@ -29,3 +29,9 @@ This is a cool idea, but almost definitly one I want to do after v0.2 has shippe
 
 Does it actually make more sense to have a local cache, and an `upstream` driver that can be used to propagate changes?
 So each client has two components: one that handles updating the local cache, and one that syncronises the local cache with the `upstream`?
+
+## Notes to Self
+
+Having a client/daemon architecture actually does lead to a more stateless and fault-tolerant solution.
+The client only ever reads and writes to the local file-system, which means it can always operate, regardless of network status or state consistency.
+The daemon should be able to sync the local file-system in a conflict free way with other clients, and it is controlled by the local file-system state.
