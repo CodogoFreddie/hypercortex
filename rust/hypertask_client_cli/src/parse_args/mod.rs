@@ -1,4 +1,5 @@
 use chrono::prelude::*;
+use chrono_english::{parse_date_string, Dialect};
 use hypertask_engine::prelude::*;
 use regex::Regex;
 use time::Duration;
@@ -172,10 +173,16 @@ pub fn parse_as_date_time(token: &str) -> HyperTaskResult<DateTime<Utc>> {
         "eom" => Ok(end_of_month()),
         "eoy" => Ok(end_of_year()),
         x if is_relative_date_shortcut(&x) => Ok(parse_relative_date_shortcut(&x)),
-        _ => Err(
-            HyperTaskError::new(HyperTaskErrorDomain::Input, HyperTaskErrorAction::Parse)
-                .with_msg(|| format!("`{}` is a malformed DateTime value", token)),
-        ),
+        token => {
+            //last ditch attempt, using a smarter library to try to parse it
+            parse_date_string(token, Local::now(), Dialect::Uk)
+                .map(|local| DateTime::<Utc>::from(local))
+                .map_err(|e| {
+                    HyperTaskError::new(HyperTaskErrorDomain::Input, HyperTaskErrorAction::Parse)
+                        .with_msg(|| format!("`{}` is a malformed DateTime value", token))
+                        .from(e)
+                })
+        }
     }
 }
 

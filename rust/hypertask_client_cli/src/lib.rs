@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate lazy_static;
 extern crate ansi_term;
+extern crate chrono_english;
 extern crate hypertask_config_file_opener;
 extern crate hypertask_engine;
 extern crate shellexpand;
