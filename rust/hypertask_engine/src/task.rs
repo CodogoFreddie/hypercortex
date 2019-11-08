@@ -15,18 +15,21 @@ use time::Duration;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Task {
     created_at: DateTime<Utc>,
+    updated_at: DateTime<Utc>,
+    id: Id,
+
     #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    depends_on: Option<Id>,
     #[serde(skip_serializing_if = "Option::is_none")]
     done: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     due: Option<DateTime<Utc>>,
-    id: Id,
     #[serde(skip_serializing_if = "Option::is_none")]
     recur: Option<Recur>,
     #[serde(skip_serializing_if = "Option::is_none")]
     snooze: Option<DateTime<Utc>>,
-    updated_at: DateTime<Utc>,
     #[serde(skip_serializing_if = "Option::is_none")]
     wait: Option<DateTime<Utc>>,
 
@@ -50,6 +53,7 @@ where
 impl Hash for Task {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.created_at.hash(state);
+        self.depends_on.hash(state);
         self.description.hash(state);
         self.done.hash(state);
         self.due.hash(state);
@@ -74,6 +78,7 @@ impl Task {
     ) -> Self {
         Self {
             created_at: context.get_now(),
+            depends_on: None,
             description: None,
             done: None,
             due: None,
