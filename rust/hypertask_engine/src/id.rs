@@ -8,7 +8,7 @@ use std::fmt;
 pub const VALID_ID_CHARS: &str = "23456789abcdefghkmnpqrstwxyz";
 pub const NUMBER_OF_CHARS_IN_FULL_ID: usize = 16;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 pub struct Id(pub String);
 
 impl Id {

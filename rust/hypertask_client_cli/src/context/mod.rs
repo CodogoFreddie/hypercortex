@@ -52,6 +52,7 @@ pub struct CliConfig {
     data_dir: DataDirConfig,
     pub hooks: Option<HooksConfig>,
     render: RenderConfig,
+    filter_calculator: ScoreCalculatorConfig,
     score_calculator: ScoreCalculatorConfig,
 }
 
@@ -221,7 +222,26 @@ impl HyperTaskEngineContext<CliTaskIterator> for CliContext {
         Ok(())
     }
 
-    fn get_stack_machine(&self) -> HyperTaskResult<StackMachine> {
+    fn get_filter_machine(&self) -> HyperTaskResult<StackMachine> {
+        let mut env = HashMap::new();
+
+        let now = self.get_now();
+
+        env.insert("day_of_week", f64::from(now.weekday().number_from_monday()));
+        env.insert("hour", f64::from(now.hour()));
+        env.insert("minute", f64::from(now.minute()));
+        env.insert("month", f64::from(now.month()));
+        env.insert("now", now.timestamp() as f64);
+
+        let program = match &self.config_file_getter.get_config().score_calculator {
+            ScoreCalculatorConfig::Single(s) => RPNSymbol::parse_program(s),
+            ScoreCalculatorConfig::Multiple(ss) => RPNSymbol::parse_programs(&ss[..]),
+        };
+
+        Ok(StackMachine::new(program, env))
+    }
+
+    fn get_score_machine(&self) -> HyperTaskResult<StackMachine> {
         let mut env = HashMap::new();
 
         let now = self.get_now();
