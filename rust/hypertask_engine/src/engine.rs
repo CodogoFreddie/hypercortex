@@ -3,9 +3,10 @@ use crate::id::Id;
 use crate::prop::Prop;
 use crate::rpn::StackMachine;
 use crate::tag::Tag;
-use crate::task::{FinalisedTask, Task};
+use crate::task::{Score, Task};
 use chrono::prelude::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::rc::Rc;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum Mutation {
@@ -27,34 +28,65 @@ pub enum Command {
     Delete(Vec<Query>),
 }
 
-pub trait HyperTaskEngineContext<TaskIterator: Iterator<Item = HyperTaskResult<Task>>> {
-    fn finalize_mutations(&self) -> HyperTaskResult<()>;
-    fn generate_id(&mut self) -> String;
-    fn get_now(&self) -> DateTime<Utc>;
-    fn get_score_machine(&self) -> HyperTaskResult<StackMachine>;
-    fn get_filter_machine(&self) -> HyperTaskResult<StackMachine>;
-    fn get_task_iterator(&self) -> HyperTaskResult<TaskIterator>;
-    fn put_task(&mut self, task: &Task) -> HyperTaskResult<()>;
+#[derive(Debug, Deserialize, Serialize)]
+pub struct EngineOutput {
+    mutated_tasks: Vec<Rc<Task>>,
+    display_tasks: Vec<(Score, Rc<Task>)>,
 }
 
-pub fn run<InputIterator, Context>(
+pub struct Engine {
+    tasks: HashMap<Rc<Id>, Rc<Task>>,
+    dependants_map: HashMap<Rc<Id>, Vec<Rc<Id>>>,
+
     command: Command,
-    context: Context,
-) -> HyperTaskResult<Vec<FinalisedTask>>
-where
-    InputIterator: Iterator<Item = HyperTaskResult<Task>>,
-    Context: HyperTaskEngineContext<InputIterator>,
-{
-    let mut score_machine = context.get_score_machine()?;
-    let mut filter_machine = context.get_filter_machine()?;
+    filter_machine: StackMachine,
+    score_machine: StackMachine,
+    now: DateTime<Utc>,
+}
 
-    let input_iterator = context.get_task_iterator()?;
+impl Engine {
+    pub fn new(
+        command: Command,
+        tasks: HashMap<Rc<Id>, Rc<Task>>,
+        filter_machine: StackMachine,
+        score_machine: StackMachine,
+        now: DateTime<Utc>,
+    ) -> Self {
+        let mut dependants_map: HashMap<Rc<Id>, Vec<Rc<Id>>> = HashMap::new();
 
-    let tasks_map: HashMap<Id, Task> = input_iterator
-        .map(|task_result| task_result.map(|task| (task.get_id().clone(), task)))
-        .collect::<HyperTaskResult<HashMap<Id, Task>>>()?;
+        for (child_id, task) in tasks.iter() {
+            if let Some(parent_id) = task.get_depends_on() {
+                dependants_map
+                    .entry(parent_id.clone())
+                    .and_modify(|children: &mut Vec<Rc<Id>>| {
+                        children.push(child_id.clone());
+                    })
+                    .or_insert_with(|| vec![child_id.clone()]);
+            }
+        }
 
-    dbg!(&tasks_map);
+        Self {
+            tasks,
+            dependants_map,
 
-    Ok(vec![])
+            command,
+            filter_machine,
+            score_machine,
+            now,
+        }
+    }
+
+    pub fn run(&mut self) -> HyperTaskResult<EngineOutput> {
+        let mut mutated_tasks = vec![];
+        let mut display_tasks = vec![];
+
+        for (id, task) in self.tasks.iter() {
+            dbg!(&(id, task));
+        }
+
+        Ok(EngineOutput {
+            mutated_tasks,
+            display_tasks,
+        })
+    }
 }

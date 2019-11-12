@@ -139,15 +139,13 @@ impl CliContext {
 
         Ok(CliContext { config_file_getter })
     }
-}
 
-impl HyperTaskEngineContext<CliTaskIterator> for CliContext {
-    fn get_now(&self) -> DateTime<Utc> {
+    pub fn get_now(&self) -> DateTime<Utc> {
         Utc::now()
     }
 
-    fn put_task(&mut self, task: &Task) -> HyperTaskResult<()> {
-        let Id(task_id) = task.get_id();
+    pub fn put_task(&mut self, task: &Task) -> HyperTaskResult<()> {
+        let Id(task_id) = &*task.get_id();
 
         let file_path = self
             .config_file_getter
@@ -186,22 +184,7 @@ impl HyperTaskEngineContext<CliTaskIterator> for CliContext {
         Ok(())
     }
 
-    fn generate_id(&mut self) -> String {
-        let mut result = String::new();
-
-        for _ in 0..NUMBER_OF_CHARS_IN_FULL_ID {
-            let random = VALID_ID_CHARS
-                .chars()
-                .choose(&mut thread_rng())
-                .expect("Couldn't get random char");
-
-            result.push(random);
-        }
-
-        result
-    }
-
-    fn get_task_iterator(&self) -> HyperTaskResult<CliTaskIterator> {
+    pub fn get_task_iterator(&self) -> HyperTaskResult<CliTaskIterator> {
         CliTaskIterator::new(&self.config_file_getter.get_config().data_dir.0).map_err(|e| {
             HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Read)
                 .msg("could not open tasks folder for reading")
@@ -209,7 +192,7 @@ impl HyperTaskEngineContext<CliTaskIterator> for CliContext {
         })
     }
 
-    fn finalize_mutations(&self) -> HyperTaskResult<()> {
+    pub fn score_mutations(&self) -> HyperTaskResult<()> {
         if let Some(hooks) = &self.config_file_getter.get_config().hooks {
             if let Some(after_cmd) = &hooks.after {
                 match run_string_as_shell_command(after_cmd) {
@@ -222,7 +205,7 @@ impl HyperTaskEngineContext<CliTaskIterator> for CliContext {
         Ok(())
     }
 
-    fn get_filter_machine(&self) -> HyperTaskResult<StackMachine> {
+    pub fn get_filter_machine(&self) -> HyperTaskResult<StackMachine> {
         let mut env = HashMap::new();
 
         let now = self.get_now();
@@ -241,7 +224,7 @@ impl HyperTaskEngineContext<CliTaskIterator> for CliContext {
         Ok(StackMachine::new(program, env))
     }
 
-    fn get_score_machine(&self) -> HyperTaskResult<StackMachine> {
+    pub fn get_score_machine(&self) -> HyperTaskResult<StackMachine> {
         let mut env = HashMap::new();
 
         let now = self.get_now();

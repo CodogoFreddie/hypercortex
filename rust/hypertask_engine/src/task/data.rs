@@ -1,4 +1,4 @@
-use crate::engine::{HyperTaskEngineContext, Mutation, Query};
+use crate::engine::{Mutation, Query};
 use crate::error::*;
 use crate::id::Id;
 use crate::prop::Prop;
@@ -10,18 +10,19 @@ use serde::{Deserialize, Serialize, Serializer};
 use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
+use std::rc::Rc;
 use time::Duration;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Task {
     pub(super) created_at: DateTime<Utc>,
     pub(super) updated_at: DateTime<Utc>,
-    pub(super) id: Id,
+    pub(super) id: Rc<Id>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(super) description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub(super) depends_on: Option<Id>,
+    pub(super) depends_on: Option<Rc<Id>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(super) done: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -70,23 +71,18 @@ impl Hash for Task {
 }
 
 impl Task {
-    pub fn generate<
-        InputIterator: Iterator<Item = HyperTaskResult<Task>>,
-        Context: HyperTaskEngineContext<InputIterator>,
-    >(
-        context: &mut Context,
-    ) -> Self {
+    pub fn generate(now: &DateTime<Utc>) -> Self {
         Self {
-            created_at: context.get_now(),
+            created_at: now.clone(),
             depends_on: None,
             description: None,
             done: None,
             due: None,
-            id: Id::generate(context),
+            id: Rc::new(Id::generate()),
             recur: None,
             snooze: None,
             tags: HashSet::new(),
-            updated_at: context.get_now(),
+            updated_at: now.clone(),
             wait: None,
         }
     }
@@ -103,8 +99,11 @@ impl Task {
     pub fn get_due(&self) -> &Option<DateTime<Utc>> {
         &self.due
     }
-    pub fn get_id(&self) -> &Id {
-        &self.id
+    pub fn get_id(&self) -> Rc<Id> {
+        self.id.clone()
+    }
+    pub fn get_depends_on(&self) -> Option<Rc<Id>> {
+        self.depends_on.clone()
     }
     pub fn get_recur(&self) -> &Option<Recur> {
         &self.recur

@@ -1,5 +1,5 @@
 use super::Task;
-use crate::engine::{HyperTaskEngineContext, Mutation, Query};
+use crate::engine::{Mutation, Query};
 use crate::error::*;
 use crate::id::Id;
 use crate::prop::Prop;
@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize, Serializer};
 use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
+use std::rc::Rc;
 use time::Duration;
 
 impl super::Task {
@@ -108,6 +109,9 @@ impl super::Task {
                 self.wait = *wait;
             }
             Mutation::SetProp(Prop::Recur(recur)) => self.recur = recur.clone(),
+            Mutation::SetProp(Prop::Depends(depends)) => {
+                self.depends_on = depends.as_ref().map(|d| Rc::new(d.clone()));
+            }
         }
 
         self.updated_at = *now;

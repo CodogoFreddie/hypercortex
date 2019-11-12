@@ -9,25 +9,25 @@ const GUTTER_WIDTH: usize = 2;
 const HEADER_ORDER: &[&str] = &["id", "score", "description", "tags", "due", "recur"];
 
 fn render_score_to_significant_figures(score: &f64, figures: &i32) -> String {
-    let exponent = score.log10().floor() as i32;
-    let x = 10.0_f64.powi(exponent - figures - 1);
-    let precision = i32::max(figures - 1 - exponent, 0);
-    let output = (score / x).floor() * x;
+    format!("{}", score)
+    //let exponent = score.log10().floor() as i32;
+    //let x = 10.0_f64.powi(exponent - figures - 1);
+    //let precision = i32::max(figures - 1 - exponent, 0);
+    //let output = (score / x).floor() * x;
 
-    format!("{:.precision$}", output, precision = precision as usize)
+    //format!("{:.precision$}", output, precision = precision as usize)
 }
 
-fn task_to_renderable_hash_map(finalised_task: &FinalisedTask) -> HashMap<&str, String> {
+fn task_to_renderable_hash_map<'a>(
+    scored_task: (&'a Score, &'a Task),
+) -> HashMap<&'static str, String> {
     let mut hm = HashMap::<&str, String>::new();
-    let task = finalised_task.get_task();
+    let (score, task) = scored_task;
 
-    let Id(id) = task.get_id();
+    let Id(id) = &*task.get_id();
     hm.insert("id", id.to_string());
 
-    hm.insert(
-        "score",
-        render_score_to_significant_figures(finalised_task.get_score(), &3),
-    );
+    hm.insert("score", render_score_to_significant_figures(score, &3));
 
     if let Some(description) = task.get_description() {
         hm.insert("description", description.to_string());
@@ -56,7 +56,7 @@ fn task_to_renderable_hash_map(finalised_task: &FinalisedTask) -> HashMap<&str, 
     hm
 }
 
-pub fn render_table(finalised_tasks: &[FinalisedTask]) {
+pub fn render_table(scored_tasks: &[(Score, Task)]) {
     let now = Utc::now();
     let mut widths = HashMap::<&str, usize>::new();
     let mut hash_mapped_tasks: Vec<(HashMap<&str, String>, &Task)> = vec![];
@@ -72,8 +72,8 @@ pub fn render_table(finalised_tasks: &[FinalisedTask]) {
     for header in HEADER_ORDER {
         widths.insert(header, header.len());
     }
-    for finalised_task in finalised_tasks.iter().take(lines) {
-        let hash_map = task_to_renderable_hash_map(&finalised_task);
+    for (score, task) in scored_tasks.iter().take(lines) {
+        let hash_map = task_to_renderable_hash_map((score, task));
         for (key, value) in &hash_map {
             let length = value.len();
             let current_length = widths[key];
@@ -82,7 +82,7 @@ pub fn render_table(finalised_tasks: &[FinalisedTask]) {
                 widths.insert(key, length);
             }
         }
-        hash_mapped_tasks.push((hash_map, finalised_task.get_task()))
+        hash_mapped_tasks.push((hash_map, task))
     }
 
     //print the header
@@ -116,13 +116,12 @@ pub fn render_table(finalised_tasks: &[FinalisedTask]) {
             .join("");
         println!(
             "{}",
-            if task.is_overdue(&now) {
-                Red.paint(task_string).to_string()
-            } else if task.is_soon_due(&now) {
-                Cyan.paint(task_string).to_string()
-            } else {
-                task_string
-            }
+            //if task.is_overdue(&now) {
+            //Red.paint(task_string).to_string()
+            //} else if task.is_soon_due(&now) {
+            //Cyan.paint(task_string).to_string()
+            //} else {
+            task_string //}
         );
     }
 }

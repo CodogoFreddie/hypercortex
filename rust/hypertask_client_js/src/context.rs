@@ -113,7 +113,7 @@ impl<'a> HyperTaskEngineContext<WebTaskIterator> for WebContext<'a> {
         WebTaskIterator::new(self.input_iter_raw)
     }
 
-    fn finalize_mutations(&self) -> HyperTaskResult<()> {
+    fn score_mutations(&self) -> HyperTaskResult<()> {
         Ok(())
     }
 

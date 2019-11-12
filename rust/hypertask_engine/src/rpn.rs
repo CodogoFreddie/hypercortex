@@ -1,4 +1,5 @@
 use crate::error::*;
+use crate::id::Id;
 use crate::task::Task;
 use chrono::prelude::*;
 use std::collections::HashMap;
@@ -8,6 +9,7 @@ use std::rc::Rc;
 pub enum RPNSymbol {
     Add,
     Branch,
+    Count,
     Divide,
     Duplicate,
     Equal,
@@ -47,23 +49,24 @@ impl RPNSymbol {
     pub fn parse(s: &str) -> Self {
         use RPNSymbol::*;
         match s {
-            "+" => Add,
-            "?" => Branch,
-            "/" => Divide,
-            "&" => Duplicate,
-            "=" => Equal,
-            "$" => GetEnvironment,
-            ":" => GetProp,
             "#" => GetTag,
-            ">" => GreaterThan,
-            "<" => LessThan,
-            "~" => Log,
-            "*" => Multiply,
-            "^" => Pow,
+            "$" => GetEnvironment,
             "%" => Rem,
-            "_" => Sqrt,
-            "@" => Swap,
+            "&" => Duplicate,
+            "*" => Multiply,
+            "+" => Add,
             "-" => Subtract,
+            "/" => Divide,
+            ":" => GetProp,
+            "<" => LessThan,
+            "=" => Equal,
+            ">" => GreaterThan,
+            "?" => Branch,
+            "@" => Swap,
+            "^" => Pow,
+            "_" => Sqrt,
+            "|" => Count,
+            "~" => Log,
             x => match x.parse::<f64>() {
                 Ok(n) => Number(n),
                 Err(_) => Symbol(x.to_string()),
@@ -260,6 +263,11 @@ impl StackMachine {
         Ok(())
     }
 
+    fn run_count(&mut self) -> HyperTaskResult<()> {
+        self.stack.push(RPNSymbol::Number(self.stack.len() as f64));
+        Ok(())
+    }
+
     fn run_branch(&mut self) -> HyperTaskResult<()> {
         let query = self.pop_number()?;
         let if_true = self.pop()?;
@@ -276,13 +284,19 @@ impl StackMachine {
         Ok(())
     }
 
-    pub fn run_on(&mut self, task: &Task) -> HyperTaskResult<f64> {
+    pub fn run_on(
+        &mut self,
+        task: &Task,
+        depends_on: Option<&Task>,
+        dependants: &[Task],
+    ) -> HyperTaskResult<f64> {
         self.stack.clear();
 
         for instruction in &*(self.instructions.clone()) {
             match instruction {
                 RPNSymbol::Add => self.run_add(),
                 RPNSymbol::Branch => self.run_branch(),
+                RPNSymbol::Count => self.run_count(),
                 RPNSymbol::Divide => self.run_divide(),
                 RPNSymbol::Duplicate => self.run_duplicate(),
                 RPNSymbol::Equal => self.run_equal(),
@@ -296,8 +310,8 @@ impl StackMachine {
                 RPNSymbol::Pow => self.run_pow(),
                 RPNSymbol::Rem => self.run_rem(),
                 RPNSymbol::Sqrt => self.run_sqrt(),
-                RPNSymbol::Swap => self.run_swap(),
                 RPNSymbol::Subtract => self.run_subtract(),
+                RPNSymbol::Swap => self.run_swap(),
 
                 RPNSymbol::Number(n) => self.push_number(*n),
                 RPNSymbol::Symbol(s) => {

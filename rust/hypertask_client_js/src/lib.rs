@@ -27,7 +27,7 @@ pub fn run(
         )
     })?;
 
-    let response: Vec<FinalisedTask> = hypertask_engine::prelude::run(cmd, context)
+    let response: Vec<ScoredTask> = hypertask_engine::prelude::run(cmd, context)
         .map_err(|e| format!("Error running hypertask engine: {}", e))?;
 
     Ok(JsValue::from_serde(&response).map_err(|_| "Error stringifying output")?)

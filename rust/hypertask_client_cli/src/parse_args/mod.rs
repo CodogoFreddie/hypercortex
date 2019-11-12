@@ -262,6 +262,22 @@ pub fn parse_as_prop(token: &str) -> Option<HyperTaskResult<Prop>> {
             };
             Ok(Prop::Recur(Some(value)))
         }
+
+        ("depends", "") => Ok(Prop::Depends(None)),
+        ("depends", value) => {
+            let value = match parse_as_id(&value) {
+                Some(x) => x,
+                None => {
+                    return Some(Err(HyperTaskError::new(
+                        HyperTaskErrorDomain::Input,
+                        HyperTaskErrorAction::Parse,
+                    )
+                    .with_msg(|| format!("`{}` is not a valid id", value))))
+                }
+            };
+            Ok(Prop::Depends(Some(value)))
+        }
+
         _ => Err(
             HyperTaskError::new(HyperTaskErrorDomain::Input, HyperTaskErrorAction::Parse)
                 .with_msg(|| format!("`{}` is a malformed prop parameter", token)),
