@@ -284,12 +284,7 @@ impl StackMachine {
         Ok(())
     }
 
-    pub fn run_on(
-        &mut self,
-        task: &Task,
-        depends_on: Option<&Task>,
-        dependants: &[Task],
-    ) -> HyperTaskResult<f64> {
+    pub fn run_on(&mut self, task: &Task) -> HyperTaskResult<f64> {
         self.stack.clear();
 
         for instruction in &*(self.instructions.clone()) {

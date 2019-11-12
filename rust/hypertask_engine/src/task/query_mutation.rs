@@ -60,12 +60,14 @@ impl super::Task {
         default
     }
 
-    pub fn apply_mutations(&mut self, mutations: &[Mutation], now: &DateTime<Utc>) -> &Self {
+    pub fn apply_mutations(&self, mutations: &[Mutation], now: &DateTime<Utc>) -> Self {
+        let mut new_task = self.clone();
+
         for m in mutations {
-            self.apply_mutation(m, now);
+            new_task.apply_mutation(m, now);
         }
 
-        self
+        new_task
     }
 
     pub fn apply_mutation(&mut self, mutation: &Mutation, now: &DateTime<Utc>) -> &Self {

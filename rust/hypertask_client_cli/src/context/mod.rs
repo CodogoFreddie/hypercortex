@@ -26,11 +26,15 @@ pub struct HooksConfig {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RenderConfig {
     score_precision: u32,
+    columns: Vec<String>,
 }
 
 impl Default for RenderConfig {
     fn default() -> Self {
-        Self { score_precision: 3 }
+        Self {
+            score_precision: 3,
+            columns: vec!["id".into(), "score".into(), "description".into()],
+        }
     }
 }
 
@@ -140,6 +144,10 @@ impl CliContext {
         Ok(CliContext { config_file_getter })
     }
 
+    pub fn get_render_columns(&self) -> &Vec<String> {
+        &self.config_file_getter.get_config().render.columns
+    }
+
     pub fn get_now(&self) -> DateTime<Utc> {
         Utc::now()
     }
@@ -192,7 +200,7 @@ impl CliContext {
         })
     }
 
-    pub fn score_mutations(&self) -> HyperTaskResult<()> {
+    pub fn finalise_mutations(&self) -> HyperTaskResult<()> {
         if let Some(hooks) = &self.config_file_getter.get_config().hooks {
             if let Some(after_cmd) = &hooks.after {
                 match run_string_as_shell_command(after_cmd) {

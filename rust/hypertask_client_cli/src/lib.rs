@@ -13,12 +13,13 @@ mod render;
 use crate::context::CliContext;
 use crate::parse_args::parse_cli_args;
 use crate::render::render_table;
+use ansi_term::Style;
 use hypertask_engine::prelude::*;
 use std::collections::HashMap;
 use std::rc::Rc;
 
 pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
-    let cli_context = CliContext::new()?;
+    let mut cli_context = CliContext::new()?;
 
     let tasks = cli_context
         .get_task_iterator()?
@@ -26,16 +27,49 @@ pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
         .collect::<HyperTaskResult<HashMap<Rc<Id>, Rc<Task>>>>()?;
 
     let mut engine: Engine = Engine::new(
-        parse_cli_args(args.iter().skip(1))?,
         tasks,
         cli_context.get_score_machine()?,
         cli_context.get_filter_machine()?,
         cli_context.get_now(),
     );
 
-    engine.run()?;
+    let EngineOutput {
+        mutated_tasks,
+        display_tasks,
+    } = engine.run(parse_cli_args(args.iter().skip(1))?)?;
 
-    //render_table(&tasks_to_display);
+    if mutated_tasks.len() > 0 {
+        for task in mutated_tasks {
+            cli_context.put_task(&task)?;
+        }
+
+        cli_context.finalise_mutations()?;
+    }
+
+    let renderable_tasks = display_tasks
+        .iter()
+        .map(|(filtered, score, task)| {
+            (Style::new(), {
+                let mut map = HashMap::new();
+                map.insert("id", format!("{}", task.get_id()));
+                map.insert("score", format!("{0:.4}", score));
+                map.insert(
+                    "description",
+                    format!(
+                        "{}",
+                        task.get_description().as_ref().unwrap_or(&"".to_string())
+                    ),
+                );
+                map
+            })
+        })
+        .collect();
+
+    render_table(
+        &cli_context.get_render_columns()[..],
+        &Style::new().underline(),
+        &renderable_tasks,
+    );
 
     Ok(())
 }
