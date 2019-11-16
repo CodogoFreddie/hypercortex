@@ -57,3 +57,20 @@ jobs:
         with:
           command: clippy
           args: -- -D warnings
+
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, osx-latest, windows-latest]
+        rust: [ stable, beta, nightly ]
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
