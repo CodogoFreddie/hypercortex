@@ -9,5 +9,3 @@ members = [
 	"rust/hypertask_sync_daemon",
 	"rust/hypertask_sync_server",
 ]
-
-default-run = "task"
