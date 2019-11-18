@@ -1,6 +1,5 @@
 {
   "version": 2,
   "name": "hypertask",
-  "builds": [{ "src": "js/package.json", "use": "@now/next" }],
-  "routes": [{ "src": "/(?<id>.*)", "dest": "/js/$id" }]
+  "builds": []
 }
