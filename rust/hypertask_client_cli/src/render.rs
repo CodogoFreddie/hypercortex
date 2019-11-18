@@ -8,14 +8,8 @@ const GUTTER_WIDTH: usize = 2;
 
 const HEADER_ORDER: &[&str] = &["id", "score", "description", "tags", "due", "recur"];
 
-fn render_score_to_significant_figures(score: &f64, figures: &i32) -> String {
+fn render_score_to_significant_figures(score: f64, _: i32) -> String {
     format!("{}", score)
-    //let exponent = score.log10().floor() as i32;
-    //let x = 10.0_f64.powi(exponent - figures - 1);
-    //let precision = i32::max(figures - 1 - exponent, 0);
-    //let output = (score / x).floor() * x;
-
-    //format!("{:.precision$}", output, precision = precision as usize)
 }
 
 fn task_to_renderable_hash_map<'a>(
@@ -27,7 +21,7 @@ fn task_to_renderable_hash_map<'a>(
     let Id(id) = &*task.get_id();
     hm.insert("id", id.to_string());
 
-    hm.insert("score", render_score_to_significant_figures(score, &3));
+    hm.insert("score", render_score_to_significant_figures(*score, 3));
 
     if let Some(description) = task.get_description() {
         hm.insert("description", description.to_string());

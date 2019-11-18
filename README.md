@@ -1,3 +1,8 @@
+## Releases
+
+Each consumable binary should be at the same version, which should be the current released version, they should be released in lockstep so that an end user can be certain that they're using the correct version of each crate.
+The internal crates can have their versions incremented one at a time.
+
 ## Possible Storage Backends
 
 I could create a more generalised _"driver"_ system for storage of tasks

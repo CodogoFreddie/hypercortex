@@ -176,7 +176,7 @@ pub fn parse_as_date_time(token: &str) -> HyperTaskResult<DateTime<Utc>> {
         token => {
             //last ditch attempt, using a smarter library to try to parse it
             parse_date_string(token, Local::now(), Dialect::Uk)
-                .map(|local| DateTime::<Utc>::from(local))
+                .map(DateTime::<Utc>::from)
                 .map_err(|e| {
                     HyperTaskError::new(HyperTaskErrorDomain::Input, HyperTaskErrorAction::Parse)
                         .with_msg(|| format!("`{}` is a malformed DateTime value", token))
