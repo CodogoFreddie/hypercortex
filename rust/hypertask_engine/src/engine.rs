@@ -37,6 +37,7 @@ pub struct EngineOutput {
 pub struct Engine {
     ///these tasks do not change while the engine runs, and will not be mutated
     tasks_initial_state: HashMap<Rc<Id>, Rc<Task>>,
+    #[allow(dead_code)]
     dependants_map: HashMap<Rc<Id>, Vec<Rc<Task>>>,
 
     filter_machine: StackMachine,
@@ -54,7 +55,7 @@ impl Engine {
     ) -> Self {
         let mut dependants_map: HashMap<Rc<Id>, Vec<Rc<Task>>> = HashMap::new();
 
-        for (child_id, child_task) in tasks_initial_state.iter() {
+        for (_child_id, child_task) in tasks_initial_state.iter() {
             if let Some(parent_id) = child_task.get_depends_on() {
                 dependants_map
                     .entry(parent_id.clone())
@@ -80,9 +81,9 @@ impl Engine {
         let mut display_ids: HashSet<Rc<Id>> = HashSet::new();
 
         match command {
-            ///actually perform mutations
+            //actually perform mutations
             Command::Create(mutations) => {
-                let new_task =
+                let new_task: Rc<Task> =
                     Rc::new(Task::generate(&self.now).apply_mutations(&mutations, &self.now));
                 let id = new_task.get_id();
 
@@ -95,8 +96,7 @@ impl Engine {
                 for (id, task) in self.tasks_initial_state.iter() {
                     // don't run mutations on tasks that are filtered out, the user probably
                     // didn't mean to
-                    if (task.satisfies_queries(&query) && self.filter_machine.run_on(&task)? > 0.0)
-                    {
+                    if task.satisfies_queries(&query) && self.filter_machine.run_on(&task)? > 0.0 {
                         let updated_task: Task = task.apply_mutations(&mutation, &self.now);
 
                         mutated_tasks.push(Rc::new(updated_task));
@@ -105,7 +105,7 @@ impl Engine {
                 }
             }
 
-            ///if we're just querying, run the query
+            //if we're just querying, run the query
             Command::Read(query) => {
                 for (id, task) in self.tasks_initial_state.iter() {
                     // if there's any query specified
@@ -146,15 +146,5 @@ impl Engine {
             mutated_tasks,
             display_tasks,
         })
-    }
-}
-
-impl Engine {
-    fn run_machine_on_task(
-        &self,
-        machine: &mut StackMachine,
-        task: &Task,
-    ) -> HyperTaskResult<Score> {
-        machine.run_on(task)
     }
 }

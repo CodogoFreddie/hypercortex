@@ -1,16 +1,7 @@
-use super::Task;
 use crate::engine::{Mutation, Query};
-use crate::error::*;
-use crate::id::Id;
 use crate::prop::Prop;
-use crate::recur::Recur;
-use crate::rpn::StackMachine;
 use crate::tag::{Sign, Tag};
 use chrono::prelude::*;
-use serde::{Deserialize, Serialize, Serializer};
-use std::cmp::Ordering;
-use std::collections::HashSet;
-use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 use time::Duration;
 
@@ -23,7 +14,7 @@ impl super::Task {
         let mut default = false;
 
         for query in queries {
-            match query {
+            match &query {
                 Query::Id(id) => {
                     if id.sub_eq(&self.id) {
                         return true;

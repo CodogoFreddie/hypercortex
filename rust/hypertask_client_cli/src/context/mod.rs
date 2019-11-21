@@ -3,8 +3,6 @@ use hypertask_config_file_opener::{
     run_string_as_shell_command, ConfigFileGetter, ConfigFileOpener, ShellExpand,
 };
 use hypertask_engine::prelude::*;
-use rand::seq::IteratorRandom;
-use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::collections::HashMap;

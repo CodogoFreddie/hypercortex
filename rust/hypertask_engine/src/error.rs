@@ -3,6 +3,7 @@ use std::fmt;
 
 #[derive(Debug)]
 pub enum HyperTaskErrorDomain {
+    Render,
     Config,
     Context,
     Input,
@@ -19,6 +20,7 @@ impl fmt::Display for HyperTaskErrorDomain {
             "{}",
             match self {
                 HyperTaskErrorDomain::Config => "config",
+                HyperTaskErrorDomain::Render => "render",
                 HyperTaskErrorDomain::Context => "context",
                 HyperTaskErrorDomain::Input => "input",
                 HyperTaskErrorDomain::Mutation => "mutation",

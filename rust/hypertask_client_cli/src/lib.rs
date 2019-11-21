@@ -13,6 +13,7 @@ mod render;
 use crate::context::CliContext;
 use crate::parse_args::parse_cli_args;
 use crate::render::render_table;
+use ansi_term::Colour::Red;
 use ansi_term::Style;
 use hypertask_engine::prelude::*;
 use std::collections::HashMap;
@@ -48,20 +49,27 @@ pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
 
     let renderable_tasks = display_tasks
         .iter()
-        .map(|(filtered, score, task)| {
-            (Style::new(), {
-                let mut map = HashMap::new();
-                map.insert("id", format!("{}", task.get_id()));
-                map.insert("score", format!("{0:.4}", score));
-                map.insert(
-                    "description",
-                    format!(
-                        "{}",
-                        task.get_description().as_ref().unwrap_or(&"".to_string())
-                    ),
-                );
-                map
-            })
+        .map(|(_filtered, score, task)| {
+            (
+                if score > &10.0 {
+                    Style::new().on(Red)
+                } else {
+                    Style::new()
+                },
+                {
+                    let mut map = HashMap::new();
+                    map.insert("id", format!("{}", task.get_id()));
+                    map.insert("score", format!("{0:.4}", score));
+                    map.insert(
+                        "description",
+                        format!(
+                            "{}",
+                            task.get_description().as_ref().unwrap_or(&"".to_string())
+                        ),
+                    );
+                    map
+                },
+            )
         })
         .collect();
 
@@ -69,7 +77,7 @@ pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
         &cli_context.get_render_columns()[..],
         &Style::new().underline(),
         &renderable_tasks,
-    );
+    )?;
 
     Ok(())
 }

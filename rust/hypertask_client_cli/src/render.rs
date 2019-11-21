@@ -1,6 +1,4 @@
-use ansi_term::Colour::{Cyan, Red};
 use ansi_term::Style;
-use chrono::prelude::*;
 use hypertask_engine::prelude::*;
 use std::collections::HashMap;
 use std::fmt::Write;
@@ -11,7 +9,7 @@ pub fn render_table(
     headers: &[String],
     header_style: &Style,
     rows: &Vec<(ansi_term::Style, HashMap<&str, String>)>,
-) {
+) -> HyperTaskResult<()> {
     let lines = if let Some((_, height)) = term_size::dimensions() {
         height - 5
     } else {
@@ -43,7 +41,10 @@ pub fn render_table(
             "{:1$}",
             header,
             widths[&header.as_str()] + GUTTER_WIDTH
-        );
+        )
+        .map_err(|e| {
+            HyperTaskError::new(HyperTaskErrorDomain::Render, HyperTaskErrorAction::Write).from(e)
+        })?;
     }
     println!("{}", header_style.paint(header_string));
 
@@ -57,8 +58,14 @@ pub fn render_table(
                 "{:1$}",
                 row.get(&header.as_str()).unwrap_or(&String::from("")),
                 widths[&header.as_str()] + GUTTER_WIDTH
-            );
+            )
+            .map_err(|e| {
+                HyperTaskError::new(HyperTaskErrorDomain::Render, HyperTaskErrorAction::Write)
+                    .from(e)
+            })?;
         }
         println!("{}", style.paint(row_string));
     }
+
+    Ok(())
 }

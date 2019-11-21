@@ -4,8 +4,8 @@ members = [
 	"rust/hypertask_engine",
 
 	"rust/hypertask_client_cli",
-	"rust/hypertask_client_js",
+	#"rust/hypertask_client_js",
 
-	"rust/hypertask_sync_daemon",
-	"rust/hypertask_sync_server",
+	#"rust/hypertask_sync_daemon",
+	#"rust/hypertask_sync_server",
 ]
