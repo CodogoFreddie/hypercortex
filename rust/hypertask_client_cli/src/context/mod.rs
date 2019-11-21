@@ -6,10 +6,36 @@ use hypertask_engine::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::collections::HashMap;
+use std::fmt;
 use std::fs;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::path::PathBuf;
+
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
+pub enum RenderColumns {
+    Id,
+    Score,
+    Description,
+    Depends,
+    Tags,
+    Due,
+    Recur,
+}
+
+impl fmt::Display for RenderColumns {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.pad(match self {
+            RenderColumns::Id => "Id",
+            RenderColumns::Score => "Score",
+            RenderColumns::Description => "Description",
+            RenderColumns::Depends => "Depends",
+            RenderColumns::Tags => "Tags",
+            RenderColumns::Due => "Due",
+            RenderColumns::Recur => "Recur",
+        })
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct DataDirConfig(PathBuf);
@@ -24,14 +50,18 @@ pub struct HooksConfig {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RenderConfig {
     score_precision: u32,
-    columns: Vec<String>,
+    columns: Vec<RenderColumns>,
 }
 
 impl Default for RenderConfig {
     fn default() -> Self {
         Self {
             score_precision: 3,
-            columns: vec!["id".into(), "score".into(), "description".into()],
+            columns: vec![
+                RenderColumns::Id,
+                RenderColumns::Score,
+                RenderColumns::Description,
+            ],
         }
     }
 }
@@ -142,7 +172,7 @@ impl CliContext {
         Ok(CliContext { config_file_getter })
     }
 
-    pub fn get_render_columns(&self) -> &Vec<String> {
+    pub fn get_render_columns(&self) -> &Vec<RenderColumns> {
         &self.config_file_getter.get_config().render.columns
     }
 

@@ -10,14 +10,36 @@ mod context;
 mod parse_args;
 mod render;
 
-use crate::context::CliContext;
+use crate::context::{CliContext, RenderColumns};
 use crate::parse_args::parse_cli_args;
 use crate::render::render_table;
-use ansi_term::Colour::Red;
+use ansi_term::Colour::{Black, Cyan, Green, Red, Yellow};
 use ansi_term::Style;
 use hypertask_engine::prelude::*;
 use std::collections::HashMap;
 use std::rc::Rc;
+
+fn style_task(filtered: &bool, score: &f64) -> Style {
+    let mut style = Style::new();
+
+    if score > &10.0 {
+        style = style.fg(Green);
+    };
+
+    if score > &20.0 {
+        style = style.fg(Cyan);
+    };
+
+    if score > &30.0 {
+        style = style.fg(Red);
+    };
+
+    if *filtered {
+        style = style.dimmed();
+    };
+
+    style
+}
 
 pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
     let mut cli_context = CliContext::new()?;
@@ -49,27 +71,20 @@ pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
 
     let renderable_tasks = display_tasks
         .iter()
-        .map(|(_filtered, score, task)| {
-            (
-                if score > &10.0 {
-                    Style::new().on(Red)
-                } else {
-                    Style::new()
-                },
-                {
-                    let mut map = HashMap::new();
-                    map.insert("id", format!("{}", task.get_id()));
-                    map.insert("score", format!("{0:.4}", score));
-                    map.insert(
-                        "description",
-                        format!(
-                            "{}",
-                            task.get_description().as_ref().unwrap_or(&"".to_string())
-                        ),
-                    );
-                    map
-                },
-            )
+        .map(|(filtered, score, task)| {
+            (style_task(filtered, score), {
+                let mut map = HashMap::new();
+                map.insert(RenderColumns::Id, format!("{}", task.get_id()));
+                map.insert(RenderColumns::Score, format!("{0:.4}", score));
+                map.insert(
+                    RenderColumns::Description,
+                    format!(
+                        "{}",
+                        task.get_description().as_ref().unwrap_or(&"".to_string())
+                    ),
+                );
+                map
+            })
         })
         .collect();
 

@@ -1,14 +1,15 @@
 use ansi_term::Style;
 use hypertask_engine::prelude::*;
 use std::collections::HashMap;
-use std::fmt::Write;
+use std::fmt::{Display, Write};
+use std::hash::Hash;
 
 const GUTTER_WIDTH: usize = 2;
 
-pub fn render_table(
-    headers: &[String],
+pub fn render_table<Header: Display + Eq + Hash>(
+    headers: &[Header],
     header_style: &Style,
-    rows: &Vec<(ansi_term::Style, HashMap<&str, String>)>,
+    rows: &Vec<(ansi_term::Style, HashMap<Header, String>)>,
 ) -> HyperTaskResult<()> {
     let lines = if let Some((_, height)) = term_size::dimensions() {
         height - 5
@@ -16,11 +17,11 @@ pub fn render_table(
         40
     };
 
-    let mut widths: HashMap<&str, usize> = HashMap::new();
+    let mut widths: HashMap<&Header, usize> = HashMap::new();
 
     // get widths
     for header in headers {
-        widths.insert(header, header.len());
+        widths.insert(header, format!("{}", header).len());
     }
     for (_, row) in rows.iter().take(lines) {
         for (header, cell) in row.iter() {
@@ -38,9 +39,9 @@ pub fn render_table(
     for header in headers {
         write!(
             &mut header_string,
-            "{:1$}",
+            "{0:width$}",
             header,
-            widths[&header.as_str()] + GUTTER_WIDTH
+            width = widths[header] + GUTTER_WIDTH
         )
         .map_err(|e| {
             HyperTaskError::new(HyperTaskErrorDomain::Render, HyperTaskErrorAction::Write).from(e)
@@ -56,8 +57,8 @@ pub fn render_table(
             write!(
                 &mut row_string,
                 "{:1$}",
-                row.get(&header.as_str()).unwrap_or(&String::from("")),
-                widths[&header.as_str()] + GUTTER_WIDTH
+                row.get(header).unwrap_or(&String::from("")),
+                widths[header] + GUTTER_WIDTH
             )
             .map_err(|e| {
                 HyperTaskError::new(HyperTaskErrorDomain::Render, HyperTaskErrorAction::Write)
