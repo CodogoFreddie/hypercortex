@@ -1,72 +1,123 @@
+use crate::context::CliContext;
+use ansi_term::Colour::{Cyan, Green, Red};
 use ansi_term::Style;
+use chrono::prelude::*;
 use hypertask_engine::prelude::*;
+use render_simple_cli_table::render_table;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fmt::{Display, Write};
-use std::hash::Hash;
+use std::fmt;
+use std::rc::Rc;
 
-const GUTTER_WIDTH: usize = 2;
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
+pub enum RenderColumns {
+    Id,
+    Score,
+    Description,
+    Depends,
+    Tags,
+    Due,
+    Recur,
+}
 
-pub fn render_table<Header: Display + Eq + Hash>(
-    headers: &[Header],
-    header_style: &Style,
-    rows: &Vec<(ansi_term::Style, HashMap<Header, String>)>,
-) -> HyperTaskResult<()> {
-    let lines = if let Some((_, height)) = term_size::dimensions() {
-        height - 5
-    } else {
-        40
+impl fmt::Display for RenderColumns {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.pad(match self {
+            RenderColumns::Id => "Id",
+            RenderColumns::Score => "Score",
+            RenderColumns::Description => "Description",
+            RenderColumns::Depends => "Depends",
+            RenderColumns::Tags => "Tags",
+            RenderColumns::Due => "Due",
+            RenderColumns::Recur => "Recur",
+        })
+    }
+}
+
+fn style_task(filtered: &bool, score: &f64) -> Style {
+    let mut style = Style::new();
+
+    if score > &10.0 {
+        style = style.fg(Green);
     };
 
-    let mut widths: HashMap<&Header, usize> = HashMap::new();
+    if score > &20.0 {
+        style = style.fg(Cyan);
+    };
 
-    // get widths
-    for header in headers {
-        widths.insert(header, format!("{}", header).len());
-    }
-    for (_, row) in rows.iter().take(lines) {
-        for (header, cell) in row.iter() {
-            widths.entry(header).and_modify(|width| {
-                let l = cell.len();
-                if l > *width {
-                    *width = l
-                }
-            });
-        }
-    }
+    if score > &30.0 {
+        style = style.fg(Red);
+    };
 
-    //print header
-    let mut header_string = String::from("");
-    for header in headers {
-        write!(
-            &mut header_string,
-            "{0:width$}",
-            header,
-            width = widths[header] + GUTTER_WIDTH
-        )
-        .map_err(|e| {
-            HyperTaskError::new(HyperTaskErrorDomain::Render, HyperTaskErrorAction::Write).from(e)
-        })?;
-    }
-    println!("{}", header_style.paint(header_string));
+    if *filtered {
+        style = style.dimmed();
+    };
 
-    //print rows
+    style
+}
 
-    for (style, row) in rows.iter().take(lines) {
-        let mut row_string = String::from("");
-        for header in headers {
-            write!(
-                &mut row_string,
-                "{:1$}",
-                row.get(header).unwrap_or(&String::from("")),
-                widths[header] + GUTTER_WIDTH
-            )
-            .map_err(|e| {
-                HyperTaskError::new(HyperTaskErrorDomain::Render, HyperTaskErrorAction::Write)
-                    .from(e)
-            })?;
-        }
-        println!("{}", style.paint(row_string));
-    }
+fn format_date_time(dt: DateTime<Utc>) -> String {
+    dt.format("%Y-%m-%d %H:%M").to_string()
+}
 
-    Ok(())
+fn renderify_task(
+    input: &(bool, f64, Rc<Task>),
+) -> (ansi_term::Style, HashMap<RenderColumns, String>) {
+    let (filtered, score, task) = input;
+
+    let mut map = HashMap::new();
+    map.insert(RenderColumns::Id, format!("{}", task.get_id()));
+    map.insert(RenderColumns::Score, format!("{0:.4}", score));
+    map.insert(RenderColumns::Depends, format!("{}", ""));
+
+    map.insert(
+        RenderColumns::Recur,
+        task.get_recur()
+            .as_ref()
+            .map(|x| format!("{}", x))
+            .unwrap_or_else(String::default),
+    );
+
+    map.insert(
+        RenderColumns::Due,
+        task.get_due()
+            .map(format_date_time)
+            .unwrap_or_else(String::default),
+    );
+
+    map.insert(RenderColumns::Tags, {
+        let mut vec = task
+            .get_tags()
+            .iter()
+            .map(|tag| format!("+{}", tag))
+            .collect::<Vec<String>>();
+        vec.sort();
+        vec.join(" ")
+    });
+
+    map.insert(
+        RenderColumns::Description,
+        format!(
+            "{}",
+            task.get_description().as_ref().unwrap_or(&"".to_string())
+        ),
+    );
+
+    (style_task(filtered, score), map)
+}
+
+pub fn render_engine_output(
+    display_tasks: Vec<(bool, Score, Rc<Task>)>,
+    cli_context: &CliContext,
+) -> HyperTaskResult<()> {
+    let renderable_tasks = display_tasks.iter().map(renderify_task).collect();
+
+    render_table(
+        &cli_context.get_render_columns()[..],
+        &Style::new().underline(),
+        &renderable_tasks,
+    )
+    .map_err(|e| {
+        HyperTaskError::new(HyperTaskErrorDomain::Render, HyperTaskErrorAction::Write).from(e)
+    })
 }

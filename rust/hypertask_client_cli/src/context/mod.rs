@@ -1,3 +1,4 @@
+use crate::render::RenderColumns;
 use chrono::prelude::*;
 use hypertask_config_file_opener::{
     run_string_as_shell_command, ConfigFileGetter, ConfigFileOpener, ShellExpand,
@@ -6,36 +7,10 @@ use hypertask_engine::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::collections::HashMap;
-use std::fmt;
 use std::fs;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::path::PathBuf;
-
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
-pub enum RenderColumns {
-    Id,
-    Score,
-    Description,
-    Depends,
-    Tags,
-    Due,
-    Recur,
-}
-
-impl fmt::Display for RenderColumns {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.pad(match self {
-            RenderColumns::Id => "Id",
-            RenderColumns::Score => "Score",
-            RenderColumns::Description => "Description",
-            RenderColumns::Depends => "Depends",
-            RenderColumns::Tags => "Tags",
-            RenderColumns::Due => "Due",
-            RenderColumns::Recur => "Recur",
-        })
-    }
-}
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct DataDirConfig(PathBuf);

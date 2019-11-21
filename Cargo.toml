@@ -1,5 +1,7 @@
 [workspace]
 members = [
+	"rust/render_simple_cli_table",
+
 	"rust/hypertask_config_file_opener",
 	"rust/hypertask_engine",
 
