@@ -15,7 +15,7 @@ pub struct Task {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(super) description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub(super) depends_on: Option<Rc<Id>>,
+    pub(super) blocked_by: Option<Rc<Id>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(super) done: Option<DateTime<Utc>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -47,7 +47,7 @@ where
 impl Hash for Task {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.created_at.hash(state);
-        self.depends_on.hash(state);
+        self.blocked_by.hash(state);
         self.description.hash(state);
         self.done.hash(state);
         self.due.hash(state);
@@ -67,7 +67,7 @@ impl Task {
     pub fn generate(now: &DateTime<Utc>) -> Self {
         Self {
             created_at: now.clone(),
-            depends_on: None,
+            blocked_by: None,
             description: None,
             done: None,
             due: None,
@@ -95,8 +95,8 @@ impl Task {
     pub fn get_id(&self) -> Rc<Id> {
         self.id.clone()
     }
-    pub fn get_depends_on(&self) -> Option<Rc<Id>> {
-        self.depends_on.clone()
+    pub fn get_blocked_by(&self) -> Option<Rc<Id>> {
+        self.blocked_by.clone()
     }
     pub fn get_recur(&self) -> &Option<Recur> {
         &self.recur

@@ -102,8 +102,8 @@ impl super::Task {
                 self.wait = *wait;
             }
             Mutation::SetProp(Prop::Recur(recur)) => self.recur = recur.clone(),
-            Mutation::SetProp(Prop::Depends(depends)) => {
-                self.depends_on = depends.as_ref().map(|d| Rc::new(d.clone()));
+            Mutation::SetProp(Prop::Blocked(blocked)) => {
+                self.blocked_by = blocked.as_ref().map(|d| Rc::new(d.clone()));
             }
         }
 

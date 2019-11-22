@@ -263,8 +263,8 @@ pub fn parse_as_prop(token: &str) -> Option<HyperTaskResult<Prop>> {
             Ok(Prop::Recur(Some(value)))
         }
 
-        ("depends", "") => Ok(Prop::Depends(None)),
-        ("depends", value) => {
+        ("blocked", "") => Ok(Prop::Blocked(None)),
+        ("blocked", value) => {
             let value = match parse_as_id(&value) {
                 Some(x) => x,
                 None => {
@@ -275,7 +275,7 @@ pub fn parse_as_prop(token: &str) -> Option<HyperTaskResult<Prop>> {
                     .with_msg(|| format!("`{}` is not a valid id", value))))
                 }
             };
-            Ok(Prop::Depends(Some(value)))
+            Ok(Prop::Blocked(Some(value)))
         }
 
         _ => Err(

@@ -14,7 +14,7 @@ pub enum RenderColumns {
     Id,
     Score,
     Description,
-    Depends,
+    Blocked,
     Tags,
     Due,
     Recur,
@@ -26,7 +26,7 @@ impl fmt::Display for RenderColumns {
             RenderColumns::Id => "Id",
             RenderColumns::Score => "Score",
             RenderColumns::Description => "Description",
-            RenderColumns::Depends => "Depends",
+            RenderColumns::Blocked => "Blocked By",
             RenderColumns::Tags => "Tags",
             RenderColumns::Due => "Due",
             RenderColumns::Recur => "Recur",
@@ -68,7 +68,12 @@ fn renderify_task(
     let mut map = HashMap::new();
     map.insert(RenderColumns::Id, format!("{}", task.get_id()));
     map.insert(RenderColumns::Score, format!("{0:.4}", score));
-    map.insert(RenderColumns::Depends, format!("{}", ""));
+    map.insert(
+        RenderColumns::Blocked,
+        task.get_blocked_by()
+            .map(|d| format!("{}", d))
+            .unwrap_or_else(String::default),
+    );
 
     map.insert(
         RenderColumns::Recur,

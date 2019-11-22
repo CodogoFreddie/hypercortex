@@ -1,4 +1,5 @@
 use crate::error::*;
+use crate::id::Id;
 use crate::task::Task;
 use chrono::prelude::*;
 use std::collections::HashMap;
@@ -202,7 +203,12 @@ impl StackMachine {
         Ok(())
     }
 
-    fn run_get_prop(&mut self, task: &Task) -> HyperTaskResult<()> {
+    fn run_get_prop(
+        &mut self,
+        task: &Task,
+
+        dependants_map: &HashMap<Rc<Id>, Vec<Rc<Task>>>,
+    ) -> HyperTaskResult<()> {
         let prop_name = self.pop_symbol()?;
 
         let replace = match prop_name.as_str() {
@@ -212,6 +218,16 @@ impl StackMachine {
             "snooze" => sanitize_date_time(task.get_snooze()),
             "updated_at" => task.get_updated_at().timestamp() as f64,
             "wait" => sanitize_date_time(task.get_wait()),
+
+            "blocked" => match task.get_blocked_by() {
+                Some(_) => 1.0,
+                None => 0.0,
+            },
+
+            "blocking" => match (dependants_map.get(&task.get_id())) {
+                Some(ds) => ds.len() as f64,
+                None => 0.0,
+            },
 
             _ => {
                 return Err(HyperTaskError::new(
@@ -283,7 +299,11 @@ impl StackMachine {
         Ok(())
     }
 
-    pub fn run_on(&mut self, task: &Task) -> HyperTaskResult<f64> {
+    pub fn run_on(
+        &mut self,
+        task: &Task,
+        dependants_map: &HashMap<Rc<Id>, Vec<Rc<Task>>>,
+    ) -> HyperTaskResult<f64> {
         self.stack.clear();
 
         for instruction in &*(self.instructions.clone()) {
@@ -295,7 +315,7 @@ impl StackMachine {
                 RPNSymbol::Duplicate => self.run_duplicate(),
                 RPNSymbol::Equal => self.run_equal(),
                 RPNSymbol::GetEnvironment => self.run_get_environment(),
-                RPNSymbol::GetProp => self.run_get_prop(task),
+                RPNSymbol::GetProp => self.run_get_prop(task, &dependants_map),
                 RPNSymbol::GetTag => self.run_get_tag(task),
                 RPNSymbol::GreaterThan => self.run_greater_than(),
                 RPNSymbol::LessThan => self.run_less_than(),

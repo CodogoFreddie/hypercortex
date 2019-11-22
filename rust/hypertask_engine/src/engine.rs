@@ -56,7 +56,7 @@ impl Engine {
         let mut dependants_map: HashMap<Rc<Id>, Vec<Rc<Task>>> = HashMap::new();
 
         for (_child_id, child_task) in tasks_initial_state.iter() {
-            if let Some(parent_id) = child_task.get_depends_on() {
+            if let Some(parent_id) = child_task.get_blocked_by() {
                 dependants_map
                     .entry(parent_id.clone())
                     .and_modify(|children: &mut Vec<Rc<Task>>| {
@@ -96,7 +96,9 @@ impl Engine {
                 for (id, task) in self.tasks_initial_state.iter() {
                     // don't run mutations on tasks that are filtered out, the user probably
                     // didn't mean to
-                    if task.satisfies_queries(&query) && self.filter_machine.run_on(&task)? > 0.0 {
+                    if task.satisfies_queries(&query)
+                        && self.filter_machine.run_on(&task, &self.dependants_map)? > 0.0
+                    {
                         let updated_task: Task = task.apply_mutations(&mutation, &self.now);
 
                         mutated_tasks.push(Rc::new(updated_task));
@@ -116,7 +118,7 @@ impl Engine {
                         };
                     } else {
                         //otherwise, filter out queries that don't satisfy the filter
-                        if self.filter_machine.run_on(&task)? > 0.0 {
+                        if self.filter_machine.run_on(&task, &self.dependants_map)? > 0.0 {
                             display_ids.insert(id.clone());
                         }
                     }
@@ -134,8 +136,8 @@ impl Engine {
                 .expect("if I have the Id, I should have the Task")
                 .clone();
 
-            let score = self.score_machine.run_on(&task)?;
-            let filter = self.filter_machine.run_on(&task)?;
+            let score = self.score_machine.run_on(&task, &self.dependants_map)?;
+            let filter = self.filter_machine.run_on(&task, &self.dependants_map)?;
 
             display_tasks.push((filter > 0.0, score, task));
         }
