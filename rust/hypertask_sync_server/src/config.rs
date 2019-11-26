@@ -27,17 +27,21 @@ fn generate_sync_secret() -> String {
 pub struct SyncServerConfig {
     pub data_dir: PathBuf,
     pub sync_secret: String,
+    pub hostname: String,
+    pub port: u16,
 }
 
 impl Default for SyncServerConfig {
     fn default() -> Self {
-        let mut config_data_dir: PathBuf = AppDirs::new(Some("hypertask-cli"), AppUI::CommandLine)
+        let config_data_dir: PathBuf = AppDirs::new(Some("hypertask-cli"), AppUI::CommandLine)
             .unwrap()
             .data_dir;
 
         Self {
             data_dir: config_data_dir,
             sync_secret: generate_sync_secret(),
+            hostname: "localhost".to_owned(),
+            port: 1234,
         }
     }
 }
