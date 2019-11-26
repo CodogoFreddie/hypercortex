@@ -5,7 +5,7 @@ use chrono::prelude::*;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum RPNSymbol {
     Add,
     Branch,
@@ -224,7 +224,7 @@ impl StackMachine {
                 None => 0.0,
             },
 
-            "blocking" => match (dependants_map.get(&task.get_id())) {
+            "blocking" => match dependants_map.get(&task.get_id()) {
                 Some(ds) => ds.len() as f64,
                 None => 0.0,
             },

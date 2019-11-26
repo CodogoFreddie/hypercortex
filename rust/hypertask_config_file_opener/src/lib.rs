@@ -144,7 +144,6 @@ pub fn run_string_as_shell_command(cmd: &str) -> HyperTaskResult<String> {
                         })
                         .from(e)
                     })?;
-
                 Ok(format!("{}{}", stdout, stderr))
             })
     } else {

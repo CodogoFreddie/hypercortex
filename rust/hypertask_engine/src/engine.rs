@@ -36,7 +36,7 @@ pub struct EngineOutput {
 
 pub struct Engine {
     ///these tasks do not change while the engine runs, and will not be mutated
-    tasks_initial_state: HashMap<Rc<Id>, Rc<Task>>,
+    all_tasks_collection: HashMap<Rc<Id>, Rc<Task>>,
     #[allow(dead_code)]
     dependants_map: HashMap<Rc<Id>, Vec<Rc<Task>>>,
 
@@ -48,14 +48,14 @@ pub struct Engine {
 impl Engine {
     /// Creates a new `Engine`, and builds a map of dependants for each task.
     pub fn new(
-        tasks_initial_state: HashMap<Rc<Id>, Rc<Task>>,
+        all_tasks_collection: HashMap<Rc<Id>, Rc<Task>>,
         filter_machine: StackMachine,
         score_machine: StackMachine,
         now: DateTime<Utc>,
     ) -> Self {
         let mut dependants_map: HashMap<Rc<Id>, Vec<Rc<Task>>> = HashMap::new();
 
-        for (_child_id, child_task) in tasks_initial_state.iter() {
+        for (_child_id, child_task) in all_tasks_collection.iter() {
             if let Some(parent_id) = child_task.get_blocked_by() {
                 dependants_map
                     .entry(parent_id.clone())
@@ -67,7 +67,7 @@ impl Engine {
         }
 
         Self {
-            tasks_initial_state,
+            all_tasks_collection,
             dependants_map,
 
             filter_machine,
@@ -77,7 +77,7 @@ impl Engine {
     }
 
     pub fn run(&mut self, command: Command) -> HyperTaskResult<EngineOutput> {
-        let mut mutated_tasks = vec![];
+        let mut mutated_tasks: Vec<Rc<Task>> = vec![];
         let mut display_ids: HashSet<Rc<Id>> = HashSet::new();
 
         match command {
@@ -87,13 +87,13 @@ impl Engine {
                     Rc::new(Task::generate(&self.now).apply_mutations(&mutations, &self.now));
                 let id = new_task.get_id();
 
-                self.tasks_initial_state
+                self.all_tasks_collection
                     .insert(id.clone(), new_task.clone());
                 mutated_tasks.push(new_task);
                 display_ids.insert(id.clone());
             }
             Command::Update(query, mutation) => {
-                for (id, task) in self.tasks_initial_state.iter() {
+                for (id, task) in self.all_tasks_collection.iter() {
                     // don't run mutations on tasks that are filtered out, the user probably
                     // didn't mean to
                     if task.satisfies_queries(&query)
@@ -109,7 +109,7 @@ impl Engine {
 
             //if we're just querying, run the query
             Command::Read(query) => {
-                for (id, task) in self.tasks_initial_state.iter() {
+                for (id, task) in self.all_tasks_collection.iter() {
                     // if there's any query specified
                     if query.len() > 0 {
                         //then return any tasks that match the query, including filtered ones
@@ -125,13 +125,18 @@ impl Engine {
                 }
             }
             _ => {}
+        };
+
+        for task in &mutated_tasks {
+            self.all_tasks_collection
+                .insert(task.get_id(), task.clone());
         }
 
         let mut display_tasks: Vec<(bool, Score, Rc<Task>)> = Vec::with_capacity(display_ids.len());
 
         for id in display_ids.into_iter() {
             let task: Rc<Task> = self
-                .tasks_initial_state
+                .all_tasks_collection
                 .get(&id)
                 .expect("if I have the Id, I should have the Task")
                 .clone();

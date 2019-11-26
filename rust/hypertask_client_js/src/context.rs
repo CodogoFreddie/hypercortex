@@ -116,20 +116,4 @@ impl<'a> HyperTaskEngineContext<WebTaskIterator> for WebContext<'a> {
     fn score_mutations(&self) -> HyperTaskResult<()> {
         Ok(())
     }
-
-    fn get_stack_machine(&self) -> HyperTaskResult<StackMachine> {
-        let mut env = HashMap::new();
-
-        let now = self.get_now();
-
-        env.insert("day_of_week", f64::from(now.weekday().number_from_monday()));
-        env.insert("hour", f64::from(now.hour()));
-        env.insert("minute", f64::from(now.minute()));
-        env.insert("month", f64::from(now.month()));
-        env.insert("now", now.timestamp() as f64);
-
-        let program = RPNSymbol::parse_program(&self.stack_machine_program);
-
-        Ok(StackMachine::new(program, env))
-    }
 }

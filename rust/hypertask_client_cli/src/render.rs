@@ -1,4 +1,4 @@
-use crate::context::CliContext;
+use crate::config::CliConfig;
 use ansi_term::Colour::{Cyan, Green, Red};
 use ansi_term::Style;
 use chrono::prelude::*;
@@ -113,12 +113,12 @@ fn renderify_task(
 
 pub fn render_engine_output(
     display_tasks: Vec<(bool, Score, Rc<Task>)>,
-    cli_context: &CliContext,
+    cli_config: &CliConfig,
 ) -> HyperTaskResult<()> {
     let renderable_tasks = display_tasks.iter().map(renderify_task).collect();
 
     render_table(
-        &cli_context.get_render_columns()[..],
+        &cli_config.render.columns,
         &Style::new().underline(),
         &renderable_tasks,
     )
