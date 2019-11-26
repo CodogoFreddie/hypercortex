@@ -1,3 +1,4 @@
+mod conflict;
 mod data;
 mod query_mutation;
 
