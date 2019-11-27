@@ -15,6 +15,13 @@ use std::sync::Arc;
 
 type TaskHashes = HashMap<Rc<Id>, u64>;
 
+#[put("/task/{id}")]
+fn greet(data: web::Data<SyncServerConfig>, path: web::Path<String>) -> impl Responder {
+    let mut task_hashes = TaskHashes::new();
+
+    println!("{}" path);
+}
+
 #[get("/hashes")]
 fn greet(data: web::Data<SyncServerConfig>, _req: HttpRequest) -> impl Responder {
     let mut task_hashes = TaskHashes::new();
