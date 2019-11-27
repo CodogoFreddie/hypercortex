@@ -1,5 +1,5 @@
 [package]
-name = "hypertask_sync_server"
+name = "hypertask_sync_cli_daemon"
 version = "0.1.0"
 authors = ["Freddie Ridell <contact@freddieridell.com>"]
 edition = "2018"
@@ -7,14 +7,10 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-web="1.0.9"
-chrono = { version = "0.4", features = ["serde"] }
+daemonize = "0.4.1"
 hypertask_config_file_opener={ version = "0.2.0", path="../hypertask_config_file_opener"}
-hypertask_task_io_operations={ version = "0.1.0", path="../hypertask_task_io_operations"}
 hypertask_engine={ version = "0.2.0", path= "../hypertask_engine" }
 platform-dirs = "0.2.0"
-rand = "0.6.5" 
-time = "0.1.42"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 shellexpand = "1.0.0"    # Shell-like expansions in strings

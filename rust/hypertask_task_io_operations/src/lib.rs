@@ -1,15 +1,21 @@
-use crate::config::SyncServerConfig;
 use hypertask_engine::prelude::*;
 use serde_json;
 use std::collections::HashMap;
 use std::fs;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
+use std::path::PathBuf;
 use std::rc::Rc;
 
-pub fn delete_task(config: &SyncServerConfig, id: &Id) -> HyperTaskResult<()> {
+pub trait ProvidesDataDir: Sync + Send {
+    fn get_data_dir(&self) -> &PathBuf;
+}
+
+pub fn delete_task<Config: ProvidesDataDir>(config: &Config, id: &Id) -> HyperTaskResult<()> {
+    let data_dir: &PathBuf = config.get_data_dir();
+
     let Id(task_id) = id;
-    let file_path = config.data_dir.join(task_id);
+    let file_path = data_dir.join(task_id);
 
     fs::remove_file(file_path).map_err(|e| {
         HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Delete)
@@ -20,10 +26,12 @@ pub fn delete_task(config: &SyncServerConfig, id: &Id) -> HyperTaskResult<()> {
     Ok(())
 }
 
-pub fn put_task(config: &SyncServerConfig, task: &Task) -> HyperTaskResult<()> {
+pub fn put_task<Config: ProvidesDataDir>(config: &Config, task: &Task) -> HyperTaskResult<()> {
+    let data_dir: &PathBuf = config.get_data_dir();
+
     let Id(task_id) = &*task.get_id();
 
-    let file_path = config.data_dir.join(task_id);
+    let file_path = data_dir.join(task_id);
 
     let file = File::create(file_path).map_err(|e| {
         HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Write)
@@ -46,8 +54,13 @@ pub fn put_task(config: &SyncServerConfig, task: &Task) -> HyperTaskResult<()> {
     Ok(())
 }
 
-pub fn get_task(config: &SyncServerConfig, id: &Id) -> HyperTaskResult<Option<Task>> {
-    let task_file_path = config.data_dir.join(id.0.clone());
+pub fn get_task<Config: ProvidesDataDir>(
+    config: &Config,
+    id: &Id,
+) -> HyperTaskResult<Option<Task>> {
+    let data_dir: &PathBuf = config.get_data_dir();
+
+    let task_file_path = data_dir.join(id.0.clone());
 
     let task_file = File::open(&task_file_path).map_err(|e| {
         HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Read)
@@ -66,13 +79,17 @@ pub fn get_task(config: &SyncServerConfig, id: &Id) -> HyperTaskResult<Option<Ta
 
     Ok(Some(task))
 }
-pub fn get_input_tasks(config: &SyncServerConfig) -> HyperTaskResult<HashMap<Rc<Id>, Rc<Task>>> {
-    let task_files_iterator = fs::read_dir(&config.data_dir).map_err(|e| {
+
+pub fn get_input_tasks<Config: ProvidesDataDir>(
+    config: &Config,
+) -> HyperTaskResult<HashMap<Rc<Id>, Rc<Task>>> {
+    let data_dir: &PathBuf = config.get_data_dir();
+    let task_files_iterator = fs::read_dir(&data_dir).map_err(|e| {
         HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Read)
             .with_msg(|| {
                 format!(
                     "folder `{:}` could not be found",
-                    &config.data_dir.to_str().unwrap_or("")
+                    &data_dir.to_str().unwrap_or("")
                 )
             })
             .from(e)

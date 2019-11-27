@@ -1,6 +1,7 @@
 use crate::render::RenderColumns;
 use hypertask_config_file_opener::ShellExpand;
 use hypertask_engine::prelude::*;
+use hypertask_task_io_operations::ProvidesDataDir;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -59,6 +60,12 @@ pub struct CliConfig {
     pub render: RenderConfig,
     pub filter_calculator: ScoreCalculatorConfig,
     pub score_calculator: ScoreCalculatorConfig,
+}
+
+impl ProvidesDataDir for CliConfig {
+    fn get_data_dir(&self) -> &PathBuf {
+        &self.data_dir
+    }
 }
 
 impl ShellExpand for CliConfig {

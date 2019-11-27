@@ -1,4 +1,5 @@
 use hypertask_config_file_opener::ShellExpand;
+use hypertask_task_io_operations::ProvidesDataDir;
 use platform_dirs::{AppDirs, AppUI};
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
@@ -29,6 +30,12 @@ pub struct SyncServerConfig {
     pub sync_secret: String,
     pub hostname: String,
     pub port: u16,
+}
+
+impl ProvidesDataDir for SyncServerConfig {
+    fn get_data_dir(&self) -> &PathBuf {
+        &self.data_dir
+    }
 }
 
 impl Default for SyncServerConfig {

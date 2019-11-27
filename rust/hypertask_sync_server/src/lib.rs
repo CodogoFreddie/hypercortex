@@ -1,31 +1,30 @@
 extern crate hypertask_engine;
 
 mod config;
-mod io;
 
 use crate::config::SyncServerConfig;
-use crate::io::{delete_task, get_input_tasks, get_task, put_task};
 use actix_web::{get, post};
 use actix_web::{web, App, HttpRequest, HttpServer, Responder};
 use chrono::prelude::*;
 use hypertask_config_file_opener::{ConfigFileGetter, ConfigFileOpener};
 use hypertask_engine::prelude::*;
+use hypertask_task_io_operations::{delete_task, get_input_tasks, get_task, put_task};
 use std::collections::HashMap;
 use std::rc::Rc;
-use std::sync::Arc;
 use time::Duration;
 
 type TaskHashes = HashMap<Rc<Id>, u64>;
 
 #[post("/task/{id}")]
 fn compare_tasks(
-    config: web::Data<SyncServerConfig>,
+    config_data: web::Data<SyncServerConfig>,
     path: web::Path<String>,
     client_task_input: web::Json<Option<Task>>,
 ) -> impl Responder {
     let id = Id(path.to_string());
+    let config: &SyncServerConfig = config_data.get_ref();
 
-    let server_task: Option<Task> = get_task(&config, &id).expect("could not open task");
+    let server_task: Option<Task> = get_task(config, &id).expect("could not open task");
 
     let client_task: Option<Task> = client_task_input.into_inner();
 
@@ -34,19 +33,20 @@ fn compare_tasks(
             .expect("tasks did not have the same id");
 
     match &resolved_task {
-        Some(task) => put_task(&config, &task).expect("could not save task"),
-        None => delete_task(&config, &id).expect("could not delete task"),
+        Some(task) => put_task(config, &task).expect("could not save task"),
+        None => delete_task(config, &id).expect("could not delete task"),
     };
 
     web::Json(resolved_task)
 }
 
 #[get("/hashes")]
-fn get_hashes(config: web::Data<SyncServerConfig>, _req: HttpRequest) -> impl Responder {
+fn get_hashes(config_data: web::Data<SyncServerConfig>, _req: HttpRequest) -> impl Responder {
     let mut task_hashes = TaskHashes::new();
+    let config: &SyncServerConfig = config_data.get_ref();
 
     let input_tasks: HashMap<Rc<Id>, Rc<Task>> =
-        get_input_tasks(&config).expect("could not get tasks");
+        get_input_tasks(config).expect("could not get tasks");
 
     for (id, task) in input_tasks.iter() {
         task_hashes.insert(id.clone(), task.calculate_hash());
@@ -55,20 +55,21 @@ fn get_hashes(config: web::Data<SyncServerConfig>, _req: HttpRequest) -> impl Re
     web::Json(task_hashes)
 }
 
-pub fn start() -> HyperTaskResult<()> {
+fn get_config_object() -> HyperTaskResult<SyncServerConfig> {
     let mut config_file_opener = ConfigFileOpener::new("sync-server.toml")?;
-    let config_file_getter: Arc<ConfigFileGetter<SyncServerConfig>> =
-        Arc::new(config_file_opener.parse()?);
-    let config_file_getter_instance = config_file_getter.clone();
-    let sync_server_config: &SyncServerConfig = config_file_getter.get_config();
+    let config_file_getter: ConfigFileGetter<SyncServerConfig> = config_file_opener.parse()?;
+    Ok(config_file_getter.get_config().clone())
+}
 
+pub fn start() -> HyperTaskResult<()> {
+    let sync_server_config = get_config_object()?;
     dbg!(&sync_server_config);
 
-    HttpServer::new(move || {
-        let sync_server_config: &SyncServerConfig = config_file_getter_instance.get_config();
+    HttpServer::new(|| {
+        let config = get_config_object().expect("could not load config");
 
         App::new()
-            .data(sync_server_config.clone())
+            .data(config)
             .service(get_hashes)
             .service(compare_tasks)
     })
