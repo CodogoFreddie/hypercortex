@@ -6,6 +6,7 @@ use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
+#[allow(clippy::derive_hash_xor_eq)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Task {
     pub(super) created_at: DateTime<Utc>,
@@ -44,6 +45,7 @@ where
     vec.serialize(serializer)
 }
 
+#[allow(clippy::derive_hash_xor_eq)]
 impl Hash for Task {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.created_at.hash(state);
@@ -66,7 +68,7 @@ impl Hash for Task {
 impl Task {
     pub fn generate(now: &DateTime<Utc>) -> Self {
         Self {
-            created_at: now.clone(),
+            created_at: *now,
             blocked_by: None,
             description: None,
             done: None,
@@ -75,7 +77,7 @@ impl Task {
             recur: None,
             snooze: None,
             tags: HashSet::new(),
-            updated_at: now.clone(),
+            updated_at: *now,
             wait: None,
         }
     }

@@ -52,7 +52,7 @@ pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
         display_tasks,
     } = engine.run(parse_cli_args(args.iter().skip(1))?)?;
 
-    if mutated_tasks.len() > 0 {
+    if !mutated_tasks.is_empty() {
         for task in mutated_tasks {
             put_task(&cli_config, &task)?;
             if let Some(on_edit_cmd) = cli_config

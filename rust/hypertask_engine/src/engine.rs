@@ -111,7 +111,7 @@ impl Engine {
             Command::Read(query) => {
                 for (id, task) in self.all_tasks_collection.iter() {
                     // if there's any query specified
-                    if query.len() > 0 {
+                    if !query.is_empty() {
                         //then return any tasks that match the query, including filtered ones
                         if task.satisfies_queries(&query) {
                             display_ids.insert(id.clone());

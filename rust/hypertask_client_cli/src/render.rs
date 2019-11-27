@@ -34,22 +34,22 @@ impl fmt::Display for RenderColumns {
     }
 }
 
-fn style_task(filtered: &bool, score: &f64) -> Style {
+fn style_task(filtered: bool, score: f64) -> Style {
     let mut style = Style::new();
 
-    if score > &10.0 {
+    if score > 10.0 {
         style = style.fg(Green);
     };
 
-    if score > &20.0 {
+    if score > 20.0 {
         style = style.fg(Cyan);
     };
 
-    if score > &30.0 {
+    if score > 30.0 {
         style = style.fg(Red);
     };
 
-    if *filtered {
+    if filtered {
         style = style.dimmed();
     };
 
@@ -102,13 +102,13 @@ fn renderify_task(
 
     map.insert(
         RenderColumns::Description,
-        format!(
-            "{}",
-            task.get_description().as_ref().unwrap_or(&"".to_string())
-        ),
+        task.get_description()
+            .as_ref()
+            .unwrap_or(&"".to_string())
+            .to_string(),
     );
 
-    (style_task(filtered, score), map)
+    (style_task(*filtered, *score), map)
 }
 
 pub fn render_engine_output(
