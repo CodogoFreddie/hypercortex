@@ -13,6 +13,7 @@ hypertask_config_file_opener={ version = "0.2.0", path="../hypertask_config_file
 hypertask_engine={ version = "0.2.0", path= "../hypertask_engine" }
 platform-dirs = "0.2.0"
 rand = "0.6.5" 
+time = "0.1.42"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 shellexpand = "1.0.0"    # Shell-like expansions in strings

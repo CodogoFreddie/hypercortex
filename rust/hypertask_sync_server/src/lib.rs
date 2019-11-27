@@ -4,30 +4,49 @@ mod config;
 mod io;
 
 use crate::config::SyncServerConfig;
-use crate::io::get_input_tasks;
-use actix_web::get;
+use crate::io::{delete_task, get_input_tasks, get_task, put_task};
+use actix_web::{get, post};
 use actix_web::{web, App, HttpRequest, HttpServer, Responder};
+use chrono::prelude::*;
 use hypertask_config_file_opener::{ConfigFileGetter, ConfigFileOpener};
 use hypertask_engine::prelude::*;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::Arc;
+use time::Duration;
 
 type TaskHashes = HashMap<Rc<Id>, u64>;
 
-#[put("/task/{id}")]
-fn greet(data: web::Data<SyncServerConfig>, path: web::Path<String>) -> impl Responder {
-    let mut task_hashes = TaskHashes::new();
+#[post("/task/{id}")]
+fn compare_tasks(
+    config: web::Data<SyncServerConfig>,
+    path: web::Path<String>,
+    client_task_input: web::Json<Option<Task>>,
+) -> impl Responder {
+    let id = Id(path.to_string());
 
-    println!("{}" path);
+    let server_task: Option<Task> = get_task(&config, &id).expect("could not open task");
+
+    let client_task: Option<Task> = client_task_input.into_inner();
+
+    let resolved_task: Option<Task> =
+        Task::resolve_task_conflict(&(Utc::now() - Duration::days(30)), server_task, client_task)
+            .expect("tasks did not have the same id");
+
+    match &resolved_task {
+        Some(task) => put_task(&config, &task).expect("could not save task"),
+        None => delete_task(&config, &id).expect("could not delete task"),
+    };
+
+    web::Json(resolved_task)
 }
 
 #[get("/hashes")]
-fn greet(data: web::Data<SyncServerConfig>, _req: HttpRequest) -> impl Responder {
+fn get_hashes(config: web::Data<SyncServerConfig>, _req: HttpRequest) -> impl Responder {
     let mut task_hashes = TaskHashes::new();
 
     let input_tasks: HashMap<Rc<Id>, Rc<Task>> =
-        get_input_tasks(&data).expect("could not get tasks");
+        get_input_tasks(&config).expect("could not get tasks");
 
     for (id, task) in input_tasks.iter() {
         task_hashes.insert(id.clone(), task.calculate_hash());
@@ -48,7 +67,10 @@ pub fn start() -> HyperTaskResult<()> {
     HttpServer::new(move || {
         let sync_server_config: &SyncServerConfig = config_file_getter_instance.get_config();
 
-        App::new().data(sync_server_config.clone()).service(greet)
+        App::new()
+            .data(sync_server_config.clone())
+            .service(get_hashes)
+            .service(compare_tasks)
     })
     .bind((
         sync_server_config.hostname.as_str(),
