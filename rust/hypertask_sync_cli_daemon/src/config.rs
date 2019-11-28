@@ -1,4 +1,5 @@
 use hypertask_config_file_opener::ShellExpand;
+use hypertask_task_io_operations::ProvidesDataDir;
 use platform_dirs::{AppDirs, AppUI};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -10,6 +11,12 @@ pub struct SyncCliDaemonConfig {
     pub server_url: String,
 }
 
+impl ProvidesDataDir for SyncCliDaemonConfig {
+    fn get_data_dir(&self) -> &PathBuf {
+        &self.data_dir
+    }
+}
+
 impl Default for SyncCliDaemonConfig {
     fn default() -> Self {
         let AppDirs {
@@ -19,7 +26,7 @@ impl Default for SyncCliDaemonConfig {
         } = AppDirs::new(Some("hypertask-cli"), AppUI::CommandLine).unwrap();
 
         Self {
-            data_dir: data_dir,
+            data_dir,
             sync_secret_file: config_dir.join("daemon-sync-secret.txt"),
             server_url: "https://hypertask-sync-server.horse:1234".to_owned(),
         }

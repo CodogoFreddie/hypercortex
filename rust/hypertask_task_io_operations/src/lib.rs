@@ -3,7 +3,7 @@ use serde_json;
 use std::collections::HashMap;
 use std::fs;
 use std::fs::File;
-use std::io::{BufReader, BufWriter};
+use std::io::{BufReader, BufWriter, ErrorKind};
 use std::path::PathBuf;
 use std::rc::Rc;
 
@@ -62,11 +62,21 @@ pub fn get_task<Config: ProvidesDataDir>(
 
     let task_file_path = data_dir.join(id.0.clone());
 
-    let task_file = File::open(&task_file_path).map_err(|e| {
-        HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Read)
-            .with_msg(|| format!("failed to open task `{:?}`", task_file_path))
-            .from(e)
-    })?;
+    let task_file = match File::open(&task_file_path) {
+        Ok(t) => t,
+        Err(e) => {
+            if e.kind() == ErrorKind::NotFound {
+                return Ok(None);
+            } else {
+                return Err(HyperTaskError::new(
+                    HyperTaskErrorDomain::Task,
+                    HyperTaskErrorAction::Read,
+                )
+                .with_msg(|| format!("failed to open task `{:?}`", task_file_path))
+                .from(e));
+            }
+        }
+    };
 
     let task: Task = serde_json::from_reader::<std::io::BufReader<std::fs::File>, Task>(
         BufReader::new(task_file),

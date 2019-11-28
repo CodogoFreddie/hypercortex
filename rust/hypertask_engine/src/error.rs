@@ -11,6 +11,7 @@ pub enum HyperTaskErrorDomain {
     Query,
     ScoreCalculator,
     Task,
+    Syncing,
 }
 
 impl fmt::Display for HyperTaskErrorDomain {
@@ -20,6 +21,7 @@ impl fmt::Display for HyperTaskErrorDomain {
             "{}",
             match self {
                 HyperTaskErrorDomain::Config => "config",
+                HyperTaskErrorDomain::Syncing => "syncing",
                 HyperTaskErrorDomain::Render => "render",
                 HyperTaskErrorDomain::Context => "context",
                 HyperTaskErrorDomain::Input => "input",

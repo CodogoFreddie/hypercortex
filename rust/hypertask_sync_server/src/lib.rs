@@ -63,7 +63,13 @@ fn get_config_object() -> HyperTaskResult<SyncServerConfig> {
 
 pub fn start() -> HyperTaskResult<()> {
     let sync_server_config = get_config_object()?;
-    dbg!(&sync_server_config);
+
+    println!(
+        "started syncing server for dir `{}` @ {}:{}",
+        sync_server_config.data_dir.to_str().unwrap(),
+        sync_server_config.hostname,
+        sync_server_config.port,
+    );
 
     HttpServer::new(|| {
         let config = get_config_object().expect("could not load config");
@@ -80,11 +86,6 @@ pub fn start() -> HyperTaskResult<()> {
     .expect("could not start server")
     .run()
     .unwrap();
-
-    format!(
-        "started server @ {}:{}",
-        sync_server_config.hostname, sync_server_config.port,
-    );
 
     Ok(())
 }
