@@ -115,12 +115,13 @@ pub fn render_engine_output(
     display_tasks: Vec<(bool, Score, Rc<Task>)>,
     cli_config: &CliConfig,
 ) -> HyperTaskResult<()> {
-    let renderable_tasks = display_tasks.iter().map(renderify_task).collect();
+    let renderable_tasks: Vec<(ansi_term::Style, HashMap<RenderColumns, String>)> =
+        display_tasks.iter().map(renderify_task).collect();
 
     render_table(
         &cli_config.render.columns,
         &Style::new().underline(),
-        &renderable_tasks,
+        &renderable_tasks.as_slice(),
     )
     .map_err(|e| {
         HyperTaskError::new(HyperTaskErrorDomain::Render, HyperTaskErrorAction::Write).from(e)

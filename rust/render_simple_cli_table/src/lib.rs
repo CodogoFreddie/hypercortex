@@ -5,10 +5,14 @@ use std::hash::Hash;
 
 const GUTTER_WIDTH: usize = 2;
 
-pub fn render_table<Header: Display + Eq + Hash, Value: Display + Default>(
+pub fn render_table<
+    Header: Display + Eq + Hash,
+    Value: Display + Default,
+    Hasher: ::std::hash::BuildHasher,
+>(
     headers: &[Header],
     header_style: &Style,
-    rows: &Vec<(ansi_term::Style, HashMap<Header, Value>)>,
+    rows: &[(ansi_term::Style, HashMap<Header, Value, Hasher>)],
 ) -> Result<(), std::fmt::Error> {
     let lines = if let Some((_, height)) = term_size::dimensions() {
         height - 5
