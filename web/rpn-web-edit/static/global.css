@@ -7,6 +7,38 @@
   --color-chromatic-red: #ff6188;
   --color-chromatic-white: #fdf9f3;
   --color-chromatic-yellow: #ffd866;
+
+  --size-font-01: 8px;
+  --size-font-02: 11px;
+  --size-font-03: 16px;
+  --size-font-04: 22px;
+  --size-font-05: 32px;
+  --size-font-06: 45px;
+  --size-font-07: 64px;
+  --size-font-08: 90px;
+  --size-font-09: 128px;
+  --size-font-10: 181px;
+
+  --size-space-01: 0px;
+  --size-space-02: 4px;
+  --size-space-03: 8px;
+  --size-space-04: 12px;
+  --size-space-05: 16px;
+  --size-space-06: 24px;
+  --size-space-07: 32px;
+  --size-space-08: 48px;
+  --size-space-09: 64px;
+  --size-space-10: 96px;
+  --size-space-11: 128px;
+  --size-space-12: 192px;
+  --size-space-13: 256px;
+  --size-space-14: 384px;
+  --size-space-15: 512px;
+  --size-space-16: 768px;
+  --size-space-17: 1024px;
+  --size-space-18: 1536px;
+  --size-space-19: 2048px;
+  --size-space-20: 3072px;
 }
 
 body {
@@ -32,6 +64,11 @@ body {
   color: #333;
 }
 
+* {
+  margin: 0;
+  padding: 0;
+}
+
 h1,
 h2,
 h3,
@@ -53,11 +90,6 @@ a {
 
 code {
   font-family: menlo, inconsolata, monospace;
-  font-size: calc(1em - 2px);
-  color: #555;
-  background-color: #f0f0f0;
-  padding: 0.2em 0.4em;
-  border-radius: 2px;
 }
 
 @media (min-width: 400px) {
