@@ -8,9 +8,14 @@
 	import EditorOutput from "./EditorOutput.svelte";
 
 	export let initialStackState = "";
-	export let stackTrace = [];
 	export let testTask = {};
 	export let program = "";
+
+	export let stackTrace = [
+		[ 0 ],
+		[ 1, 3, ],
+		[ 0, 1, "test" ],
+	];
 
 </script>
 
