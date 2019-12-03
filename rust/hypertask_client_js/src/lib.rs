@@ -1,3 +1,6 @@
+#![deny(clippy::all)]
+#![deny(clippy::option_unwrap_used, clippy::result_unwrap_used)]
+
 extern crate js_sys;
 extern crate lazy_static;
 
@@ -11,26 +14,21 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 #[wasm_bindgen]
 pub fn get_machine_stack_trace(
     test_task_raw: &JsValue,
-    initial_commands_raw: &JsValue,
-    stack_values_raw: &JsValue,
+    programs_raw: &JsValue,
 ) -> Result<JsValue, JsValue> {
     let test_task: Task = test_task_raw
         .into_serde()
         .map_err(|e| JsValue::from_str(format!("{}", e).as_str()))?;
-    let initial_commands: String = initial_commands_raw.as_string().unwrap();
-    let program_chunks: Vec<String> = stack_values_raw
+    let programs_string_chunks: Vec<String> = programs_raw
         .into_serde()
         .map_err(|e| JsValue::from_str(format!("{}", e).as_str()))?;
 
-    let mut commands = RPNSymbol::parse_program(&initial_commands);
-    let mut main_commands = RPNSymbol::parse_programs(&program_chunks);
-
-    commands.append(&mut main_commands);
+    let program = RPNSymbol::parse_programs(&programs_string_chunks);
 
     let mut env = HashMap::new();
     env.insert("now", 1234.0);
 
-    let mut machine = StackMachine::new(commands, env);
+    let mut machine = StackMachine::new(program, env);
 
     let trace = machine
         .run_with_snapshots(&test_task, &HashMap::new())

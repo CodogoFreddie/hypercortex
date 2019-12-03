@@ -35,20 +35,22 @@ export default function Editor({ query }) {
 	const [program, setProgram] = React.useState(
 		parseProgram(query.program || stringifyProgram([])),
 	);
+	const [trace, setTrace] = React.useState([]);
 
 	React.useEffect(() => {
 		try {
 			const trace = stackMachineTracerRef.current(
 				JSON.parse(testTaskString),
-				stackStart,
-				program,
+				[stackStart, ...program],
 			);
 
-			console.log(trace);
+			setTrace(trace);
 		} catch (e) {
 			console.error(e);
 		}
 	}, [testTaskString, stackStart, program]);
+
+	React.useEffect(() => console.log(trace), [trace]);
 
 	React.useEffect(() => {
 		router.push({
@@ -83,6 +85,9 @@ export default function Editor({ query }) {
 				/>
 			</section>
 			<output className={css.output}> {minifiedProgram} </output>
+			<output style={{ whiteSpace: "pre" }}>
+				{trace.map(x => x.join("\t")).join("\n")}
+			</output>
 		</main>
 	);
 }
