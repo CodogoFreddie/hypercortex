@@ -2,10 +2,11 @@ use crate::error::*;
 use crate::id::Id;
 use crate::task::Task;
 use chrono::prelude::*;
+use std::cmp::PartialEq;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum RPNSymbol {
     Add,
     Branch,
@@ -44,6 +45,32 @@ impl RPNSymbol {
 
     pub fn parse_program(s: &str) -> Vec<Self> {
         s.split_whitespace().map(Self::parse).collect::<Vec<Self>>()
+    }
+
+    pub fn stringify(self) -> String {
+        use RPNSymbol::*;
+        match self {
+            Add => String::from("+"),
+            Branch => String::from("?"),
+            Count => String::from("|"),
+            Divide => String::from("/"),
+            Duplicate => String::from("&"),
+            Equal => String::from("="),
+            GetEnvironment => String::from("$"),
+            GetProp => String::from(":"),
+            GetTag => String::from("#"),
+            GreaterThan => String::from(">"),
+            LessThan => String::from("<"),
+            Log => String::from("~"),
+            Multiply => String::from("*"),
+            Number(f) => format!("{}", f),
+            Pow => String::from("^"),
+            Rem => String::from("%"),
+            Sqrt => String::from("_"),
+            Subtract => String::from("-"),
+            Swap => String::from("@"),
+            Symbol(s) => s,
+        }
     }
 
     pub fn parse(s: &str) -> Self {
@@ -299,6 +326,40 @@ impl StackMachine {
         Ok(())
     }
 
+    fn run_one_step(
+        &mut self,
+        task: &Task,
+        dependants_map: &HashMap<Rc<Id>, Vec<Rc<Task>>>,
+        instruction: &RPNSymbol,
+    ) -> HyperTaskResult<()> {
+        match instruction {
+            RPNSymbol::Add => self.run_add(),
+            RPNSymbol::Branch => self.run_branch(),
+            RPNSymbol::Count => self.run_count(),
+            RPNSymbol::Divide => self.run_divide(),
+            RPNSymbol::Duplicate => self.run_duplicate(),
+            RPNSymbol::Equal => self.run_equal(),
+            RPNSymbol::GetEnvironment => self.run_get_environment(),
+            RPNSymbol::GetProp => self.run_get_prop(task, &dependants_map),
+            RPNSymbol::GetTag => self.run_get_tag(task),
+            RPNSymbol::GreaterThan => self.run_greater_than(),
+            RPNSymbol::LessThan => self.run_less_than(),
+            RPNSymbol::Log => self.run_log(),
+            RPNSymbol::Multiply => self.run_multiply(),
+            RPNSymbol::Pow => self.run_pow(),
+            RPNSymbol::Rem => self.run_rem(),
+            RPNSymbol::Sqrt => self.run_sqrt(),
+            RPNSymbol::Subtract => self.run_subtract(),
+            RPNSymbol::Swap => self.run_swap(),
+
+            RPNSymbol::Number(n) => self.push_number(*n),
+            RPNSymbol::Symbol(s) => {
+                self.stack.push(RPNSymbol::Symbol(s.to_string()));
+                Ok(())
+            }
+        }
+    }
+
     pub fn run_on(
         &mut self,
         task: &Task,
@@ -307,34 +368,63 @@ impl StackMachine {
         self.stack.clear();
 
         for instruction in &*(self.instructions.clone()) {
-            match instruction {
-                RPNSymbol::Add => self.run_add(),
-                RPNSymbol::Branch => self.run_branch(),
-                RPNSymbol::Count => self.run_count(),
-                RPNSymbol::Divide => self.run_divide(),
-                RPNSymbol::Duplicate => self.run_duplicate(),
-                RPNSymbol::Equal => self.run_equal(),
-                RPNSymbol::GetEnvironment => self.run_get_environment(),
-                RPNSymbol::GetProp => self.run_get_prop(task, &dependants_map),
-                RPNSymbol::GetTag => self.run_get_tag(task),
-                RPNSymbol::GreaterThan => self.run_greater_than(),
-                RPNSymbol::LessThan => self.run_less_than(),
-                RPNSymbol::Log => self.run_log(),
-                RPNSymbol::Multiply => self.run_multiply(),
-                RPNSymbol::Pow => self.run_pow(),
-                RPNSymbol::Rem => self.run_rem(),
-                RPNSymbol::Sqrt => self.run_sqrt(),
-                RPNSymbol::Subtract => self.run_subtract(),
-                RPNSymbol::Swap => self.run_swap(),
-
-                RPNSymbol::Number(n) => self.push_number(*n),
-                RPNSymbol::Symbol(s) => {
-                    self.stack.push(RPNSymbol::Symbol(s.to_string()));
-                    Ok(())
-                }
-            }?
+            self.run_one_step(task, dependants_map, instruction)?;
         }
 
         Ok(self.pop_number()?)
+    }
+
+    pub fn run_with_snapshots(
+        &mut self,
+        task: &Task,
+        dependants_map: &HashMap<Rc<Id>, Vec<Rc<Task>>>,
+    ) -> HyperTaskResult<Vec<Vec<RPNSymbol>>> {
+        self.stack.clear();
+        let mut snapshots: Vec<Vec<RPNSymbol>> = vec![];
+
+        for instruction in &*(self.instructions.clone()) {
+            self.run_one_step(task, dependants_map, instruction)?;
+            snapshots.push(self.stack.clone());
+        }
+
+        Ok(snapshots)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn get_test_date() -> DateTime<Utc> {
+        Utc.ymd(2019, 11, 15).and_hms(9, 10, 11)
+    }
+
+    #[test]
+    fn can_run_with_snapshots() {
+        let instructions = RPNSymbol::parse_program("1 2 + test # due : now $");
+        let mut env = HashMap::new();
+
+        env.insert("now", 1234.0);
+
+        let mut machine = StackMachine::new(instructions, env);
+
+        let trace = machine
+            .run_with_snapshots(&Task::generate(&get_test_date()), &HashMap::new())
+            .unwrap();
+
+        assert_eq!(
+            trace,
+            vec![
+                RPNSymbol::parse_program("1"),
+                RPNSymbol::parse_program("1 2"),
+                RPNSymbol::parse_program("3"),
+                RPNSymbol::parse_program("3 test"),
+                RPNSymbol::parse_program("3 0"),
+                RPNSymbol::parse_program("3 0 due"),
+                RPNSymbol::parse_program("3 0 0"),
+                RPNSymbol::parse_program("3 0 0 now"),
+                RPNSymbol::parse_program("3 0 0 1234"),
+            ]
+        );
     }
 }

@@ -12,13 +12,44 @@ function parseProgram(x) {
 	return JSON.parse(atob(x));
 }
 
-export default function Editor({ query }) {
-	const router = useRouter();
-	const [stackStart, setStackStart] = React.useState("");
+function useRPNTracer() {
+	const stackMachineTracer = React.useRef();
 
+	React.useEffect(() => {
+		import("../../../../../rust/hypertask_client_js/pkg").then(
+			({ get_machine_stack_trace }) => {
+				stackMachineTracer.current = get_machine_stack_trace;
+			},
+		);
+	}, []);
+
+	return stackMachineTracer;
+}
+
+export default function Editor({ query }) {
+	const stackMachineTracerRef = useRPNTracer();
+
+	const router = useRouter();
+	const [testTaskString, setTestTaskString] = React.useState("");
+	const [stackStart, setStackStart] = React.useState("");
 	const [program, setProgram] = React.useState(
 		parseProgram(query.program || stringifyProgram([])),
 	);
+
+	React.useEffect(() => {
+		try {
+			const trace = stackMachineTracerRef.current(
+				JSON.parse(testTaskString),
+				stackStart,
+				program,
+			);
+
+			console.log(trace);
+		} catch (e) {
+			console.error(e);
+		}
+	}, [testTaskString, stackStart, program]);
+
 	React.useEffect(() => {
 		router.push({
 			...router,
@@ -39,6 +70,10 @@ export default function Editor({ query }) {
 				<input
 					value={stackStart}
 					onChange={e => setStackStart(e.target.value)}
+				/>
+				<textarea
+					value={testTaskString}
+					onChange={e => setTestTaskString(e.target.value)}
 				/>
 			</section>
 			<section className={css.workspaceContainer}>
