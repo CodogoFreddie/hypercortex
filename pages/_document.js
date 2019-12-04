@@ -16,6 +16,10 @@ class MyDocument extends Document {
 						rel="stylesheet"
 						href="https://assets.littlebonsai.co.uk/theme.css"
 					/>
+					<link
+						rel="stylesheet"
+						href="https://assets.littlebonsai.co.uk/reset.css"
+					/>
 				</Head>
 				<body data-theme="system-inverted">
 					<Main />

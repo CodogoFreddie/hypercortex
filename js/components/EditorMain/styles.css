@@ -1,0 +1,29 @@
+.container {
+	display: flex;
+	flex-direction: row;
+	padding: var(--space-02);
+}
+
+.container label {
+	font-size: var(--font-size-03);
+	padding-top: var(--space-04);
+}
+
+.box {
+	background-color: var(--color-text);
+	border: var(--color-blue) solid var(--space-01);
+	color: var(--color-background);
+	font-family: monospace;
+	font-size: var(--font-size-03);
+	padding: var(--space-02);
+}
+
+.program {
+	flex: 2;
+}
+
+.stackTrace {
+	display: block;
+	flex: 1;
+	white-space: pre;
+}

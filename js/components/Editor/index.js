@@ -8,6 +8,8 @@ import EditorSetup from "../EditorSetup";
 import EditorMain from "../EditorMain";
 import EditorOutput from "../EditorOutput";
 
+import { useLocalStorageState } from "../../hooks";
+
 function stringifyProgram(p) {
 	return btoa(JSON.stringify(p));
 }
@@ -50,32 +52,17 @@ function useProgram(query) {
 	return [program, programSet];
 }
 
-function useExampleTask() {
-	const theLocalStorage = process.browser ? localStorage : {};
-
-	const [exampleTask, setExampleTask] = React.useState(() =>
-		JSON.parse(theLocalStorage.exampleTask || "{}"),
-	);
-
-	React.useLayoutEffect(() => {
-		const x = JSON.parse(theLocalStorage.exampleTask || "{}");
-		console.log(x);
-		setExampleTask(x);
-	}, []);
-
-	React.useEffect(() => {
-		theLocalStorage.exampleTask = JSON.stringify(exampleTask);
-	}, [exampleTask]);
-
-	return [exampleTask, setExampleTask];
-}
+function useExampleTask() {}
 
 export default function Editor({ query }) {
 	const [stackMachineTracerRef, stackMachineLoaded] = useRPNTracer();
 
 	const [program, programSet] = useProgram(query);
-	const [exampleTask, setExampleTask] = useExampleTask();
-	const [stackStart, setStackStart] = React.useState("");
+	const [exampleTask, setExampleTask] = useLocalStorageState(
+		"exampleTask",
+		{},
+	);
+	const [stackStart, setStackStart] = useLocalStorageState("stackStart", "");
 	const [trace, setTrace] = React.useState([]);
 	const [traceError, traceErrorSet] = React.useState(null);
 
@@ -113,6 +100,7 @@ export default function Editor({ query }) {
 				exampleTask={exampleTask}
 				exampleTaskOnChange={setExampleTask}
 			/>
+
 			<EditorMain
 				program={program}
 				programOnChange={programSet}
