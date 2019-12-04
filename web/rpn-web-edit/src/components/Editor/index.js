@@ -4,6 +4,8 @@ import { atob, btoa } from "isomorphic-base64";
 
 import css from "./styles.css";
 
+import EditorSetup from "../EditorSetup";
+
 function stringifyProgram(p) {
 	return btoa(JSON.stringify(p));
 }
@@ -30,7 +32,7 @@ export default function Editor({ query }) {
 	const stackMachineTracerRef = useRPNTracer();
 
 	const router = useRouter();
-	const [testTaskString, setTestTaskString] = React.useState("");
+	const [exampleTask, setExampleTask] = React.useState({});
 	const [stackStart, setStackStart] = React.useState("");
 	const [program, setProgram] = React.useState(
 		parseProgram(query.program || stringifyProgram([])),
@@ -39,16 +41,19 @@ export default function Editor({ query }) {
 
 	React.useEffect(() => {
 		try {
-			const trace = stackMachineTracerRef.current(
-				JSON.parse(testTaskString),
-				[stackStart, ...program],
-			);
+			const trace = stackMachineTracerRef.current(exampleTask, [
+				stackStart,
+				...program,
+			]);
 
-			setTrace(trace);
+			const traceExcludingStart = trace.slice(
+				stackStart.split(/\s+/gm).length - 1,
+			);
+			setTrace(traceExcludingStart);
 		} catch (e) {
 			console.error(e);
 		}
-	}, [testTaskString, stackStart, program]);
+	}, [exampleTask, stackStart, program]);
 
 	React.useEffect(() => console.log(trace), [trace]);
 
@@ -68,16 +73,12 @@ export default function Editor({ query }) {
 
 	return (
 		<main className={css.editorContainer}>
-			<section className={css.setupContainer}>
-				<input
-					value={stackStart}
-					onChange={e => setStackStart(e.target.value)}
-				/>
-				<textarea
-					value={testTaskString}
-					onChange={e => setTestTaskString(e.target.value)}
-				/>
-			</section>
+			<EditorSetup
+				stackStart={stackStart}
+				stackStartOnChange={setStackStart}
+				exampleTask={exampleTask}
+				exampleTaskOnChange={setExampleTask}
+			/>
 			<section className={css.workspaceContainer}>
 				<textarea
 					value={program.join("\n")}
