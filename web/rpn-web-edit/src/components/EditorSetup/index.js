@@ -38,7 +38,7 @@ export default function EditorSetup({
 				onChange={e => stackStartOnChange(e.target.value)}
 			/>
 			<label for="example-task">Input Test Task</label>
-			<textArea
+			<textarea
 				rows={14}
 				cols={80}
 				id="example-task"

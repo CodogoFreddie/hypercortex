@@ -32,16 +32,50 @@ function useRPNTracer() {
 	return [stackMachineTracer, loaded];
 }
 
-export default function Editor({ query }) {
-	const [stackMachineTracerRef, stackMachineLoaded] = useRPNTracer();
-
+function useProgram(query) {
 	const router = useRouter();
-
-	const [exampleTask, setExampleTask] = React.useState({});
-	const [stackStart, setStackStart] = React.useState("");
 	const [program, programSet] = React.useState(
 		parseProgram(query.program || stringifyProgram([])),
 	);
+
+	React.useEffect(() => {
+		router.push({
+			...router,
+			query: {
+				program: stringifyProgram(program),
+			},
+		});
+	}, [program]);
+
+	return [program, programSet];
+}
+
+function useExampleTask() {
+	const theLocalStorage = process.browser ? localStorage : {};
+
+	const [exampleTask, setExampleTask] = React.useState(() =>
+		JSON.parse(theLocalStorage.exampleTask || "{}"),
+	);
+
+	React.useLayoutEffect(() => {
+		const x = JSON.parse(theLocalStorage.exampleTask || "{}");
+		console.log(x);
+		setExampleTask(x);
+	}, []);
+
+	React.useEffect(() => {
+		theLocalStorage.exampleTask = JSON.stringify(exampleTask);
+	}, [exampleTask]);
+
+	return [exampleTask, setExampleTask];
+}
+
+export default function Editor({ query }) {
+	const [stackMachineTracerRef, stackMachineLoaded] = useRPNTracer();
+
+	const [program, programSet] = useProgram(query);
+	const [exampleTask, setExampleTask] = useExampleTask();
+	const [stackStart, setStackStart] = React.useState("");
 	const [trace, setTrace] = React.useState([]);
 	const [traceError, traceErrorSet] = React.useState(null);
 
@@ -63,20 +97,8 @@ export default function Editor({ query }) {
 			traceErrorSet(null);
 		} catch (e) {
 			traceErrorSet(e.toString());
-			console.error(e);
 		}
 	}, [exampleTask, stackStart, program, stackMachineLoaded]);
-
-	React.useEffect(() => console.log(trace), [trace]);
-
-	React.useEffect(() => {
-		router.push({
-			...router,
-			query: {
-				program: stringifyProgram(program),
-			},
-		});
-	}, [program]);
 
 	const minifiedProgram = React.useMemo(
 		() => program.join(" ").replace(/\s+/gm, " "),
