@@ -1,3 +1,5 @@
+@import "../../sass/common";
+
 .container {
 	display: flex;
 	flex-direction: column;
@@ -9,19 +11,12 @@
 	padding-top: var(--space-04);
 }
 
-.input {
-	background-color: var(--color-text);
-	border: var(--color-blue) solid var(--space-01);
-	color: var(--color-background);
-	font-family: monospace;
-	font-size: var(--font-size-03);
-	padding: var(--space-02);
-}
-
 .stackStart {
+	@include input-box;
 }
 
 .exampleTask {
+	@include input-box;
 	min-height: var(--space-09);
 	min-width: var(--space-09);
 	resize: none;

@@ -1,7 +1,7 @@
 import React from "react";
 import cs from "classname";
 
-import css from "./styles.css";
+import css from "./styles.scss";
 
 export default function EditorMain({ program, programOnChange, trace }) {
 	const stringifiedProgram = React.useMemo(() => program.join("\n"), [
@@ -32,13 +32,11 @@ export default function EditorMain({ program, programOnChange, trace }) {
 	return (
 		<section className={css.container}>
 			<textarea
-				className={cs(css.box, css.program)}
+				className={css.program}
 				value={stringifiedProgram}
 				onChange={e => programOnChange(e.target.value.split("\n"))}
 			/>
-			<output className={cs(css.box, css.stackTrace)}>
-				{formattedTrace}
-			</output>
+			<output className={css.stackTrace}>{formattedTrace}</output>
 		</section>
 	);
 }

@@ -1,6 +1,9 @@
 import React from "react";
+import cs from "classname";
 
-export default function EditorOutput({ minifiedProgram, traceError }) {
+import css from "./styles.scss";
+
+export default function EditorOutput({ final, minifiedProgram, traceError }) {
 	if (traceError) {
 		return <output>error: {traceError}</output>;
 	} else {

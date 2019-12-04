@@ -1,18 +1,8 @@
+@use "https://assets.littlebonsai.co.uk/theme.scss"
+
 .editorContainer {
 	display: flex;
 	flex-direction: column;
 	padding: var(--size-space-02);
 	font-size: var(--size-font-03);
-}
-
-.setupContainer {
-
-}
-
-.workspaceContainer {
-
-}
-
-.output {
-
 }

@@ -1,0 +1,8 @@
+@mixin input-box {
+	background-color: var(--color-text);
+	border: var(--color-blue) solid var(--space-01);
+	color: var(--color-background);
+	font-family: monospace;
+	font-size: var(--font-size-03);
+	padding: var(--space-02);
+}

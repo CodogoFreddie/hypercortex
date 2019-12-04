@@ -1,7 +1,7 @@
 import React from "react";
 import cs from "classname";
 
-import css from "./styles.css";
+import css from "./styles.scss";
 
 export default function EditorSetup({
 	stackStart,
@@ -30,20 +30,20 @@ export default function EditorSetup({
 
 	return (
 		<section className={css.container}>
-			<label for="stack-start">Initial Stack State</label>
+			<label htmlFor="stack-start">Initial Stack State</label>
 			<input
 				id="stack-start"
-				className={cs(css.input, css.stackStart)}
+				className={css.stackStart}
 				value={stackStart}
 				onChange={e => stackStartOnChange(e.target.value)}
 			/>
-			<label for="example-task">Input Test Task</label>
+			<label htmlFor="example-task">Input Test Task</label>
 			<textarea
 				rows={14}
 				cols={80}
 				id="example-task"
 				data-valid={isValid}
-				className={cs(css.input, css.exampleTask)}
+				className={css.exampleTask}
 				value={taskStringified}
 				onChange={e => taskStringifiedSet(e.target.value)}
 			/>

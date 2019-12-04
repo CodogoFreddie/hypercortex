@@ -2,13 +2,13 @@ import React from "react";
 import { useRouter } from "next/router";
 import { atob, btoa } from "isomorphic-base64";
 
-import css from "./styles.css";
-
 import EditorSetup from "../EditorSetup";
 import EditorMain from "../EditorMain";
 import EditorOutput from "../EditorOutput";
 
 import { useLocalStorageState } from "../../hooks";
+
+import css from "./styles.scss";
 
 function stringifyProgram(p) {
 	return btoa(JSON.stringify(p));
@@ -108,6 +108,7 @@ export default function Editor({ query }) {
 			/>
 
 			<EditorOutput
+				final={trace.slice(-1)}
 				minifiedProgram={minifiedProgram}
 				traceError={traceError}
 			/>
