@@ -1,35 +1,36 @@
 .container {
 	display: flex;
 	flex-direction: column;
+	padding: var(--space-02);
 }
 
 .container label {
-	padding-top: var(--space-03);
 	font-size: var(--font-size-03);
+	padding-top: var(--space-04);
 }
 
-.stackStart {
+.input {
 	background-color: var(--color-text);
-	border: none;
+	border: var(--color-blue) solid var(--space-01);
 	color: var(--color-background);
+	font-family: monospace;
 	font-size: var(--font-size-03);
 	padding: var(--space-02);
 }
 
+.stackStart {
+}
+
 .exampleTask {
-	background-color: var(--color-text);
-	border: none;
-	color: var(--color-background);
-	font-size: var(--font-size-03);
 	min-height: var(--space-09);
 	min-width: var(--space-09);
-	padding: var(--space-03);
 	resize: none;
 }
 
 .exampleTask[data-valid="true"] {
 	color: var(--color-green);
 }
+
 .exampleTask[data-valid="false"] {
 	color: var(--color-red);
 }
