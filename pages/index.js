@@ -1,6 +1,6 @@
 import React from "react";
 
-import Editor from "../src/components/Editor";
+import Editor from "../js/components/Editor";
 
 export default function HomePage({ query }) {
 	return <Editor query={query} />;

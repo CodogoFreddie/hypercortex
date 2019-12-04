@@ -1,2 +1,3 @@
-rust/target
+node_modules
+target
 rust

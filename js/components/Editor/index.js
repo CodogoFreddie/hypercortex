@@ -21,7 +21,7 @@ function useRPNTracer() {
 	const [loaded, loadedSet] = React.useState(false);
 
 	React.useEffect(() => {
-		import("../../../../../rust/hypertask_client_js/pkg").then(
+		import("@freddieridell/hypertask_client_js").then(
 			({ get_machine_stack_trace }) => {
 				stackMachineTracer.current = get_machine_stack_trace;
 				loadedSet(true);

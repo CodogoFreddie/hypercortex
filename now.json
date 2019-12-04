@@ -1,10 +1,10 @@
 {
-  "version": 2,
-  "name": "hypertask",
-  "builds": [
-    {
-      "use": "@now/next",
-      "src": "web/rpn-web-edit/package.json"
-    }
-  ]
+	"version": 2,
+	"name": "hypertask",
+	"builds": [
+		{
+			"use": "@now/next",
+			"src": "package.json"
+		}
+	]
 }
