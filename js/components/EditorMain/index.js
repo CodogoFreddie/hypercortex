@@ -1,6 +1,8 @@
 import React from "react";
 import cs from "classname";
 
+import Labeled from "../Labeled";
+
 import css from "./styles.scss";
 
 export default function EditorMain({ program, programOnChange, trace }) {
@@ -31,12 +33,28 @@ export default function EditorMain({ program, programOnChange, trace }) {
 
 	return (
 		<section className={css.container}>
-			<textarea
-				className={css.program}
-				value={stringifiedProgram}
-				onChange={e => programOnChange(e.target.value.split("\n"))}
-			/>
-			<output className={css.stackTrace}>{formattedTrace}</output>
+			<Labeled
+				id="program"
+				label="Program"
+				classNameSection={css.programContainer}
+			>
+				<textarea
+					id="program"
+					className={css.program}
+					value={stringifiedProgram}
+					onChange={e => programOnChange(e.target.value.split("\n"))}
+				/>
+			</Labeled>
+
+			<Labeled
+				id="stack-trace"
+				label="Stack Trace"
+				classNameSection={css.stackTraceContainer}
+			>
+				<output id="stack-trace" className={css.stackTrace}>
+					{formattedTrace}
+				</output>
+			</Labeled>
 		</section>
 	);
 }

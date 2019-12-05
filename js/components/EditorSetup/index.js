@@ -1,6 +1,8 @@
 import React from "react";
 import cs from "classname";
 
+import Labeled from "../Labeled";
+
 import css from "./styles.scss";
 
 export default function EditorSetup({
@@ -29,24 +31,26 @@ export default function EditorSetup({
 	}, [taskStringified]);
 
 	return (
-		<section className={css.container}>
-			<label htmlFor="stack-start">Initial Stack State</label>
-			<input
-				id="stack-start"
-				className={css.stackStart}
-				value={stackStart}
-				onChange={e => stackStartOnChange(e.target.value)}
-			/>
-			<label htmlFor="example-task">Input Test Task</label>
-			<textarea
-				rows={14}
-				cols={80}
-				id="example-task"
-				data-valid={isValid}
-				className={css.exampleTask}
-				value={taskStringified}
-				onChange={e => taskStringifiedSet(e.target.value)}
-			/>
+		<section>
+			<Labeled label="Initial Stack State" id="stack-start">
+				<input
+					id="stack-start"
+					className={css.stackStart}
+					value={stackStart}
+					onChange={e => stackStartOnChange(e.target.value)}
+				/>
+			</Labeled>
+			<Labeled label="Input Test Task" htmlFor="example-task">
+				<textarea
+					rows={14}
+					cols={80}
+					id="example-task"
+					data-valid={isValid}
+					className={css.exampleTask}
+					value={taskStringified}
+					onChange={e => taskStringifiedSet(e.target.value)}
+				/>
+			</Labeled>
 		</section>
 	);
 }

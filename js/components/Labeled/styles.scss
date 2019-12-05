@@ -1,0 +1,10 @@
+.section {
+	display: flex;
+	flex-direction: column;
+	padding: var(--space-02);
+	padding-top: var(--space-03);
+}
+
+.label {
+	font-size: var(--font-size-03);
+}

@@ -1,2 +1,21 @@
+@import "../../sass/common";
+
 .errorOutput {
+	@include input-box;
+
+	background-color: var(--color-black);
+	border-color: var(--color-red);
+	color: var(--color-red);
+}
+
+.finalOutput {
+	@include input-box;
+
+	background-color: var(--color-black);
+	border-color: var(--color-green);
+	color: var(--color-green);
+}
+
+.minifiedProgram {
+	@include input-box;
 }

@@ -1,16 +1,5 @@
 @import "../../sass/common";
 
-.container {
-	display: flex;
-	flex-direction: column;
-	padding: var(--space-02);
-}
-
-.container label {
-	font-size: var(--font-size-03);
-	padding-top: var(--space-04);
-}
-
 .stackStart {
 	@include input-box;
 }

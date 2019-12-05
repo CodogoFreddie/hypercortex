@@ -108,7 +108,7 @@ export default function Editor({ query }) {
 			/>
 
 			<EditorOutput
-				final={trace.slice(-1)}
+				trace={trace}
 				minifiedProgram={minifiedProgram}
 				traceError={traceError}
 			/>

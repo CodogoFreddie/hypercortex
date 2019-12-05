@@ -3,22 +3,25 @@
 .container {
 	display: flex;
 	flex-direction: row;
-	padding: var(--space-02);
 }
 
-.container label {
-	font-size: var(--font-size-03);
-	padding-top: var(--space-04);
+.programContainer {
+	flex: 2;
 }
 
 .program {
 	@include input-box;
-	flex: 2;
+	flex: 1;
+	resize: none;
+	min-height: var(--space-10);
 }
 
+.stackTraceContainer {
+	flex: 1;
+}
 .stackTrace {
 	@include input-box;
 	display: block;
-	flex: 1;
 	white-space: pre;
+	flex: 1;
 }
