@@ -79,8 +79,6 @@ pub fn sync_all_tasks(config: &SyncCliDaemonConfig) -> HyperTaskResult<()> {
             .msg("could not get remote hashes")
     })?;
 
-    dbg!((&local_hashes, &remote_hashes));
-
     let mut ids: HashSet<Rc<Id>> = HashSet::new();
 
     for id in local_hashes.keys() {
@@ -95,8 +93,6 @@ pub fn sync_all_tasks(config: &SyncCliDaemonConfig) -> HyperTaskResult<()> {
             sync_task_with_server(config, id)?;
         }
     }
-
-    dbg!(&ids);
 
     Ok(())
 }

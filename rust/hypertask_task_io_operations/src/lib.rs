@@ -17,13 +17,16 @@ pub fn delete_task<Config: ProvidesDataDir>(config: &Config, id: &Id) -> HyperTa
     let Id(task_id) = id;
     let file_path = data_dir.join(task_id);
 
-    fs::remove_file(file_path).map_err(|e| {
-        HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Delete)
-            .with_msg(|| format!("could not delete file for task with id `{}`", task_id))
-            .from(e)
-    })?;
-
-    Ok(())
+    match fs::remove_file(file_path) {
+        Ok(_) => Ok(()),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(e) => Err(HyperTaskError::new(
+            HyperTaskErrorDomain::Task,
+            HyperTaskErrorAction::Delete,
+        )
+        .with_msg(|| format!("could not delete file for task with id `{}`", task_id))
+        .from(e)),
+    }
 }
 
 pub fn put_task<Config: ProvidesDataDir>(config: &Config, task: &Task) -> HyperTaskResult<()> {

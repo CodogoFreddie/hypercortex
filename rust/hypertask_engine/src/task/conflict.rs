@@ -5,7 +5,7 @@ use chrono::prelude::*;
 impl Task {
     fn is_still_worth_storing(&self, cutoff_date: &DateTime<Utc>) -> bool {
         if self.done.is_some() {
-            &self.updated_at > cutoff_date
+            self.updated_at > *cutoff_date
         } else {
             true
         }
