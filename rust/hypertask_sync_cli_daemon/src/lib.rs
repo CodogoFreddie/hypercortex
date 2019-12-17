@@ -1,14 +1,18 @@
 extern crate async_std;
+extern crate crossbeam_channel;
 extern crate hypertask_engine;
+extern crate notify;
 
 mod config;
 
 use crate::config::SyncCliDaemonConfig;
 use async_std::task;
 use chrono::prelude::*;
+use crossbeam_channel::unbounded;
 use hypertask_config_file_opener::{ConfigFileGetter, ConfigFileOpener};
 use hypertask_engine::prelude::*;
 use hypertask_task_io_operations::{delete_task, get_input_tasks, get_task, put_task};
+use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use time::Duration;
@@ -74,7 +78,9 @@ fn sync_task_with_server(config: &SyncCliDaemonConfig, id: &Rc<Id>) -> HyperTask
 
 pub fn sync_all_tasks(config: &SyncCliDaemonConfig) -> HyperTaskResult<()> {
     let local_hashes = get_local_task_hash_map(config)?;
-    let remote_hashes = get_remote_task_hash_map(config).map_err(|_| {
+    let remote_hashes = get_remote_task_hash_map(config).map_err(|e| {
+        println!("{:?}", e);
+
         HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)
             .msg("could not get remote hashes")
     })?;
@@ -98,9 +104,38 @@ pub fn sync_all_tasks(config: &SyncCliDaemonConfig) -> HyperTaskResult<()> {
 }
 
 pub fn start() -> HyperTaskResult<()> {
+    let (tx, rx) = unbounded();
+
+    let mut watcher: RecommendedWatcher = Watcher::new(tx, std::time::Duration::from_secs(5))
+        .map_err(|e| {
+            HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)
+                .msg("could not create data_dir watcher")
+                .from(e)
+        })?;
+
     let mut config_file_opener = ConfigFileOpener::new("sync-daemon.toml")?;
     let config_file_getter: ConfigFileGetter<SyncCliDaemonConfig> = config_file_opener.parse()?;
 
-    sync_all_tasks(config_file_getter.get_config())?;
-    Ok(())
+    watcher
+        .watch(
+            config_file_getter.get_config().data_dir.clone(),
+            RecursiveMode::Recursive,
+        )
+        .map_err(|e| {
+            HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)
+                .msg("error watching data_dir")
+                .from(e)
+        })?;
+
+    loop {
+        match rx.recv() {
+            Ok(_) => {
+                match sync_all_tasks(config_file_getter.get_config()) {
+                    Ok(_) => println!("synced"),
+                    Err(e) => println!("sync error: {:?}", e),
+                };
+            }
+            Err(err) => println!("watch error: {:?}", err),
+        };
+    }
 }
