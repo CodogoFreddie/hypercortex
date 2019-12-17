@@ -8,5 +8,5 @@ edition = "2018"
 
 [dependencies]
 hypertask_engine={ version = "0.2.0", path= "../hypertask_engine" }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = { version = "1.0" }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1" }
