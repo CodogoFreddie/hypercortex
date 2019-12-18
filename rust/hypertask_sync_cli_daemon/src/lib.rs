@@ -36,7 +36,34 @@ pub fn get_remote_task_hash_map(
 ) -> Result<TaskHashes, Box<dyn std::error::Error + Send + Sync + 'static>> {
     task::block_on(async {
         let uri = format!("{}/hashes", config.server_url);
-        let task_hashes: TaskHashes = surf::get(uri).recv_json().await?;
+
+        let mut res = surf::get(&uri).await?;
+        let headers = res.headers();
+        let length: usize = headers.get("content-length").unwrap().parse().unwrap();
+
+        let task_hashes_str = res.body_string().await?;
+
+        // there's some fucking weird bug here that's causing task_hashes_str to be cut short.
+        // curling the url from the CLI works, and this code can correctly query other URLs,
+        // but for some reason the combination of my server and my client is causing this
+        // sporadic error.
+        //
+        // For now, we'll just re-try the query, as it's not super expensive, but #59 tracks this
+        // issue
+        if task_hashes_str.len() != length {
+            return get_remote_task_hash_map(config);
+        }
+
+        let task_hashes = match serde_json::from_str(&task_hashes_str) {
+            Ok(ok) => Ok(ok),
+            Err(e) => {
+                println!("{:?} `{}`", e, task_hashes_str);
+                Err(e)
+            }
+        }?;
+
+        println!("got remote hash map");
+
         Ok(task_hashes)
     })
 }
@@ -104,6 +131,11 @@ pub fn sync_all_tasks(config: &SyncCliDaemonConfig) -> HyperTaskResult<()> {
 }
 
 pub fn start() -> HyperTaskResult<()> {
+    let mut config_file_opener = ConfigFileOpener::new("sync-daemon.toml")?;
+    let config_file_getter: ConfigFileGetter<SyncCliDaemonConfig> = config_file_opener.parse()?;
+
+    sync_all_tasks(config_file_getter.get_config())?;
+
     let (tx, rx) = unbounded();
 
     let mut watcher: RecommendedWatcher = Watcher::new(tx, std::time::Duration::from_secs(5))
@@ -112,9 +144,6 @@ pub fn start() -> HyperTaskResult<()> {
                 .msg("could not create data_dir watcher")
                 .from(e)
         })?;
-
-    let mut config_file_opener = ConfigFileOpener::new("sync-daemon.toml")?;
-    let config_file_getter: ConfigFileGetter<SyncCliDaemonConfig> = config_file_opener.parse()?;
 
     watcher
         .watch(
