@@ -43,8 +43,13 @@ pub fn get_remote_task_hash_map(
                 format!("hypertask {}", config.sync_secret.get_secret_value()),
             )
             .await?;
+
         let headers = res.headers();
-        let length: usize = headers.get("content-length").unwrap().parse().unwrap();
+        let length: usize = headers
+            .get("content-length")
+            .expect("content-length not present")
+            .parse()
+            .expect("content-length not stringifiable");
 
         let task_hashes_str = res.body_string().await?;
 
@@ -94,7 +99,8 @@ pub fn get_remote_task_state(
 
 fn sync_task_with_server(config: &SyncCliDaemonConfig, id: &Rc<Id>) -> HyperTaskResult<()> {
     let local_task_state: Option<Task> = get_task(config, &*id)?;
-    let remote_task_state = get_remote_task_state(config, &**id, &local_task_state).unwrap();
+    let remote_task_state = get_remote_task_state(config, &**id, &local_task_state)
+        .expect("could not get_remote_task_state");
 
     let resolved_task = Task::resolve_task_conflict(
         &(Utc::now() - Duration::days(30)),

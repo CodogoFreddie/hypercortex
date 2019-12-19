@@ -16,7 +16,9 @@ pub enum SyncSecretSource {
 impl SyncSecretSource {
     pub fn get_secret_value(&self) -> String {
         match self {
-            SyncSecretSource::EnvVar { var_name } => env::var(var_name).unwrap(),
+            SyncSecretSource::EnvVar { var_name } => {
+                env::var(var_name).expect("env var does not exist")
+            }
             SyncSecretSource::FilePath { path } => {
                 fs::read_to_string(path).expect("Unable to read file")
             }

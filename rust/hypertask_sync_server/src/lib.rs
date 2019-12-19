@@ -4,7 +4,7 @@ mod config;
 
 use crate::config::SyncServerConfig;
 use actix_web::{get, post};
-use actix_web::{web, App, HttpRequest, HttpServer, Responder};
+use actix_web::{web, App, HttpRequest, HttpServer};
 use chrono::prelude::*;
 use hypertask_config_file_opener::{ConfigFileGetter, ConfigFileOpener};
 use hypertask_engine::prelude::*;
@@ -20,7 +20,16 @@ fn compare_tasks(
     config_data: web::Data<SyncServerConfig>,
     path: web::Path<String>,
     client_task_input: web::Json<Option<Task>>,
-) -> impl Responder {
+    req: HttpRequest,
+) -> actix_web::Result<web::Json<Option<Task>>> {
+    if let Some(Ok(auth_header)) = req.headers().get("Authorization").map(|x| x.to_str()) {
+        if format!("hypertask {}", &config_data.sync_secret) != auth_header {
+            return Err(actix_web::error::ErrorUnauthorized(
+                "invalid sync_secret provided",
+            ));
+        }
+    }
+
     let id = Id(path.to_string());
     let config: &SyncServerConfig = config_data.get_ref();
 
@@ -37,11 +46,22 @@ fn compare_tasks(
         None => delete_task(config, &id).expect("could not delete task"),
     };
 
-    web::Json(resolved_task)
+    Ok(web::Json(resolved_task))
 }
 
 #[get("/hashes")]
-fn get_hashes(config_data: web::Data<SyncServerConfig>, _req: HttpRequest) -> impl Responder {
+fn get_hashes(
+    config_data: web::Data<SyncServerConfig>,
+    req: HttpRequest,
+) -> actix_web::Result<web::Json<TaskHashes>> {
+    if let Some(Ok(auth_header)) = req.headers().get("Authorization").map(|x| x.to_str()) {
+        if format!("hypertask {}", &config_data.sync_secret) != auth_header {
+            return Err(actix_web::error::ErrorUnauthorized(
+                "invalid sync_secret provided",
+            ));
+        }
+    }
+
     let mut task_hashes = TaskHashes::new();
     let config: &SyncServerConfig = config_data.get_ref();
 
@@ -52,7 +72,7 @@ fn get_hashes(config_data: web::Data<SyncServerConfig>, _req: HttpRequest) -> im
         task_hashes.insert(id.clone(), task.calculate_hash());
     }
 
-    web::Json(task_hashes)
+    Ok(web::Json(task_hashes))
 }
 
 fn get_config_object() -> HyperTaskResult<SyncServerConfig> {
@@ -66,7 +86,10 @@ pub fn start() -> HyperTaskResult<()> {
 
     println!(
         "started syncing server for dir `{}` @ {}:{}",
-        sync_server_config.task_state_dir.to_str().unwrap(),
+        sync_server_config
+            .task_state_dir
+            .to_str()
+            .expect("could not read task_state_dir"),
         sync_server_config.hostname,
         sync_server_config.port,
     );
@@ -83,9 +106,9 @@ pub fn start() -> HyperTaskResult<()> {
         sync_server_config.hostname.as_str(),
         sync_server_config.port,
     ))
-    .expect("could not start server")
+    .expect("could not create server")
     .run()
-    .unwrap();
+    .expect("could not run server");
 
     Ok(())
 }
