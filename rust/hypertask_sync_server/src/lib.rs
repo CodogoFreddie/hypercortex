@@ -66,7 +66,7 @@ pub fn start() -> HyperTaskResult<()> {
 
     println!(
         "started syncing server for dir `{}` @ {}:{}",
-        sync_server_config.data_dir.to_str().unwrap(),
+        sync_server_config.task_state_dir.to_str().unwrap(),
         sync_server_config.hostname,
         sync_server_config.port,
     );

@@ -153,18 +153,18 @@ pub fn start() -> HyperTaskResult<()> {
     let mut watcher: RecommendedWatcher = Watcher::new(tx, std::time::Duration::from_secs(5))
         .map_err(|e| {
             HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)
-                .msg("could not create data_dir watcher")
+                .msg("could not create task_state_dir watcher")
                 .from(e)
         })?;
 
     watcher
         .watch(
-            config_file_getter.get_config().data_dir.clone(),
+            config_file_getter.get_config().task_state_dir.clone(),
             RecursiveMode::Recursive,
         )
         .map_err(|e| {
             HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)
-                .msg("error watching data_dir")
+                .msg("error watching task_state_dir")
                 .from(e)
         })?;
 

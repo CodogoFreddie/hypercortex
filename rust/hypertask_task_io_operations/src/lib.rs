@@ -8,14 +8,14 @@ use std::path::PathBuf;
 use std::rc::Rc;
 
 pub trait ProvidesDataDir: Sync + Send {
-    fn get_data_dir(&self) -> &PathBuf;
+    fn get_task_state_dir(&self) -> &PathBuf;
 }
 
 pub fn delete_task<Config: ProvidesDataDir>(config: &Config, id: &Id) -> HyperTaskResult<()> {
-    let data_dir: &PathBuf = config.get_data_dir();
+    let task_state_dir: &PathBuf = config.get_task_state_dir();
 
     let Id(task_id) = id;
-    let file_path = data_dir.join(task_id);
+    let file_path = task_state_dir.join(task_id);
 
     match fs::remove_file(file_path) {
         Ok(_) => Ok(()),
@@ -30,11 +30,11 @@ pub fn delete_task<Config: ProvidesDataDir>(config: &Config, id: &Id) -> HyperTa
 }
 
 pub fn put_task<Config: ProvidesDataDir>(config: &Config, task: &Task) -> HyperTaskResult<()> {
-    let data_dir: &PathBuf = config.get_data_dir();
+    let task_state_dir: &PathBuf = config.get_task_state_dir();
 
     let Id(task_id) = &*task.get_id();
 
-    let file_path = data_dir.join(task_id);
+    let file_path = task_state_dir.join(task_id);
 
     let file = File::create(file_path).map_err(|e| {
         HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Write)
@@ -61,9 +61,9 @@ pub fn get_task<Config: ProvidesDataDir>(
     config: &Config,
     id: &Id,
 ) -> HyperTaskResult<Option<Task>> {
-    let data_dir: &PathBuf = config.get_data_dir();
+    let task_state_dir: &PathBuf = config.get_task_state_dir();
 
-    let task_file_path = data_dir.join(id.0.clone());
+    let task_file_path = task_state_dir.join(id.0.clone());
 
     let task_file = match File::open(&task_file_path) {
         Ok(t) => t,
@@ -96,13 +96,13 @@ pub fn get_task<Config: ProvidesDataDir>(
 pub fn get_input_tasks<Config: ProvidesDataDir>(
     config: &Config,
 ) -> HyperTaskResult<HashMap<Rc<Id>, Rc<Task>>> {
-    let data_dir: &PathBuf = config.get_data_dir();
-    let task_files_iterator = fs::read_dir(&data_dir).map_err(|e| {
+    let task_state_dir: &PathBuf = config.get_task_state_dir();
+    let task_files_iterator = fs::read_dir(&task_state_dir).map_err(|e| {
         HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Read)
             .with_msg(|| {
                 format!(
                     "folder `{:}` could not be found",
-                    &data_dir.to_str().unwrap_or("")
+                    &task_state_dir.to_str().unwrap_or("")
                 )
             })
             .from(e)

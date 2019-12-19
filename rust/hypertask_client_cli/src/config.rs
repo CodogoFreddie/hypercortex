@@ -55,7 +55,7 @@ impl ScoreCalculatorConfig {
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct CliConfig {
-    pub data_dir: PathBuf,
+    pub task_state_dir: PathBuf,
     pub hooks: Option<HooksConfig>,
     pub render: RenderConfig,
     pub filter_calculator: ScoreCalculatorConfig,
@@ -63,20 +63,20 @@ pub struct CliConfig {
 }
 
 impl ProvidesDataDir for CliConfig {
-    fn get_data_dir(&self) -> &PathBuf {
-        &self.data_dir
+    fn get_task_state_dir(&self) -> &PathBuf {
+        &self.task_state_dir
     }
 }
 
 impl ShellExpand for CliConfig {
     fn shell_expand(&mut self) {
-        let data_dir_str: &str = self
-            .data_dir
+        let task_state_dir_str: &str = self
+            .task_state_dir
             .to_str()
-            .expect("could not string from data_dir");
+            .expect("could not string from task_state_dir");
 
-        let expanded_data_dir = shellexpand::tilde(data_dir_str);
+        let expanded_task_state_dir = shellexpand::tilde(task_state_dir_str);
 
-        self.data_dir = PathBuf::from(expanded_data_dir.into_owned());
+        self.task_state_dir = PathBuf::from(expanded_task_state_dir.into_owned());
     }
 }

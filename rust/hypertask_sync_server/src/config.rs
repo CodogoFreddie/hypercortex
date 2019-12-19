@@ -26,26 +26,27 @@ fn generate_sync_secret() -> String {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SyncServerConfig {
-    pub data_dir: PathBuf,
+    pub task_state_dir: PathBuf,
     pub sync_secret: String,
     pub hostname: String,
     pub port: u16,
 }
 
 impl ProvidesDataDir for SyncServerConfig {
-    fn get_data_dir(&self) -> &PathBuf {
-        &self.data_dir
+    fn get_task_state_dir(&self) -> &PathBuf {
+        &self.task_state_dir
     }
 }
 
 impl Default for SyncServerConfig {
     fn default() -> Self {
-        let config_data_dir: PathBuf = AppDirs::new(Some("hypertask-cli"), AppUI::CommandLine)
-            .unwrap()
-            .data_dir;
+        let config_task_state_dir: PathBuf =
+            AppDirs::new(Some("hypertask-cli"), AppUI::CommandLine)
+                .unwrap()
+                .data_dir;
 
         Self {
-            data_dir: config_data_dir,
+            task_state_dir: config_task_state_dir,
             sync_secret: generate_sync_secret(),
             hostname: "localhost".to_owned(),
             port: 1234,
@@ -55,13 +56,13 @@ impl Default for SyncServerConfig {
 
 impl ShellExpand for SyncServerConfig {
     fn shell_expand(&mut self) {
-        let data_dir_str: &str = self
-            .data_dir
+        let task_state_dir_str: &str = self
+            .task_state_dir
             .to_str()
-            .expect("could not string from data_dir");
+            .expect("could not string from task_state_dir");
 
-        let expanded_data_dir = shellexpand::tilde(data_dir_str);
+        let expanded_task_state_dir = shellexpand::tilde(task_state_dir_str);
 
-        self.data_dir = PathBuf::from(expanded_data_dir.into_owned());
+        self.task_state_dir = PathBuf::from(expanded_task_state_dir.into_owned());
     }
 }
