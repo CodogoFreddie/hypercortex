@@ -37,7 +37,12 @@ pub fn get_remote_task_hash_map(
     task::block_on(async {
         let uri = format!("{}/hashes", config.server_url);
 
-        let mut res = surf::get(&uri).await?;
+        let mut res = surf::get(&uri)
+            .set_header(
+                "Authorization",
+                format!("hypertask {}", config.sync_secret.get_secret_value()),
+            )
+            .await?;
         let headers = res.headers();
         let length: usize = headers.get("content-length").unwrap().parse().unwrap();
 
@@ -75,7 +80,14 @@ pub fn get_remote_task_state(
 ) -> Result<Option<Task>, Box<dyn std::error::Error + Send + Sync + 'static>> {
     task::block_on(async {
         let uri = format!("{}/task/{}", config.server_url, id);
-        let task: Option<Task> = surf::post(uri).body_json(&task)?.recv_json().await?;
+        let task: Option<Task> = surf::post(uri)
+            .set_header(
+                "Authorization",
+                format!("hypertask {}", config.sync_secret.get_secret_value()),
+            )
+            .body_json(&task)?
+            .recv_json()
+            .await?;
         Ok(task)
     })
 }
