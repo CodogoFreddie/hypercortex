@@ -133,6 +133,13 @@ impl From<HyperTaskError> for String {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
+impl Into<wasm_bindgen::JsValue> for HyperTaskError {
+    fn into(self) -> wasm_bindgen::JsValue {
+        wasm_bindgen::JsValue::from_str(&format!("{}", self))
+    }
+}
+
 pub fn print_error_chain(err: &(dyn Error + 'static)) {
     print_error_chain_recursive(err, 1)
 }
@@ -142,5 +149,14 @@ pub fn print_error_chain_recursive(err: &(dyn Error + 'static), i: u32) {
 
     if let Some(boxed_source) = err.source() {
         print_error_chain_recursive(boxed_source, i + 1);
+    }
+}
+
+#[cfg(all(test, target_arch = "wasm32"))]
+mod test {
+    fn can_convert_hypertask_error_to_js_value() {
+        let error = HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run);
+
+        let js_value: JsValue = error.into();
     }
 }
