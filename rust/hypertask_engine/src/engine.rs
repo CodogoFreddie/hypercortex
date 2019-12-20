@@ -90,7 +90,7 @@ impl Engine {
                 self.all_tasks_collection
                     .insert(id.clone(), new_task.clone());
                 mutated_tasks.push(new_task);
-                display_ids.insert(id.clone());
+                display_ids.insert(id);
             }
             Command::Update(query, mutation) => {
                 for (id, task) in self.all_tasks_collection.iter() {
