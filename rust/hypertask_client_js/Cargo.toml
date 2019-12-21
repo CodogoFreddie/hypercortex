@@ -9,8 +9,6 @@ keywords = [ "task", "todo", "wasm" ]
 license = "MIT"
 repository = "https://github.com/FreddieRidell/hypertask"
 
-target="wasm32-unknown-unknown"
-
 [lib]
 crate-type = ["cdylib"]
 

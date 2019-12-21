@@ -1,14 +1,20 @@
 [workspace]
 members = [
+	#utils that are used in a variety of places, and aren't really tied down to any one specific use case
 	"rust/render_simple_cli_table",
 	"rust/hypertask_task_io_operations",
 	"rust/hypertask_config_file_opener",
 
+	#the core engine that contains the logic and types needed by basically anything to do with hypertask
 	"rust/hypertask_engine",
 
+	#clients that will allow a user to read from locally stored data, and perform querys and mutations on that data
 	"rust/hypertask_client_cli",
 	"rust/hypertask_client_js",
 
+	#tools to sync local task state with a remote server
 	"rust/hypertask_sync_cli_daemon",
+	"rust/hypertask_sync_js_daemon",
 	"rust/hypertask_sync_server",
+	"rust/hypertask_sync_storage_with_server",
 ]

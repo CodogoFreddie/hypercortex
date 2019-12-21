@@ -1,4 +1,5 @@
 use hypertask_config_file_opener::ShellExpand;
+use hypertask_sync_storage_with_server::ProvidesServerDetails;
 use hypertask_task_io_operations::ProvidesDataDir;
 use platform_dirs::{AppDirs, AppUI};
 use serde::{Deserialize, Serialize};
@@ -36,6 +37,16 @@ pub struct SyncCliDaemonConfig {
 impl ProvidesDataDir for SyncCliDaemonConfig {
     fn get_task_state_dir(&self) -> &PathBuf {
         &self.task_state_dir
+    }
+}
+
+impl ProvidesServerDetails for SyncCliDaemonConfig {
+    fn get_server_url(&self) -> &String {
+        &self.server_url
+    }
+
+    fn get_server_secret_value(&self) -> String {
+        self.sync_secret.get_secret_value()
     }
 }
 

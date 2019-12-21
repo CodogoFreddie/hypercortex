@@ -1,26 +1,28 @@
 [package]
-name = "hypertask_sync_cli_daemon"
+name = "hypertask_sync_js_daemon"
 version = "0.1.0"
 authors = ["Freddie Ridell <contact@freddieridell.com>"]
 edition = "2018"
 
-[[bin]]
-name = "hypertask-sync-daemon"
-path = "src/main.rs"
+[lib]
+crate-type = ["cdylib"]
 
 [dependencies]
-async-std = "1"
-chrono = "0.4"
-crossbeam-channel = "0.3"
-daemonize = "0.4"
 hypertask_config_file_opener={ version = "0.2.0", path="../hypertask_config_file_opener"}
 hypertask_engine={ version = "0.2.0", path= "../hypertask_engine" }
 hypertask_sync_storage_with_server={ version = "0.1.0", path="../hypertask_sync_storage_with_server"}
 hypertask_task_io_operations={ version = "0.1.0", path="../hypertask_task_io_operations"}
-notify = "=5.0.0-pre.1"
-platform-dirs = "0.2"
-serde = { version = "1", features = ["derive"] }
-serde_json = { version = "1" }
-shellexpand = "1"
-surf = "1"
-time = "0.1"
+js-sys = "0.3"
+serde = "1"
+serde_derive = "1"
+serde_json = "1" 
+wee_alloc = "0.4"  
+lazy_static = "1.4.0"
+
+[dependencies.wasm-bindgen]
+version = "0.2"
+features = ["serde-serialize"]
+
+[dependencies.web-sys]
+version = "0.3"
+features = [ ]

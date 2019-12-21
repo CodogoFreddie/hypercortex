@@ -30,7 +30,7 @@ mod wasm {
             )
     }
 
-    pub fn delete_task(id: &Id) -> HyperTaskResult<()> {
+    pub fn delete_task<Config>(_: &Config, id: &Id) -> HyperTaskResult<()> {
         let local_storage = get_local_storage()?;
 
         local_storage
@@ -43,7 +43,7 @@ mod wasm {
         Ok(())
     }
 
-    pub fn put_task(task: &Task) -> HyperTaskResult<()> {
+    pub fn put_task<Config>(_: &Config, task: &Task) -> HyperTaskResult<()> {
         let local_storage = get_local_storage()?;
 
         let serial_task = serde_json::to_string(task).map_err(|e| {
@@ -62,7 +62,7 @@ mod wasm {
         Ok(())
     }
 
-    pub fn get_task(id: &Id) -> HyperTaskResult<Option<Task>> {
+    pub fn get_task<Config>(_: &Config, id: &Id) -> HyperTaskResult<Option<Task>> {
         let local_storage = get_local_storage()?;
 
         let serial_task = local_storage
@@ -86,7 +86,7 @@ mod wasm {
         }
     }
 
-    pub fn get_input_tasks() -> HyperTaskResult<HashMap<Rc<Id>, Rc<Task>>> {
+    pub fn get_input_tasks<Config>(config: &Config) -> HyperTaskResult<HashMap<Rc<Id>, Rc<Task>>> {
         let local_storage = get_local_storage()?;
 
         let mut tasks = HashMap::new();
@@ -107,7 +107,7 @@ mod wasm {
                 )?;
 
             if key.starts_with("hypertask::") {
-                if let Some(task) = get_task(&Id(key.replace("hypertask::", "")))? {
+                if let Some(task) = get_task(config, &Id(key.replace("hypertask::", "")))? {
                     let contained_task = Rc::new(task);
 
                     tasks.insert(contained_task.get_id().clone(), contained_task);
