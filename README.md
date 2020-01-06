@@ -1,3 +1,17 @@
+##
+
+## Getting started
+
+### Chat
+
+The dev team hangs out on [cabal](https://cabal.chat/), a decentralised slack-like chatroom. To join, make sure you have npm/node installed, then run:
+
+```bash
+npx cabal cabal://bb10738176a7e893d28cc96536101697f9b0540d6132db18e8b110768b2cafe1
+```
+
+Or download the [cabal-desktop client](https://github.com/cabal-club/cabal-desktop/releases) and join the room `cabal://bb10738176a7e893d28cc96536101697f9b0540d6132db18e8b110768b2cafe1`
+
 ## Releases
 
 Each consumable binary should be at the same version, which should be the current released version, they should be released in lockstep so that an end user can be certain that they're using the correct version of each crate.
