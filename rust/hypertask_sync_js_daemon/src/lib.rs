@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate lazy_static;
 
-use hypertask_sync_storage_with_server::ProvidesServerDetails;
+use hypertask_sync_storage_with_server::*;
 use hypertask_task_io_operations::ProvidesDataDir;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -45,7 +45,5 @@ pub fn sync_local_store_with_server(config_raw: &JsValue) -> Result<(), JsValue>
         })
         .map_err::<JsValue, _>(HyperTaskError::into)?;
 
-    let _ = sync_all_tasks(&config).map_err::<JsValue, _>(HyperTaskError::into)?;
-
-    Ok(())
+    sync_all_tasks(&config).map_err::<JsValue, _>(HyperTaskError::into)
 }

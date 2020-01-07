@@ -13,10 +13,11 @@ time = "0.1"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 futures = "0.3"
+surf="1"
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-surf = { version = "1", features = [ "wasm-client" ] }
+[dependencies.wasm-bindgen]
+version = "0.2"
+features = ["serde-serialize"]
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 async-std = "1"
-surf = { version = "1", features = [ "curl-client" ] }
