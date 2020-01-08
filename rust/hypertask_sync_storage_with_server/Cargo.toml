@@ -19,5 +19,9 @@ surf="1"
 version = "0.2"
 features = ["serde-serialize"]
 
+[dependencies.web-sys]
+version = "0.3.34"
+features = ["console"]
+
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 async-std = "1"

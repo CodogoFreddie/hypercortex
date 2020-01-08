@@ -99,6 +99,9 @@ impl HyperTaskError {
     }
 }
 
+unsafe impl std::marker::Sync for HyperTaskError {}
+unsafe impl std::marker::Send for HyperTaskError {}
+
 impl PartialEq for HyperTaskError {
     fn eq(&self, other: &HyperTaskError) -> bool {
         self.domain == other.domain && self.action == other.action

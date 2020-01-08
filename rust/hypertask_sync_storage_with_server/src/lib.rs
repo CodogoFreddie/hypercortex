@@ -8,6 +8,8 @@ use hypertask_task_io_operations::{delete_task, get_input_tasks, get_task, put_t
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use time::Duration;
+use wasm_bindgen::prelude::*;
+use web_sys::*;
 
 type TaskHashes = HashMap<Rc<Id>, u64>;
 
@@ -46,27 +48,37 @@ pub async fn get_remote_task_hash_map<Config: ProvidesDataDir + ProvidesServerDe
             .await?;
 
         let headers = res.headers();
-        let length: usize = headers
-            .get("content-length")
-            .expect("content-length not present")
-            .parse()
-            .expect("content-length not stringifiable");
+        let length_result_option: Option<Result<usize, HyperTaskError>> =
+            headers.get("content-length").map(|x| {
+                x.parse().map_err(|e| {
+                    HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Write)
+                        .from(e)
+                })
+            });
 
         let task_hashes_str_possible = res.body_string().await?;
 
-        // there's some fucking weird bug here that's causing task_hashes_str_possible to be cut short.
-        // curling the url from the CLI works, and this code can correctly query other URLs,
-        // but for some reason the combination of my server and my client is causing this
-        // sporadic error.
-        //
-        // For now, we'll just keep re-try the query, as it's not super expensive, but #59 tracks
-        // this issue
-        if task_hashes_str_possible.len() == length {
-            task_hashes_str_option = Some(task_hashes_str_possible);
+        if let Some(Ok(length)) = length_result_option {
+            // there's some fucking weird bug here that's causing task_hashes_str_possible to be cut short.
+            // curling the url from the CLI works, and this code can correctly query other URLs,
+            // but for some reason the combination of my server and my client is causing this
+            // sporadic error.
+            //
+            // For now, we'll just keep re-try the query, as it's not super expensive, but #59 tracks
+            // this issue
+            if task_hashes_str_possible.len() == length {
+                task_hashes_str_option = Some(task_hashes_str_possible);
+            }
         }
+        break;
     }
 
-    let task_hashes_str = task_hashes_str_option.unwrap();
+    let task_hashes_str = task_hashes_str_option.ok_or_else(|| {
+        Box::new(HyperTaskError::new(
+            HyperTaskErrorDomain::Task,
+            HyperTaskErrorAction::Write,
+        ))
+    })?;
 
     let task_hashes = match serde_json::from_str(&task_hashes_str) {
         Ok(ok) => Ok(ok),
@@ -106,14 +118,15 @@ async fn sync_task_with_server<Config: ProvidesDataDir + ProvidesServerDetails>(
     let local_task_state: Option<Task> = get_task(config, &*id)?;
     let remote_task_state = get_remote_task_state(config, &**id, &local_task_state)
         .await
-        .expect("could not get_remote_task_state");
+        .map_err(|_| {
+            HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Write)
+        })?;
 
     let resolved_task = Task::resolve_task_conflict(
         &(Utc::now() - Duration::days(30)),
         local_task_state,
         remote_task_state,
-    )
-    .expect("task ids did not match");
+    )?;
 
     match resolved_task {
         Some(task) => {
@@ -127,16 +140,25 @@ async fn sync_task_with_server<Config: ProvidesDataDir + ProvidesServerDetails>(
     Ok(())
 }
 
-pub async fn sync_all_tasks_tasks_async<Config: ProvidesDataDir + ProvidesServerDetails>(
+pub async fn sync_all_tasks_async<Config: ProvidesDataDir + ProvidesServerDetails>(
     config: &Config,
 ) -> HyperTaskResult<()> {
+    web_sys::console::log_1(&JsValue::from_str(&format!("1")));
+
     let local_hashes = get_local_task_hash_map(config)?;
+
+    web_sys::console::log_1(&JsValue::from_str(&format!("2")));
+
     let remote_hashes = get_remote_task_hash_map(config).await.map_err(|e| {
         println!("{:?}", e);
 
         HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)
             .msg("could not get remote hashes")
     })?;
+
+    web_sys::console::log_1(&JsValue::from_str(&format!("3")));
+
+    web_sys::console::log_1(&JsValue::from_str(&format!("hashes {:?}", &local_hashes)));
 
     let mut ids: HashSet<Rc<Id>> = HashSet::new();
 
@@ -148,18 +170,11 @@ pub async fn sync_all_tasks_tasks_async<Config: ProvidesDataDir + ProvidesServer
     }
 
     for id in &ids {
+        web_sys::console::log_1(&JsValue::from_str(&format!("id {}", &id)));
         if local_hashes.get(id) != remote_hashes.get(id) {
             sync_task_with_server(config, id).await?;
         }
     }
 
     Ok(())
-}
-
-pub fn sync_all_tasks<Config: ProvidesDataDir + ProvidesServerDetails>(
-    config: &Config,
-) -> HyperTaskResult<()> {
-    let sync_future = sync_all_tasks_tasks_async(config);
-
-    block_on(sync_future)
 }

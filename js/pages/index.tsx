@@ -1,44 +1,30 @@
 import * as React from "react";
 import Router from "next/router";
 
-import { GIT_PASSWORD } from "../../.env";
+async function testSync() {
+	const { sync_local_store_with_server } = await import(
+		"@freddieridell/hypertask_sync_js_daemon"
+	);
 
-import useHyperTaskEngine, { Task } from "../hooks/useHyperTaskEngine";
-import useConfig from "../hooks/useConfig";
+	try {
+		const result = await sync_local_store_with_server({
+			sync_secret:
+				"heFKicyG3KDcRjQzQ5BNhA74k5MDJr3CsPlyitwCqAOeT0Ia1gsbfpiTa8Gbe4kH",
+			server_url: "http://server.freddieridell.com:6346",
+		});
 
-const emptyTaskArray: Task[] = [];
-const emptyTaskSet = new Set(emptyTaskArray);
+		console.log({ result });
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+if (process.browser) {
+	testSync();
+}
 
 const Home = () => {
-	const [isLoading, setIsLoading] = React.useState(true);
-
-	const [config, setConfig, configIsComplete] = useConfig();
-
-	if (!configIsComplete && process.browser) {
-		Router.push("/config");
-
-		return null;
-	}
-
-	const run = useHyperTaskEngine(config);
-
-	const allTasks = React.useMemo(() => {
-		if (!run) {
-			return [];
-		}
-
-		return run({ Read: [] });
-	}, [run]);
-
-	return (
-		<div>
-			{allTasks.map(({ score, task: { id, description } }) => (
-				<div key={id}>
-					{[score.toPrecision(3), description].join(" ")}
-				</div>
-			))}
-		</div>
-	);
+	return <React.Fragment />;
 };
 
 export default Home;
