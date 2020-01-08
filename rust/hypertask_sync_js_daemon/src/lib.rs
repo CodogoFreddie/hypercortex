@@ -1,10 +1,12 @@
 #[macro_use]
 extern crate lazy_static;
 
+use hypertask_engine::prelude::*;
 use hypertask_sync_storage_with_server::*;
 use hypertask_task_io_operations::ProvidesDataDir;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+use wasm_bindgen::prelude::*;
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
