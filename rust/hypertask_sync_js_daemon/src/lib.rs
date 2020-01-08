@@ -16,6 +16,7 @@ lazy_static! {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SyncCliDaemonConfig {
     pub sync_secret: String,
+
     pub server_url: String,
 }
 

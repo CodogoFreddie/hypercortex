@@ -29,18 +29,12 @@
 		"typescript": "^3.6.3"
 	},
 	"babel": {
-		"presets": [
-			"@freddieridell/babel-preset"
-		]
+		"presets": ["@freddieridell/babel-preset"]
 	},
 	"eslintConfig": {
 		"extends": "react-app"
 	},
-	"files": [
-		null,
-		"/lib",
-		"/main.js"
-	],
+	"files": [null, "/lib", "/main.js"],
 	"prettier": {
 		"tabWidth": 4,
 		"trailingComma": "es5",
@@ -49,6 +43,7 @@
 	"dependencies": {
 		"@emotion/core": "^10.0.21",
 		"@emotion/styled": "^10.0.17",
+		"@freddieridell/hypertask_npm_package": "^0.2.0",
 		"@freddieridell/hypertask_npm_package": "^0.2.0",
 		"@isomorphic-git/lightning-fs": "^3.3.2",
 		"browserfs": "^2.0.0",
