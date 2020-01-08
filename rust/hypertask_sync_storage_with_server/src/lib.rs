@@ -99,12 +99,16 @@ pub async fn get_remote_task_state<Config: ProvidesServerDetails>(
     task: &Option<Task>,
 ) -> Result<Option<Task>, Box<dyn std::error::Error + Send + Sync + 'static>> {
     let uri = format!("{}/task/{}", config.get_server_url(), id);
+
+    web_sys::console::log_1(&JsValue::from_str(&format!("task: {:?}", &task)));
+
     let task: Option<Task> = surf::post(uri)
         .set_header(
             "Authorization",
             format!("hypertask {}", config.get_server_secret_value()),
         )
-        .body_json(&task)?
+        .body_string(serde_json::to_string(&task).expect("could not serialise task"))
+        .set_header("Content-Type", "application/json")
         .recv_json()
         .await?;
 

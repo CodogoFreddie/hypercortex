@@ -6,6 +6,13 @@ async function testSync() {
 		"@freddieridell/hypertask_sync_js_daemon"
 	);
 
+	let F = window.fetch;
+	window.fetch = (...args) => {
+		console.log("fetch", args, [...args[0].headers.entries()]);
+
+		return F(...args);
+	};
+
 	try {
 		const result = await sync_local_store_with_server({
 			sync_secret:
