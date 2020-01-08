@@ -1,12 +1,10 @@
 #[macro_use]
 extern crate lazy_static;
 
-use hypertask_engine::prelude::*;
 use hypertask_sync_storage_with_server::*;
 use hypertask_task_io_operations::ProvidesDataDir;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use wasm_bindgen::prelude::*;
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
@@ -41,6 +39,9 @@ impl ProvidesServerDetails for SyncCliDaemonConfig {
 #[wasm_bindgen]
 #[cfg(target_arch = "wasm32")]
 pub fn sync_local_store_with_server(config_raw: &JsValue) -> Result<(), JsValue> {
+    use hypertask_engine::prelude::*;
+    use wasm_bindgen::prelude::*;
+
     let config: SyncCliDaemonConfig = config_raw
         .into_serde()
         .map_err(|e| {

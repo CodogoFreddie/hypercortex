@@ -33,3 +33,16 @@ shellexpand = "1"
 term_size = "1.0.0-beta1" 
 time = "0.1"
 toml = "0.5"   
+
+[dev-dependencies.cargo-husky]
+version = "1"
+default-features = false
+features = [
+	"run-for-all",
+	"prepush-hook",
+	"precommit-hook",
+	"run-cargo-test",
+	"run-cargo-clippy",
+	"run-cargo-check",
+	"run-cargo-fmt"
+]
