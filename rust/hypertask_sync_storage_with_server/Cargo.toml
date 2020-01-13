@@ -13,7 +13,10 @@ time = "0.1"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 futures = "0.3"
-surf="1"
+
+[dependencies.surf]
+version = "1"
+features = [ "wasm-client" ]
 
 [dependencies.wasm-bindgen]
 version = "0.2"

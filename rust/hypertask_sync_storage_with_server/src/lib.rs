@@ -127,7 +127,7 @@ async fn sync_task_with_server<Config: ProvidesDataDir + ProvidesServerDetails>(
         })?;
 
     let resolved_task = Task::resolve_task_conflict(
-        &(Utc::now() - Duration::days(30)),
+        &(Utc.ymd(2020, 01, 08).and_hms(9, 10, 11) - Duration::days(30)),
         local_task_state,
         remote_task_state,
     )?;
@@ -166,16 +166,28 @@ pub async fn sync_all_tasks_async<Config: ProvidesDataDir + ProvidesServerDetail
 
     let mut ids: HashSet<Rc<Id>> = HashSet::new();
 
+    web_sys::console::log_1(&JsValue::from_str(&format!("4")));
+
     for id in local_hashes.keys() {
         ids.insert(id.clone());
     }
+
+    web_sys::console::log_1(&JsValue::from_str(&format!("5")));
+
     for id in remote_hashes.keys() {
         ids.insert(id.clone());
     }
 
+    web_sys::console::log_1(&JsValue::from_str(&format!("6")));
+
     for id in &ids {
-        web_sys::console::log_1(&JsValue::from_str(&format!("id {}", &id)));
         if local_hashes.get(id) != remote_hashes.get(id) {
+            web_sys::console::log_1(&JsValue::from_str(&format!(
+                "id {} {:?} {:?}",
+                &id,
+                local_hashes.get(id),
+                remote_hashes.get(id)
+            )));
             sync_task_with_server(config, id).await?;
         }
     }
