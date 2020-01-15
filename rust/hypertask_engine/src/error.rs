@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum HyperTaskErrorDomain {
     Render,
     Config,
@@ -11,6 +11,7 @@ pub enum HyperTaskErrorDomain {
     Query,
     ScoreCalculator,
     Task,
+    Syncing,
 }
 
 impl fmt::Display for HyperTaskErrorDomain {
@@ -20,6 +21,7 @@ impl fmt::Display for HyperTaskErrorDomain {
             "{}",
             match self {
                 HyperTaskErrorDomain::Config => "config",
+                HyperTaskErrorDomain::Syncing => "syncing",
                 HyperTaskErrorDomain::Render => "render",
                 HyperTaskErrorDomain::Context => "context",
                 HyperTaskErrorDomain::Input => "input",
@@ -32,8 +34,9 @@ impl fmt::Display for HyperTaskErrorDomain {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum HyperTaskErrorAction {
+    Compare,
     Create,
     Delete,
     Parse,
@@ -48,6 +51,7 @@ impl fmt::Display for HyperTaskErrorAction {
             f,
             "{}",
             match self {
+                HyperTaskErrorAction::Compare => "compare",
                 HyperTaskErrorAction::Create => "create",
                 HyperTaskErrorAction::Delete => "delete",
                 HyperTaskErrorAction::Parse => "parse",
@@ -92,6 +96,12 @@ impl HyperTaskError {
     pub fn from<E: 'static + Error>(mut self, source: E) -> Self {
         self.source = Some(Box::new(source));
         self
+    }
+}
+
+impl PartialEq for HyperTaskError {
+    fn eq(&self, other: &HyperTaskError) -> bool {
+        self.domain == other.domain && self.action == other.action
     }
 }
 

@@ -1,25 +1,27 @@
 [package]
-name = "hypertask_sync_server"
+name = "hypertask_sync_cli_daemon"
 version = "0.1.0"
 authors = ["Freddie Ridell <contact@freddieridell.com>"]
 edition = "2018"
 
 [[bin]]
-name = "hypertask-sync-server"
+name = "hypertask-sync-daemon"
 path = "src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-web="1"
-chrono = { version = "0.4", features = ["serde"] }
+daemonize = "0.4"
 hypertask_config_file_opener={ version = "0.2.0", path="../hypertask_config_file_opener"}
-hypertask_task_io_operations={ version = "0.1.0", path="../hypertask_task_io_operations"}
 hypertask_engine={ version = "0.2.0", path= "../hypertask_engine" }
+hypertask_task_io_operations={ version = "0.1.0", path="../hypertask_task_io_operations"}
 platform-dirs = "0.2"
-rand = "0.6" 
-time = "0.1"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 shellexpand = "1"
-daemonize = "0.4"
+surf = "1"
+async-std = "1.1"
+chrono = "0.4"
+time = "0.1"
+crossbeam-channel = "0.3"
+notify = "=5.0.0-pre.1"
