@@ -14,9 +14,9 @@ repository = "https://github.com/FreddieRidell/hypertask"
 name = "task"
 path = "src/main.rs"
 
-#[[bin]]
-#name = "_task"
-#path = "src/auto_complete.rs"
+[[bin]]
+name = "_task_complete"
+path = "src/auto_complete.rs"
 
 [dependencies]
 ansi_term="0.12"
