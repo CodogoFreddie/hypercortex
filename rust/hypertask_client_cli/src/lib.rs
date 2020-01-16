@@ -7,7 +7,7 @@ extern crate hypertask_engine;
 extern crate render_simple_cli_table;
 extern crate shellexpand;
 
-mod config;
+pub mod config;
 mod parse_args;
 mod render;
 

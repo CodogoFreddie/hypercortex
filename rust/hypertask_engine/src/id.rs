@@ -32,6 +32,12 @@ impl Id {
         self_content.contains(other_content.as_str())
             || other_content.contains(self_content.as_str())
     }
+
+    pub fn get_string(&self) -> &String {
+        let Id(id) = self;
+
+        id
+    }
 }
 
 impl fmt::Display for Id {
