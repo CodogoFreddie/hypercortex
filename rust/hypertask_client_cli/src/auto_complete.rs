@@ -5,7 +5,7 @@ use hypertask_client_cli::config::CliConfig;
 use hypertask_config_file_opener::{ConfigFileGetter, ConfigFileOpener};
 use hypertask_engine::prelude::*;
 use hypertask_task_io_operations::get_input_tasks;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
 fn complete_id(tasks: &HashMap<Rc<Id>, Rc<Task>>, partial: &str) -> Vec<String> {
@@ -17,6 +17,20 @@ fn complete_id(tasks: &HashMap<Rc<Id>, Rc<Task>>, partial: &str) -> Vec<String> 
     }
 
     return output;
+}
+
+fn complete_tag(tasks: &HashMap<Rc<Id>, Rc<Task>>, partial: &str) -> Vec<String> {
+    let mut output: HashSet<String> = HashSet::new();
+
+    for task in tasks.values() {
+        for tag in task.get_tags() {
+            if tag.starts_with(partial) {
+                output.insert(tag.clone());
+            }
+        }
+    }
+
+    return output.into_iter().collect();
 }
 
 fn main() -> HyperTaskResult<()> {
@@ -32,9 +46,27 @@ fn main() -> HyperTaskResult<()> {
 
     let arg_being_completed = args[command_being_completed - 1];
 
-    let id_completions = complete_id(&tasks, &arg_being_completed);
-
-    println!("{}", id_completions.join(" "));
+    if arg_being_completed.starts_with("+") {
+        println!(
+            "{}",
+            complete_tag(&tasks, &arg_being_completed[1..])
+                .iter()
+                .map(|x| format!("+{}", x))
+                .collect::<Vec<String>>()
+                .join(" ")
+        )
+    } else if arg_being_completed.starts_with("-") {
+        println!(
+            "{}",
+            complete_tag(&tasks, &arg_being_completed[1..])
+                .iter()
+                .map(|x| format!("-{}", x))
+                .collect::<Vec<String>>()
+                .join(" ")
+        )
+    } else {
+        println!("{}", complete_id(&tasks, &arg_being_completed).join(" "))
+    }
 
     Ok(())
 }
