@@ -25,6 +25,7 @@ impl Id {
 
         Id(result)
     }
+
     pub fn sub_eq(&self, other: &Id) -> bool {
         let Id(self_content) = self;
         let Id(other_content) = other;

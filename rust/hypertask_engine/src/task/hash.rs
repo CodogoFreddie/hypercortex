@@ -1,56 +1,71 @@
 use super::Task;
-use std::hash::{Hash, Hasher};
 
-const HASHER_TABLE: [u8; 256] = [
-    98, 6, 85, 150, 36, 23, 112, 164, 135, 207, 169, 5, 26, 64, 165, 219, 61, 20, 68, 89, 130, 63,
-    52, 102, 24, 229, 132, 245, 80, 216, 195, 115, 90, 168, 156, 203, 177, 120, 2, 190, 188, 7,
-    100, 185, 174, 243, 162, 10, 237, 18, 253, 225, 8, 208, 172, 244, 255, 126, 101, 79, 145, 235,
-    228, 121, 123, 251, 67, 250, 161, 0, 107, 97, 241, 111, 181, 82, 249, 33, 69, 55, 59, 153, 29,
-    9, 213, 167, 84, 93, 30, 46, 94, 75, 151, 114, 73, 222, 197, 96, 210, 45, 16, 227, 248, 202,
-    51, 152, 252, 125, 81, 206, 215, 186, 39, 158, 178, 187, 131, 136, 1, 49, 50, 17, 141, 91, 47,
-    129, 60, 99, 154, 35, 86, 171, 105, 34, 38, 200, 147, 58, 77, 118, 173, 246, 76, 254, 133, 232,
-    196, 144, 198, 124, 53, 4, 108, 74, 223, 234, 134, 230, 157, 139, 189, 205, 199, 128, 176, 19,
-    211, 236, 127, 192, 231, 70, 233, 88, 146, 44, 183, 201, 22, 83, 13, 214, 116, 109, 159, 32,
-    95, 226, 140, 220, 57, 12, 221, 31, 209, 182, 143, 92, 149, 184, 148, 62, 113, 65, 37, 27, 106,
-    166, 3, 14, 204, 72, 21, 41, 56, 66, 28, 193, 40, 217, 25, 54, 179, 117, 238, 87, 240, 155,
-    180, 170, 242, 212, 191, 163, 78, 218, 137, 194, 175, 110, 43, 119, 224, 71, 122, 142, 42, 160,
-    104, 48, 247, 103, 15, 11, 138, 239,
-];
-// This is a bad hasher, but I don't really care right now and it satisfies the requirements I
-// currently have :/
-struct DetermensiticHasher {
-    state: u64,
-}
-
-impl DetermensiticHasher {
-    pub fn new() -> Self {
-        let mut state: u64 = 0;
-
-        for i in 0..6 {
-            state = HASHER_TABLE[HASHER_TABLE[HASHER_TABLE[i as usize] as usize] as usize] as u64
-                + state.rotate_left(8);
-        }
-        Self { state }
-    }
-}
-
-impl Hasher for DetermensiticHasher {
-    fn write(&mut self, data: &[u8]) {
-        for datum in data {
-            let x = HASHER_TABLE[(datum ^ self.state as u8) as usize];
-
-            self.state = self.state.rotate_left(8) + (x as u64);
-        }
-    }
-    fn finish(&self) -> u64 {
-        self.state
-    }
-}
+use blake2::digest::{Input, VariableOutput};
+use blake2::VarBlake2b;
 
 impl Task {
     pub fn calculate_hash(&self) -> u64 {
-        let mut hasher = DetermensiticHasher::new();
-        self.hash(&mut hasher);
-        hasher.finish()
+        //TODO this is a BAD implementation of this logic,
+        //it should be replaced as soon as we've got a good way to convert tasks to byte arrays
+        let s = serde_json::to_string(&self).expect("could not serialise task");
+
+        let mut hasher = VarBlake2b::new(4).unwrap();
+
+        hasher.input(s);
+
+        hasher
+            .vec_result()
+            .iter()
+            .fold(0, |acc, dat| (acc * 256) + (*dat as u64))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    extern crate wasm_bindgen_test;
+
+    use super::*;
+    use crate::id::Id;
+    use chrono::prelude::*;
+    use std::collections::HashSet;
+    use std::rc::Rc;
+    use wasm_bindgen_test::*;
+
+    #[wasm_bindgen_test]
+    fn does_hash_to_consistent_value() {
+        let task = Task {
+            created_at: Utc.ymd(2014, 7, 8).and_hms(9, 10, 11),
+            blocked_by: None,
+            description: None,
+            done: None,
+            due: None,
+            id: Rc::new(Id("test_id".into())),
+            recur: None,
+            snooze: None,
+            tags: HashSet::new(),
+            updated_at: Utc.ymd(2014, 7, 8).and_hms(9, 10, 11),
+            wait: None,
+        };
+
+        assert_eq!(task.calculate_hash(), 1218049881);
+    }
+
+    #[wasm_bindgen_test]
+    fn hashes_different_tasks_to_different_values() {
+        let task = Task {
+            created_at: Utc.ymd(2014, 7, 8).and_hms(9, 10, 11),
+            blocked_by: None,
+            description: Some("with a description".into()),
+            done: None,
+            due: None,
+            id: Rc::new(Id("test_id".into())),
+            recur: None,
+            snooze: None,
+            tags: HashSet::new(),
+            updated_at: Utc.ymd(2014, 7, 8).and_hms(9, 10, 11),
+            wait: None,
+        };
+
+        assert_eq!(task.calculate_hash(), 1780513461);
     }
 }
