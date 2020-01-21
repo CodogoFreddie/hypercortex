@@ -35,6 +35,8 @@ fn create_stack_machine(now: &DateTime<Utc>, program: Vec<RPNSymbol>) -> StackMa
 }
 
 fn display_first_run_message() -> bool {
+    //TODO make this read for the config dir, and create a task.{zsh,bash,sh} file inside, then
+    //print a message saying to just source them
     use platform_dirs::{AppDirs, AppUI};
     use std::fs;
     use std::fs::File;
