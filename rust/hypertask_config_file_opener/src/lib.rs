@@ -108,7 +108,7 @@ pub fn run_string_as_shell_command(cmd: &str) -> HyperTaskResult<String> {
             .arg(cmd)
             .output()
             .map_err(|e| {
-                HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Run)
+                HyperTaskError::new(HyperTaskErrorDomain::Config, HyperTaskErrorAction::Run)
                     .with_msg(|| format!("could not run the post write shell command `{}`", cmd))
                     .from(e)
             })
@@ -116,39 +116,33 @@ pub fn run_string_as_shell_command(cmd: &str) -> HyperTaskResult<String> {
                 let stdout = std::str::from_utf8(&output.stdout)
                     .map(|s| s.to_owned())
                     .map_err(|e| {
-                        HyperTaskError::new(
-                            HyperTaskErrorDomain::Context,
-                            HyperTaskErrorAction::Run,
-                        )
-                        .with_msg(|| {
-                            format!(
+                        HyperTaskError::new(HyperTaskErrorDomain::Config, HyperTaskErrorAction::Run)
+                            .with_msg(|| {
+                                format!(
                                 "could not return the stdout of the post write shell command `{}`",
                                 cmd
                             )
-                        })
-                        .from(e)
+                            })
+                            .from(e)
                     })?;
 
                 let stderr = std::str::from_utf8(&output.stderr)
                     .map(|s| s.to_owned())
                     .map_err(|e| {
-                        HyperTaskError::new(
-                            HyperTaskErrorDomain::Context,
-                            HyperTaskErrorAction::Run,
-                        )
-                        .with_msg(|| {
-                            format!(
+                        HyperTaskError::new(HyperTaskErrorDomain::Config, HyperTaskErrorAction::Run)
+                            .with_msg(|| {
+                                format!(
                                 "could not return the stderr of the post write shell command `{}`",
                                 cmd
                             )
-                        })
-                        .from(e)
+                            })
+                            .from(e)
                     })?;
                 Ok(format!("{}{}", stdout, stderr))
             })
     } else {
         Err(
-            HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Run)
+            HyperTaskError::new(HyperTaskErrorDomain::Config, HyperTaskErrorAction::Run)
                 .msg("could not get the current shell"),
         )
     }

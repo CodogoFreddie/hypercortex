@@ -5,7 +5,6 @@ use std::fmt;
 pub enum HyperTaskErrorDomain {
     Render,
     Config,
-    Context,
     Input,
     Mutation,
     Query,
@@ -23,7 +22,6 @@ impl fmt::Display for HyperTaskErrorDomain {
                 HyperTaskErrorDomain::Config => "config",
                 HyperTaskErrorDomain::Syncing => "syncing",
                 HyperTaskErrorDomain::Render => "render",
-                HyperTaskErrorDomain::Context => "context",
                 HyperTaskErrorDomain::Input => "input",
                 HyperTaskErrorDomain::Mutation => "mutation",
                 HyperTaskErrorDomain::Query => "query",

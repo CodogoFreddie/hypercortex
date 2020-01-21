@@ -98,7 +98,7 @@ pub fn get_input_tasks<Config: ProvidesDataDir>(
 ) -> HyperTaskResult<HashMap<Rc<Id>, Rc<Task>>> {
     let task_state_dir: &PathBuf = config.get_task_state_dir();
     let task_files_iterator = fs::read_dir(&task_state_dir).map_err(|e| {
-        HyperTaskError::new(HyperTaskErrorDomain::Context, HyperTaskErrorAction::Read)
+        HyperTaskError::new(HyperTaskErrorDomain::Config, HyperTaskErrorAction::Read)
             .with_msg(|| {
                 format!(
                     "folder `{:}` could not be found",
