@@ -9,8 +9,8 @@ name = "hypertask-sync-daemon"
 path = "src/main.rs"
 
 [dependencies]
-async-std = "1"
 chrono = "0.4"
+futures = "0.3"
 crossbeam-channel = "0.3"
 daemonize = "0.4"
 hypertask_config_file_opener={ version = "0.2.0", path="../hypertask_config_file_opener"}

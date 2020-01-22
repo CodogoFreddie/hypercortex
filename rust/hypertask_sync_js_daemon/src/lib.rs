@@ -1,14 +1,20 @@
 #[macro_use]
 extern crate lazy_static;
 
-use hypertask_engine::prelude::*;
 use hypertask_sync_storage_with_server::*;
 use hypertask_task_io_operations::ProvidesDataDir;
-use js_sys::Promise;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::future_to_promise;
+
+#[cfg(target_arch = "wasm32")]
+mod wasm {
+    use hypertask_engine::prelude::*;
+    use js_sys::Promise;
+    use wasm_bindgen::prelude::*;
+    use wasm_bindgen_futures::future_to_promise;
+}
+#[cfg(target_arch = "wasm32")]
+use wasm::*;
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
@@ -40,6 +46,7 @@ impl ProvidesServerDetails for SyncCliDaemonConfig {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 fn get_local_storage() -> HyperTaskResult<web_sys::Storage> {
     let window = web_sys::window().ok_or(
         HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Read)
@@ -58,6 +65,7 @@ fn get_local_storage() -> HyperTaskResult<web_sys::Storage> {
         )
 }
 
+#[cfg(target_arch = "wasm32")]
 async fn sync_all_tasks_async_wrapper() -> Result<JsValue, JsValue> {
     let local_storage = get_local_storage().expect("could not get local storage");
 

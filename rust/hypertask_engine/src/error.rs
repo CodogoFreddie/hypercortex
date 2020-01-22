@@ -5,7 +5,6 @@ use std::fmt;
 pub enum HyperTaskErrorDomain {
     Render,
     Config,
-    Context,
     Input,
     Mutation,
     Query,
@@ -23,7 +22,6 @@ impl fmt::Display for HyperTaskErrorDomain {
                 HyperTaskErrorDomain::Config => "config",
                 HyperTaskErrorDomain::Syncing => "syncing",
                 HyperTaskErrorDomain::Render => "render",
-                HyperTaskErrorDomain::Context => "context",
                 HyperTaskErrorDomain::Input => "input",
                 HyperTaskErrorDomain::Mutation => "mutation",
                 HyperTaskErrorDomain::Query => "query",
@@ -157,9 +155,16 @@ pub fn print_error_chain_recursive(err: &(dyn Error + 'static), i: u32) {
 
 #[cfg(all(test, target_arch = "wasm32"))]
 mod test {
+    extern crate wasm_bindgen_test;
+
+    use super::*;
+    use wasm_bindgen::JsValue;
+    use wasm_bindgen_test::*;
+
+    #[wasm_bindgen_test]
     fn can_convert_hypertask_error_to_js_value() {
         let error = HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run);
 
-        let js_value: JsValue = error.into();
+        let _js_value: JsValue = error.into();
     }
 }

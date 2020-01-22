@@ -1,4 +1,3 @@
-extern crate async_std;
 extern crate crossbeam_channel;
 
 extern crate hypertask_sync_storage_with_server;
@@ -7,17 +6,18 @@ mod config;
 
 use crate::config::SyncCliDaemonConfig;
 use crossbeam_channel::unbounded;
+use futures::executor::block_on;
 use hypertask_config_file_opener::{ConfigFileGetter, ConfigFileOpener};
 use hypertask_engine::prelude::*;
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 
-use hypertask_sync_storage_with_server::sync_all_tasks;
+use hypertask_sync_storage_with_server::sync_all_tasks_async;
 
 pub fn start() -> HyperTaskResult<()> {
     let mut config_file_opener = ConfigFileOpener::new("sync-daemon.toml")?;
     let config_file_getter: ConfigFileGetter<SyncCliDaemonConfig> = config_file_opener.parse()?;
 
-    sync_all_tasks(config_file_getter.get_config())?;
+    block_on(sync_all_tasks_async(config_file_getter.get_config()))?;
 
     let (tx, rx) = unbounded();
 
@@ -42,7 +42,7 @@ pub fn start() -> HyperTaskResult<()> {
     loop {
         match rx.recv() {
             Ok(_) => {
-                match sync_all_tasks(config_file_getter.get_config()) {
+                match block_on(sync_all_tasks_async(config_file_getter.get_config())) {
                     Ok(_) => println!("synced"),
                     Err(e) => println!("sync error: {:?}", e),
                 };

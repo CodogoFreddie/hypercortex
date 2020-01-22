@@ -1,7 +1,7 @@
 extern crate js_sys;
 extern crate lazy_static;
 
-use wasm_bindgen::prelude::*;
+//use wasm_bindgen::prelude::*;
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;

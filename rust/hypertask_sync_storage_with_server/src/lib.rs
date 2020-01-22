@@ -1,7 +1,6 @@
 extern crate hypertask_engine;
 
 use chrono::prelude::*;
-use futures::executor::block_on;
 use hypertask_engine::prelude::*;
 use hypertask_task_io_operations::ProvidesDataDir;
 use hypertask_task_io_operations::{delete_task, get_input_tasks, get_task, put_task};
@@ -9,7 +8,7 @@ use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use time::Duration;
 use wasm_bindgen::prelude::*;
-use web_sys::*;
+//use web_sys::*;
 
 type TaskHashes = HashMap<Rc<Id>, u64>;
 
@@ -147,11 +146,7 @@ async fn sync_task_with_server<Config: ProvidesDataDir + ProvidesServerDetails>(
 pub async fn sync_all_tasks_async<Config: ProvidesDataDir + ProvidesServerDetails>(
     config: &Config,
 ) -> HyperTaskResult<()> {
-    web_sys::console::log_1(&JsValue::from_str(&format!("1")));
-
     let local_hashes = get_local_task_hash_map(config)?;
-
-    web_sys::console::log_1(&JsValue::from_str(&format!("2")));
 
     let remote_hashes = get_remote_task_hash_map(config).await.map_err(|e| {
         println!("{:?}", e);
@@ -160,25 +155,15 @@ pub async fn sync_all_tasks_async<Config: ProvidesDataDir + ProvidesServerDetail
             .msg("could not get remote hashes")
     })?;
 
-    web_sys::console::log_1(&JsValue::from_str(&format!("3")));
-
-    web_sys::console::log_1(&JsValue::from_str(&format!("hashes {:?}", &local_hashes)));
-
     let mut ids: HashSet<Rc<Id>> = HashSet::new();
-
-    web_sys::console::log_1(&JsValue::from_str(&format!("4")));
 
     for id in local_hashes.keys() {
         ids.insert(id.clone());
     }
 
-    web_sys::console::log_1(&JsValue::from_str(&format!("5")));
-
     for id in remote_hashes.keys() {
         ids.insert(id.clone());
     }
-
-    web_sys::console::log_1(&JsValue::from_str(&format!("6")));
 
     for id in &ids {
         if local_hashes.get(id) != remote_hashes.get(id) {
