@@ -16,6 +16,23 @@ use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use time::Duration;
+use clap::Clap;
+
+/// This doc string acts as a help message when the user runs '--help'
+/// as do all doc strings on fields
+#[derive(Clap)]
+#[clap(version = "1.0")]
+struct CliOptions {
+    /// Fork the syncer into a daemon process
+    #[clap(short = "d", long = "daemonise", default_value = "false")]
+    daemonise: bool,
+    /// Rate in minutes to recheck the tasks folder, leave empty to disable periodic re-scanning
+    #[clap(short = "r", long = "rescan-rate", default_value = "None")]
+    rescan_rate: Option<u64>,
+    /// A level of verbosity, and can be used multiple times
+    #[clap(short = "v", long = "verbose", parse(from_occurrences))]
+    verbose: i32,
+}
 
 type TaskHashes = HashMap<Rc<Id>, u64>;
 
@@ -149,40 +166,46 @@ pub fn sync_all_tasks(config: &SyncCliDaemonConfig) -> HyperTaskResult<()> {
 }
 
 pub fn start() -> HyperTaskResult<()> {
-    let mut config_file_opener = ConfigFileOpener::new("sync-daemon.toml")?;
-    let config_file_getter: ConfigFileGetter<SyncCliDaemonConfig> = config_file_opener.parse()?;
+    let cli_options = CliOptions::parse();
 
-    sync_all_tasks(config_file_getter.get_config())?;
+    //let mut config_file_opener = ConfigFileOpener::new("sync-daemon.toml")?;
+    //let config_file_getter: ConfigFileGetter<SyncCliDaemonConfig> = config_file_opener.parse()?;
 
-    let (tx, rx) = unbounded();
+    //sync_all_tasks(config_file_getter.get_config())?;
 
-    let mut watcher: RecommendedWatcher = Watcher::new(tx, std::time::Duration::from_secs(5))
-        .map_err(|e| {
-            HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)
-                .msg("could not create task_state_dir watcher")
-                .from(e)
-        })?;
+    //let (tx, rx) = unbounded();
 
-    watcher
-        .watch(
-            config_file_getter.get_config().task_state_dir.clone(),
-            RecursiveMode::Recursive,
-        )
-        .map_err(|e| {
-            HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)
-                .msg("error watching task_state_dir")
-                .from(e)
-        })?;
+    //let mut watcher: RecommendedWatcher = Watcher::new(tx, std::time::Duration::from_secs(5))
+        //.map_err(|e| {
+            //HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)
+                //.msg("could not create task_state_dir watcher")
+                //.from(e)
+        //})?;
 
-    loop {
-        match rx.recv() {
-            Ok(_) => {
-                match sync_all_tasks(config_file_getter.get_config()) {
-                    Ok(_) => println!("synced"),
-                    Err(e) => println!("sync error: {:?}", e),
-                };
-            }
-            Err(err) => println!("watch error: {:?}", err),
-        };
-    }
+    //watcher
+        //.watch(
+            //config_file_getter.get_config().task_state_dir.clone(),
+            //RecursiveMode::Recursive,
+        //)
+        //.map_err(|e| {
+            //HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)
+                //.msg("error watching task_state_dir")
+                //.from(e)
+        //})?;
+
+    //loop {
+        //match rx.recv() {
+            //Ok(_) => {
+                //match sync_all_tasks(config_file_getter.get_config()) {
+                    //Ok(_) => println!("synced"),
+                    //Err(e) => println!("sync error: {:?}", e),
+                //};
+            //}
+            //Err(err) => println!("watch error: {:?}", err),
+        //};
+    //}
+}
+
+
+fn main() {
 }
