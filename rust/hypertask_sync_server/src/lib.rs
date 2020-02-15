@@ -85,7 +85,7 @@ pub fn start() -> HyperTaskResult<()> {
     let sync_server_config = get_config_object()?;
 
     println!(
-        "started syncing server for dir `{}` @ {}:{}",
+        "started syncing server for dir `{}` @ http://{}:{}",
         sync_server_config
             .task_state_dir
             .to_str()

@@ -23,3 +23,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 shellexpand = "1"
 daemonize = "0.4"
+
+[dependencies.clap]
+git = 'https://github.com/clap-rs/clap.git'
+branch = 'master'
