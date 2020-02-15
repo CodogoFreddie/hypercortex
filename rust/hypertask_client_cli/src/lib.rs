@@ -7,10 +7,12 @@ extern crate hypertask_engine;
 extern crate render_simple_cli_table;
 extern crate shellexpand;
 
+mod auto_complete_creator;
 pub mod config;
 mod parse_args;
 mod render;
 
+use crate::auto_complete_creator::create_auto_complete_files;
 use crate::config::CliConfig;
 use crate::parse_args::parse_cli_args;
 use crate::render::render_engine_output;
@@ -34,55 +36,12 @@ fn create_stack_machine(now: &DateTime<Utc>, program: Vec<RPNSymbol>) -> StackMa
     StackMachine::new(program, env)
 }
 
-fn display_first_run_message() -> bool {
-    //TODO make this read for the config dir, and create a task.{zsh,bash,sh} file inside, then
-    //print a message saying to just source them
-    use platform_dirs::{AppDirs, AppUI};
-    use std::fs;
-    use std::fs::File;
-
-    let AppDirs {
-        mut state_dir,
-        mut config_dir,
-        ..
-    } = AppDirs::new(Some("hypertask-cli"), AppUI::CommandLine).unwrap();
-
-    fs::create_dir_all(&state_dir).expect("could not create state dir");
-
-    config_dir.push("client.toml");
-    state_dir.push("hasRunEverBefore");
-
-    if !state_dir.exists() {
-        println!("It looks like this is the first time you've run hypertask.");
-        println!("");
-        println!(
-            "A config file has been created for you at `{}`",
-            config_dir.to_str().unwrap()
-        );
-        println!("");
-        println!("If you'd like to enable autocompletion, please add the following snippet to your .zshrc config:");
-        println!("");
-        println!("");
-        println!("");
-        println!("{}", include_str!("../../../_task.zsh"));
-        println!("");
-        println!("");
-        println!("(hypertask will run as normal next time you run this command)");
-
-        File::create(state_dir).expect("could not create task run marker");
-
-        true
-    } else {
-        false
-    }
-}
-
 pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
     let mut config_file_opener = ConfigFileOpener::new("client.toml")?;
     let config_file_getter: ConfigFileGetter<CliConfig> = config_file_opener.parse()?;
     let cli_config: &CliConfig = config_file_getter.get_config();
 
-    if display_first_run_message() {
+    if create_auto_complete_files() {
         return Ok(());
     }
 
