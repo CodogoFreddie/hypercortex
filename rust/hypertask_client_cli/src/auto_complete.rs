@@ -16,7 +16,7 @@ fn complete_id(tasks: &HashMap<Rc<Id>, Rc<Task>>, partial: &str) -> Vec<String> 
         }
     }
 
-    return output;
+    output
 }
 
 fn complete_tag(tasks: &HashMap<Rc<Id>, Rc<Task>>, partial: &str) -> Vec<String> {
@@ -30,7 +30,7 @@ fn complete_tag(tasks: &HashMap<Rc<Id>, Rc<Task>>, partial: &str) -> Vec<String>
         }
     }
 
-    return output.into_iter().collect();
+    output.into_iter().collect()
 }
 
 fn main() -> HyperTaskResult<()> {
@@ -41,12 +41,12 @@ fn main() -> HyperTaskResult<()> {
     let tasks: HashMap<Rc<Id>, Rc<Task>> = get_input_tasks(&*cli_config)?;
 
     let input_args: Vec<String> = std::env::args().collect();
-    let args: Vec<&str> = input_args[1].split(" ").collect();
+    let args: Vec<&str> = input_args[1].split(' ').collect();
     let command_being_completed: usize = input_args[2].parse().unwrap();
 
     let arg_being_completed = args[command_being_completed - 1];
 
-    if arg_being_completed.starts_with("+") {
+    if arg_being_completed.starts_with('+') {
         println!(
             "{}",
             complete_tag(&tasks, &arg_being_completed[1..])
@@ -55,7 +55,7 @@ fn main() -> HyperTaskResult<()> {
                 .collect::<Vec<String>>()
                 .join(" ")
         )
-    } else if arg_being_completed.starts_with("-") {
+    } else if arg_being_completed.starts_with('-') {
         println!(
             "{}",
             complete_tag(&tasks, &arg_being_completed[1..])

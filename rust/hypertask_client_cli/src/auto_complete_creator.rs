@@ -7,12 +7,12 @@ pub fn create_auto_complete_files() -> bool {
         .config_dir;
 
     let shell_env_var = std::env::var("SHELL").expect("could not get SHELL env var");
-    let shell_name: &str = shell_env_var.split("/").last().unwrap();
+    let shell_name: &str = shell_env_var.split('/').last().unwrap();
 
     match shell_name {
         "zsh" => {
             let auto_complete_zsh = {
-                let mut x = config_dir.clone();
+                let mut x = config_dir;
                 x.push("_task.zsh");
                 x
             };
