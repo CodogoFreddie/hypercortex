@@ -11,9 +11,7 @@ path = "src/main.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-web="1"
 chrono = { version = "0.4", features = ["serde"] }
-hypertask_config_file_opener={ version = "0.2.0", path="../hypertask_config_file_opener"}
 hypertask_task_io_operations={ version = "0.1.0", path="../hypertask_task_io_operations"}
 hypertask_engine={ version = "0.2.0", path= "../hypertask_engine" }
 platform-dirs = "0.2"
@@ -23,6 +21,10 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 shellexpand = "1"
 daemonize = "0.4"
+tide = "0.6.0"
+async-std = "1.5.0"
+log = "0.4.8"
+env_logger = "0.7.1"
 
 [dependencies.clap]
 git = 'https://github.com/clap-rs/clap.git'

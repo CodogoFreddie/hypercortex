@@ -8,6 +8,7 @@ mod config;
 use crate::config::SyncCliDaemonConfig;
 use async_std::task;
 use chrono::prelude::*;
+use clap::Clap;
 use crossbeam_channel::unbounded;
 use hypertask_config_file_opener::{ConfigFileGetter, ConfigFileOpener};
 use hypertask_engine::prelude::*;
@@ -16,22 +17,46 @@ use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use time::Duration;
-use clap::Clap;
 
-/// This doc string acts as a help message when the user runs '--help'
-/// as do all doc strings on fields
+/// Syncing server to replicate hypertask tasks with clients over HTTP
 #[derive(Clap)]
-#[clap(version = "1.0")]
-struct CliOptions {
-    /// Fork the syncer into a daemon process
-    #[clap(short = "d", long = "daemonise", default_value = "false")]
-    daemonise: bool,
-    /// Rate in minutes to recheck the tasks folder, leave empty to disable periodic re-scanning
-    #[clap(short = "r", long = "rescan-rate", default_value = "None")]
+struct CliArgs {
+    /// Directory containing tasks
+    #[clap(short = "d", long = "data")]
+    task_state_dir: PathBuf,
+
+    /// Should the server daemonise
+    #[clap(long = "daemonize")]
+    daemonize: bool,
+
+    /// The hostname that the server will listen under
+    #[clap(short = "h", long = "hostname")]
+    hostname: Option<String>,
+
+    /// The port that the server will listen with
+    #[clap(short = "p", long = "port")]
+    port: Option<u16>,
+
+    /// The authorisation secret that must be passed by the client.
+    /// The server will generate one if you do not specify
+    #[clap(short = "s", long = "secret")]
+    sync_secret: Option<String>,
+
+    /// File to divert stdout to
+    #[clap(short = "o", long = "out-file")]
+    std_out_file: Option<PathBuf>,
+
+    /// File to divert stderr to
+    #[clap(short = "e", long = "err-file")]
+    std_err_file: Option<PathBuf>,
+
+    /// File to store PID in
+    #[clap(long = "pid")]
+    pid_file: Option<PathBuf>,
+
+    /// How frequently in seconds to perform a manual rescan
+    #[clap(short = "r" long = "rescan-rate")]
     rescan_rate: Option<u64>,
-    /// A level of verbosity, and can be used multiple times
-    #[clap(short = "v", long = "verbose", parse(from_occurrences))]
-    verbose: i32,
 }
 
 type TaskHashes = HashMap<Rc<Id>, u64>;
@@ -176,36 +201,34 @@ pub fn start() -> HyperTaskResult<()> {
     //let (tx, rx) = unbounded();
 
     //let mut watcher: RecommendedWatcher = Watcher::new(tx, std::time::Duration::from_secs(5))
-        //.map_err(|e| {
-            //HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)
-                //.msg("could not create task_state_dir watcher")
-                //.from(e)
-        //})?;
+    //.map_err(|e| {
+    //HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)
+    //.msg("could not create task_state_dir watcher")
+    //.from(e)
+    //})?;
 
     //watcher
-        //.watch(
-            //config_file_getter.get_config().task_state_dir.clone(),
-            //RecursiveMode::Recursive,
-        //)
-        //.map_err(|e| {
-            //HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)
-                //.msg("error watching task_state_dir")
-                //.from(e)
-        //})?;
+    //.watch(
+    //config_file_getter.get_config().task_state_dir.clone(),
+    //RecursiveMode::Recursive,
+    //)
+    //.map_err(|e| {
+    //HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)
+    //.msg("error watching task_state_dir")
+    //.from(e)
+    //})?;
 
     //loop {
-        //match rx.recv() {
-            //Ok(_) => {
-                //match sync_all_tasks(config_file_getter.get_config()) {
-                    //Ok(_) => println!("synced"),
-                    //Err(e) => println!("sync error: {:?}", e),
-                //};
-            //}
-            //Err(err) => println!("watch error: {:?}", err),
-        //};
+    //match rx.recv() {
+    //Ok(_) => {
+    //match sync_all_tasks(config_file_getter.get_config()) {
+    //Ok(_) => println!("synced"),
+    //Err(e) => println!("sync error: {:?}", e),
+    //};
+    //}
+    //Err(err) => println!("watch error: {:?}", err),
+    //};
     //}
 }
 
-
-fn main() {
-}
+fn main() {}

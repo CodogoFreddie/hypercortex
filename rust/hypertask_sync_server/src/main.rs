@@ -1,70 +1,67 @@
+#[macro_use]
+extern crate log;
 extern crate clap;
 extern crate daemonize;
-extern crate hypertask_sync_server;
+extern crate hypertask_engine;
 
-use clap::Clap;
+mod cli_args;
+mod server;
+mod sync_secret;
+
+use crate::clap::Clap;
+use async_std::task;
+use cli_args::CliArgs;
 use daemonize::Daemonize;
 use hypertask_engine::prelude::*;
+use log::Level;
 use std::fs::File;
 use std::path::PathBuf;
 
-/// Syncing server to replicate hypertask tasks with clients over HTTP
-#[derive(Clap)]
-struct CliArgs {
-    /// Directory containing tasks
-    #[clap(short = "d", long = "data")]
-    task_state_dir: PathBuf,
-
-    /// Should the server daemonise
-    #[clap(long = "daemonize")]
-    daemonize: bool,
-
-    /// The hostname that the server will listen under
-    #[clap(short = "h", long = "hostname")]
-    hostname: Option<String>,
-
-    /// The port that the server will listen with
-    #[clap(short = "p", long = "port")]
-    port: u16,
-
-    /// The authorisation secret that must be passed by the client.
-    /// The server will generate one if you do not specify
-    #[clap(short = "s", long = "secret")]
-    sync_secret: Option<String>,
-
-    /// File to divert stdout to
-    #[clap(short = "o", long = "out-file")]
-    std_out_file: Option<PathBuf>,
-
-    /// File to divert stderr to
-    #[clap(short = "e", long = "err-file")]
-    std_err_file: Option<PathBuf>,
-
-    /// File to store PID in
-    #[clap(long = "pid")]
-    pid_file: Option<PathBuf>,
-}
+//error!
+//warn!
+//info!
+//debug!
+//trace!
 
 fn main() -> HyperTaskResult<()> {
+    env_logger::init();
+
+    info!("started hypertask syncing server");
+
     let cli_args: CliArgs = CliArgs::parse();
 
     if cli_args.daemonize {
-        let stdout = File::create("/tmp/hypertask-sync-server.out").unwrap();
-        let stderr = File::create("/tmp/hypertask-sync-server.err").unwrap();
+        info!("attempting to daemonize");
 
-        let daemonize = Daemonize::new()
-            .pid_file("/tmp/hypertask-sync-server.pid")
-            .chown_pid_file(true)
-            .stdout(stdout)
-            .stderr(stderr)
-            .exit_action(|| println!("daemonized server, logs can be found at `/tmp/hypertask-sync-server.out` & `/tmp/hypertask-sync-server.err`"))
-            .privileged_action(|| "Executed before drop privileges");
+        let mut daemonizer = Daemonize::new();
 
-        match daemonize.start() {
+        daemonizer = if let Some(std_out_file_path) = &cli_args.std_out_file {
+            let stdout = File::create(std_out_file_path).unwrap();
+            daemonizer.stdout(stdout)
+        } else {
+            daemonizer
+        };
+
+        daemonizer = if let Some(std_err_file_path) = &cli_args.std_err_file {
+            let stderr = File::create(std_err_file_path).unwrap();
+            daemonizer.stderr(stderr)
+        } else {
+            daemonizer
+        };
+
+        daemonizer = if let Some(pid_file_path) = &cli_args.pid_file {
+            daemonizer.pid_file(pid_file_path).chown_pid_file(true)
+        } else {
+            daemonizer
+        };
+
+        daemonizer = daemonizer.exit_action(|| println!("daemonized server"));
+
+        match daemonizer.start() {
             Ok(_) => {
                 println!("Success, daemonized");
 
-                hypertask_sync_server::start()
+                task::block_on(server::start(cli_args))
             }
             Err(e) => {
                 eprintln!("Error, {}", e);
@@ -77,6 +74,6 @@ fn main() -> HyperTaskResult<()> {
             }
         }
     } else {
-        hypertask_sync_server::start()
+        task::block_on(server::start(cli_args))
     }
 }
