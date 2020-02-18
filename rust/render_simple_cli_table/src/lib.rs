@@ -14,10 +14,10 @@ pub fn render_table<
     header_style: &Style,
     rows: &[(ansi_term::Style, HashMap<Header, Value, Hasher>)],
 ) -> Result<(), std::fmt::Error> {
-    let lines = if let Some((_, height)) = term_size::dimensions() {
-        height - 5
+    let (max_width, lines) = if let Some((width, height)) = term_size::dimensions() {
+        (width, height - 5)
     } else {
-        40
+        (100, 40)
     };
 
     let mut widths: HashMap<&Header, usize> = HashMap::new();
@@ -47,6 +47,11 @@ pub fn render_table<
             width = widths[header] + GUTTER_WIDTH
         )?;
     }
+
+    if header_string.len() > max_width {
+        header_string = format!("{}...", &header_string.as_str()[0..max_width - 3]);
+    }
+
     println!("{}", header_style.paint(header_string));
 
     //print rows
@@ -60,6 +65,11 @@ pub fn render_table<
                 widths[header] + GUTTER_WIDTH
             )?;
         }
+
+        if row_string.len() > max_width {
+            row_string = format!("{}...", &row_string.as_str()[0..max_width - 3]);
+        }
+
         println!("{}", style.paint(row_string));
     }
 

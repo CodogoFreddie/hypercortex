@@ -8,18 +8,17 @@ extern crate render_simple_cli_table;
 extern crate shellexpand;
 
 mod config;
-mod io;
 mod parse_args;
 mod render;
 
 use crate::config::CliConfig;
-use crate::io::{get_input_tasks, put_task};
 use crate::parse_args::parse_cli_args;
 use crate::render::render_engine_output;
 use chrono::prelude::*;
 use hypertask_config_file_opener::run_string_as_shell_command;
 use hypertask_config_file_opener::{ConfigFileGetter, ConfigFileOpener};
 use hypertask_engine::prelude::*;
+use hypertask_task_io_operations::{get_input_tasks, put_task};
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -40,7 +39,7 @@ pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
     let config_file_getter: ConfigFileGetter<CliConfig> = config_file_opener.parse()?;
     let cli_config: &CliConfig = config_file_getter.get_config();
 
-    let tasks: HashMap<Rc<Id>, Rc<Task>> = get_input_tasks(&cli_config)?;
+    let tasks: HashMap<Rc<Id>, Rc<Task>> = get_input_tasks(&*cli_config)?;
     let now = Utc::now();
     let score_machine = create_stack_machine(&now, cli_config.score_calculator.to_program());
     let filter_machine = create_stack_machine(&now, cli_config.filter_calculator.to_program());
@@ -54,7 +53,7 @@ pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
 
     if !mutated_tasks.is_empty() {
         for task in mutated_tasks {
-            put_task(&cli_config, &task)?;
+            put_task(&*cli_config, &task)?;
             if let Some(on_edit_cmd) = cli_config
                 .hooks
                 .as_ref()

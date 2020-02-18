@@ -199,7 +199,7 @@ impl StackMachine {
     fn run_duplicate(&mut self) -> HyperTaskResult<()> {
         let x = self.pop()?;
         self.stack.push(x.clone());
-        self.stack.push(x.clone());
+        self.stack.push(x);
         Ok(())
     }
 
