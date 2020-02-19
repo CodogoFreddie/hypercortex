@@ -2,8 +2,11 @@ use clap::Clap;
 use std::fs::File;
 use std::path::PathBuf;
 
+unsafe impl std::marker::Sync for CliArgs {}
+unsafe impl std::marker::Send for CliArgs {}
+
 /// Syncing server to replicate hypertask tasks with clients over HTTP
-#[derive(Clap)]
+#[derive(Clap, Clone)]
 pub struct CliArgs {
     /// Directory containing tasks
     #[clap(long, env = "HYPERTASK_DATA_DIR")]

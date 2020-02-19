@@ -970,6 +970,7 @@ dependencies = [
  "clap 3.0.0-beta.1 (git+https://github.com/clap-rs/clap.git)",
  "daemonize 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "futures 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "hypertask_engine 0.2.0",
  "hypertask_task_io_operations 0.1.0",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",

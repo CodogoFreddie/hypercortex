@@ -1,5 +1,6 @@
 use crate::cli_args::CliArgs;
 use crate::sync_secret;
+use futures::future::BoxFuture;
 use hypertask_engine::prelude::*;
 use hypertask_task_io_operations::{delete_task, get_input_tasks, get_task, put_task};
 use std::collections::HashMap;
@@ -8,6 +9,8 @@ use std::rc::Rc;
 use time::Duration;
 
 type TaskHashes = HashMap<Rc<Id>, u64>;
+type ServerState = (CliArgs, sync_secret::SyncSecret);
+type ServerWithState = tide::Server<ServerState>;
 
 fn get_available_port() -> Option<u16> {
     (10000..20000).find(|port| port_is_available(*port))
@@ -18,6 +21,136 @@ fn port_is_available(port: u16) -> bool {
         Ok(_) => true,
         Err(_) => false,
     }
+}
+
+struct AuthMiddleware();
+
+impl tide::Middleware<ServerState> for AuthMiddleware {
+    fn handle<'a>(
+        &'a self,
+        req: tide::Request<ServerState>,
+        next: tide::Next<'a, ServerState>,
+    ) -> BoxFuture<'a, tide::Response> {
+        Box::pin(async move {
+            let (_, secret) = req.state();
+
+            let auth_header_option: Option<String> =
+                req.header("Authorization").map(|s| s.to_owned());
+
+            if let Some(auth_header) = auth_header_option {
+                if format!("hypertask {}", secret) != auth_header {
+                    error!("invalid Authorization header provided: `{}`", auth_header);
+
+                    tide::Response::new(401)
+                        .body_string("incorect Authorization header provided".to_owned())
+                } else {
+                    next.run(req).await
+                }
+            } else {
+                error!("no Authorization header provided");
+                tide::Response::new(400).body_string("no Authorization header provided".to_owned())
+            }
+        })
+    }
+}
+
+fn attach_get_hashes(app: &mut ServerWithState) {
+    info!("attached GET /hashes");
+
+    app.at("/hashes").get(
+        |mut req: tide::Request<(CliArgs, sync_secret::SyncSecret)>| async move {
+            info!("GET /hashes");
+
+            let (config, _) = req.state();
+
+            let mut task_hashes = TaskHashes::new();
+            let input_tasks: HashMap<Rc<Id>, Rc<Task>> =
+                get_input_tasks(config).expect("could not get tasks");
+
+            for (id, task) in input_tasks.iter() {
+                task_hashes.insert(id.clone(), task.calculate_hash());
+            }
+
+            tide::Response::new(200).body_json(&task_hashes).unwrap()
+        },
+    );
+}
+
+fn attach_post_task(app: &mut ServerWithState) {
+    info!("attached POST /task/:id");
+
+    app.at("/task/:id").post(
+        |mut req: tide::Request<(CliArgs, sync_secret::SyncSecret)>| async move {
+            info!(
+                "POST /task/{}",
+                req.param::<String>("id")
+                    .unwrap_or_else(|_| "__NULL__".to_string())
+            );
+
+            let config = req.state().0.clone();
+
+            let task_id = match req.param::<String>("id") {
+                Ok(task_id) => {
+                    info!("task_id: {:?}", task_id);
+                    task_id
+                }
+                Err(e) => {
+                    error!("task_id error: {}", e);
+                    return tide::Response::new(400).body_string("no id provided".to_owned());
+                }
+            };
+
+            let client_task: Option<Task> = match req.body_json().await {
+                Ok(client_task) => {
+                    info!("client_task: {:?}", &client_task);
+                    client_task
+                }
+                Err(e) => {
+                    error!("client_task error: {}", e);
+                    return tide::Response::new(400)
+                        .body_string("invalid task recieved".to_owned());
+                }
+            };
+
+            let server_task: Option<Task> = match get_task(&config, &Id(task_id)) {
+                Ok(server_task) => {
+                    info!("server_task: {:?}", &server_task);
+                    server_task
+                }
+                Err(e) => {
+                    error!("server_task error: {}", e);
+                    return tide::Response::new(500)
+                        .body_string("could not read local task".to_owned());
+                }
+            };
+
+            let resolved_task: Option<Task> =
+                match Task::resolve_task_conflict(client_task, server_task) {
+                    Ok(resolved_task) => {
+                        info!("resolved_task: {:?}", &resolved_task);
+                        resolved_task
+                    }
+                    Err(e) => {
+                        error!("resolved_task error: {}", e);
+                        return tide::Response::new(400)
+                            .body_string("tasks did not match".to_owned());
+                    }
+                };
+
+            if let Some(reified_resolved_task) = &resolved_task {
+                info!("updating local task");
+
+                if let Err(e) = put_task(&config, reified_resolved_task) {
+                    error!("updating local task {:?}", e);
+
+                    return tide::Response::new(500)
+                        .body_string("could not write local task".to_owned());
+                }
+            }
+
+            tide::Response::new(200).body_json(&resolved_task).unwrap()
+        },
+    );
 }
 
 pub async fn start(config: CliArgs) -> HyperTaskResult<()> {
@@ -49,35 +182,10 @@ pub async fn start(config: CliArgs) -> HyperTaskResult<()> {
 
     let mut app = tide::with_state((config, secret.clone()));
 
-    app.at("/hashes").get(
-        |mut req: tide::Request<(CliArgs, sync_secret::SyncSecret)>| async move {
-            let (config, secret) = req.state();
+    app.middleware(AuthMiddleware());
 
-            info!("request for current hashes");
-
-            if let Some(auth_header) = req.header("Authorization") {
-                if format!("hypertask {}", secret) != auth_header {
-                    error!("invalid Authorization header provided: `{}`", auth_header);
-
-                    tide::Response::new(401).body_string("incorect Authorization header provided".to_owned())
-                } else {
-                    let mut task_hashes = TaskHashes::new();
-                    let input_tasks: HashMap<Rc<Id>, Rc<Task>> =
-                        get_input_tasks(config).expect("could not get tasks");
-
-                    for (id, task) in input_tasks.iter() {
-                        task_hashes.insert(id.clone(), task.calculate_hash());
-                    }
-
-                    tide::Response::new(200).body_json(&task_hashes).unwrap()
-                }
-            } else {
-                error!("no Authorization header provided");
-                tide::Response::new(400)
-                    .body_string("no Authorization header provided".to_owned())
-            }
-        },
-    );
+    attach_get_hashes(&mut app);
+    attach_post_task(&mut app);
 
     info!(
         "listening @ http://{}:{} with secret `{}`",
@@ -90,101 +198,3 @@ pub async fn start(config: CliArgs) -> HyperTaskResult<()> {
             .from(e)
     })
 }
-
-//#[post("/task/{id}")]
-//fn compare_tasks(
-//config_data: web::Data<SyncServerConfig>,
-//path: web::Path<String>,
-//client_task_input: web::Json<Option<Task>>,
-//req: HttpRequest,
-//) -> actix_web::Result<web::Json<Option<Task>>> {
-//if let Some(Ok(auth_header)) = req.headers().get("Authorization").map(|x| x.to_str()) {
-//if format!("hypertask {}", &config_data.sync_secret) != auth_header {
-//return Err(actix_web::error::ErrorUnauthorized(
-//"invalid sync_secret provided",
-//));
-//}
-//}
-
-//let id = Id(path.to_string());
-//let config: &SyncServerConfig = config_data.get_ref();
-
-//let server_task: Option<Task> = get_task(config, &id).expect("could not open task");
-
-//let client_task: Option<Task> = client_task_input.into_inner();
-
-//let resolved_task: Option<Task> =
-//Task::resolve_task_conflict(&(Utc::now() - Duration::days(30)), server_task, client_task)
-//.expect("tasks did not have the same id");
-
-//match &resolved_task {
-//Some(task) => put_task(config, &task).expect("could not save task"),
-//None => delete_task(config, &id).expect("could not delete task"),
-//};
-
-//Ok(web::Json(resolved_task))
-//}
-
-//#[get("/hashes")]
-//fn get_hashes(
-//config_data: web::Data<SyncServerConfig>,
-//req: HttpRequest,
-//) -> actix_web::Result<web::Json<TaskHashes>> {
-//if let Some(Ok(auth_header)) = req.headers().get("Authorization").map(|x| x.to_str()) {
-//if format!("hypertask {}", &config_data.sync_secret) != auth_header {
-//return Err(actix_web::error::ErrorUnauthorized(
-//"invalid sync_secret provided",
-//));
-//}
-//}
-
-//let mut task_hashes = TaskHashes::new();
-//let config: &SyncServerConfig = config_data.get_ref();
-
-//let input_tasks: HashMap<Rc<Id>, Rc<Task>> =
-//get_input_tasks(config).expect("could not get tasks");
-
-//for (id, task) in input_tasks.iter() {
-//task_hashes.insert(id.clone(), task.calculate_hash());
-//}
-
-//Ok(web::Json(task_hashes))
-//}
-
-//fn get_config_object() -> HyperTaskResult<SyncServerConfig> {
-//let mut config_file_opener = ConfigFileOpener::new("sync-server.toml")?;
-//let config_file_getter: ConfigFileGetter<SyncServerConfig> = config_file_opener.parse()?;
-//Ok(config_file_getter.get_config().clone())
-//}
-
-//pub fn start() -> HyperTaskResult<()> {
-//let sync_server_config = get_config_object()?;
-
-//println!(
-//"started syncing server for dir `{}` @ http://{}:{}",
-//sync_server_config
-//.task_state_dir
-//.to_str()
-//.expect("could not read task_state_dir"),
-//sync_server_config.hostname,
-//sync_server_config.port,
-//);
-
-//HttpServer::new(|| {
-//let config = get_config_object().expect("could not load config");
-
-//App::new()
-//.data(config)
-//.service(get_hashes)
-//.service(compare_tasks)
-//})
-//.bind((
-//sync_server_config.hostname.as_str(),
-//sync_server_config.port,
-//))
-//.expect("could not create server")
-//.run()
-//.expect("could not run server");
-
-//Ok(())
-//}
