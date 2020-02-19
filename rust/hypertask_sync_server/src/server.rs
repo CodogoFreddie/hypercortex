@@ -4,9 +4,7 @@ use futures::future::BoxFuture;
 use hypertask_engine::prelude::*;
 use hypertask_task_io_operations::{delete_task, get_input_tasks, get_task, put_task};
 use std::collections::HashMap;
-use std::error::Error;
 use std::rc::Rc;
-use time::Duration;
 
 type TaskHashes = HashMap<Rc<Id>, u64>;
 type ServerState = (CliArgs, sync_secret::SyncSecret);
@@ -17,10 +15,7 @@ fn get_available_port() -> Option<u16> {
 }
 
 fn port_is_available(port: u16) -> bool {
-    match std::net::TcpListener::bind(("127.0.0.1", port)) {
-        Ok(_) => true,
-        Err(_) => false,
-    }
+    std::net::TcpListener::bind(("127.0.0.1", port)).is_ok()
 }
 
 struct AuthMiddleware();
@@ -58,7 +53,7 @@ fn attach_get_hashes(app: &mut ServerWithState) {
     info!("attached GET /hashes");
 
     app.at("/hashes").get(
-        |mut req: tide::Request<(CliArgs, sync_secret::SyncSecret)>| async move {
+        |req: tide::Request<(CliArgs, sync_secret::SyncSecret)>| async move {
             info!("GET /hashes");
 
             let (config, _) = req.state();
@@ -89,10 +84,10 @@ fn attach_post_task(app: &mut ServerWithState) {
 
             let config = req.state().0.clone();
 
-            let task_id = match req.param::<String>("id") {
+            let task_id: Id = match req.param::<String>("id") {
                 Ok(task_id) => {
                     info!("task_id: {:?}", task_id);
-                    task_id
+                    Id(task_id)
                 }
                 Err(e) => {
                     error!("task_id error: {}", e);
@@ -112,7 +107,7 @@ fn attach_post_task(app: &mut ServerWithState) {
                 }
             };
 
-            let server_task: Option<Task> = match get_task(&config, &Id(task_id)) {
+            let server_task: Option<Task> = match get_task(&config, &task_id) {
                 Ok(server_task) => {
                     info!("server_task: {:?}", &server_task);
                     server_task
@@ -137,16 +132,29 @@ fn attach_post_task(app: &mut ServerWithState) {
                     }
                 };
 
-            if let Some(reified_resolved_task) = &resolved_task {
-                info!("updating local task");
+            match &resolved_task {
+                Some(reified_resolved_task) => {
+                    info!("updating local task");
 
-                if let Err(e) = put_task(&config, reified_resolved_task) {
-                    error!("updating local task {:?}", e);
+                    if let Err(e) = put_task(&config, reified_resolved_task) {
+                        error!("updating local task {:?}", e);
 
-                    return tide::Response::new(500)
-                        .body_string("could not write local task".to_owned());
+                        return tide::Response::new(500)
+                            .body_string("could not write local task".to_owned());
+                    }
                 }
-            }
+
+                None => {
+                    info!("removing local task");
+
+                    if let Err(e) = delete_task(&config, &task_id) {
+                        error!("removing local task {:?}", e);
+
+                        return tide::Response::new(500)
+                            .body_string("could not remove local task".to_owned());
+                    }
+                }
+            };
 
             tide::Response::new(200).body_json(&resolved_task).unwrap()
         },
@@ -159,13 +167,13 @@ pub async fn start(config: CliArgs) -> HyperTaskResult<()> {
     let hostname = config
         .hostname
         .as_ref()
-        .map(|x| x.clone())
+        .cloned()
         .unwrap_or_else(|| {
             info!("no host name provided, falling back to `localhost`");
             "localhost".to_string()
         });
 
-    let port = config.port.as_ref().map(|x| x.clone()).unwrap_or_else(|| {
+    let port = config.port.as_ref().copied().unwrap_or_else(|| {
         info!("no port provided, finding an open port");
 
         get_available_port().expect("could not find a port to bind to")
@@ -174,7 +182,7 @@ pub async fn start(config: CliArgs) -> HyperTaskResult<()> {
     let secret = config
         .sync_secret
         .as_ref()
-        .map(|x| x.clone())
+        .cloned()
         .unwrap_or_else(|| {
             info!("no secret provided, generating a new random secret");
             sync_secret::generate()

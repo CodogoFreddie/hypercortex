@@ -13,15 +13,7 @@ use async_std::task;
 use cli_args::CliArgs;
 use daemonize::Daemonize;
 use hypertask_engine::prelude::*;
-use log::Level;
 use std::fs::File;
-use std::path::PathBuf;
-
-//error!
-//warn!
-//info!
-//debug!
-//trace!
 
 fn main() -> HyperTaskResult<()> {
     env_logger::init();

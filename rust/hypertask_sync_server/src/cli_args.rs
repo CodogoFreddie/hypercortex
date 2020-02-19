@@ -1,5 +1,4 @@
 use clap::Clap;
-use std::fs::File;
 use std::path::PathBuf;
 
 unsafe impl std::marker::Sync for CliArgs {}
