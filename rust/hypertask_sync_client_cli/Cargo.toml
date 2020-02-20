@@ -1,5 +1,5 @@
 [package]
-name = "hypertask_sync_cli_daemon"
+name = "hypertask_sync_client_cli"
 version = "0.1.0"
 authors = ["Freddie Ridell <contact@freddieridell.com>"]
 edition = "2018"

@@ -13,12 +13,8 @@ pub struct CliArgs {
     pub daemonize: bool,
 
     /// The hostname that the server will listen under
-    #[clap(short, long, env = "HYPERTASK_SERVER_PORT")]
-    pub hostname: Option<String>,
-
-    /// The port that the server will listen with
-    #[clap(short, long, env = "HYPERTASK_SERVER_PORT")]
-    pub port: Option<u16>,
+    #[clap(short, long, env = "HYPERTASK_SERVER_URL")]
+    pub server_url: Option<String>,
 
     /// The authorisation secret that must be passed by the client.
     /// The server will generate one if you do not specify
@@ -36,6 +32,18 @@ pub struct CliArgs {
     /// File to store PID in
     #[clap(long)]
     pub pid_file: Option<PathBuf>,
+
+    /// Rate at which to resync with the server
+    #[clap(long)]
+    pub rescan_refresh_rate: Option<u64>,
+
+    /// Rate at which to resync with the server
+    #[clap(long)]
+    pub recan_time_file: Option<PathBuf>,
+
+    /// Should we watch the data-dir for changes and resync when we detect them
+    #[clap(long)]
+    pub watch_for_changes: bool,
 }
 
 impl hypertask_task_io_operations::ProvidesDataDir for CliArgs {
