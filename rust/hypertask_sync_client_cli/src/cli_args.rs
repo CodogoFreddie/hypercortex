@@ -9,16 +9,16 @@ pub struct CliArgs {
     pub data_dir: PathBuf,
 
     /// Should the server daemonise
-    #[clap(short, long)]
+    #[clap(long)]
     pub daemonize: bool,
 
     /// The hostname that the server will listen under
-    #[clap(short, long, env = "HYPERTASK_SERVER_URL")]
+    #[clap(long, env = "HYPERTASK_SERVER_URL")]
     pub server_url: Option<String>,
 
     /// The authorisation secret that must be passed by the client.
     /// The server will generate one if you do not specify
-    #[clap(short, long, env = "HYPERTASK_SYNC_SECRET", hide_env_values = true)]
+    #[clap(long, env = "HYPERTASK_SYNC_SECRET", hide_env_values = true)]
     pub sync_secret: Option<String>,
 
     /// File to divert stdout to

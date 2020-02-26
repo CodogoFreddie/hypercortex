@@ -16,28 +16,29 @@ use std::fs::File;
 
 async fn run_sync_operation(cli_args: &CliArgs) -> HyperTaskResult<()> {
     unimplemented!();
-    Ok(());
+    Result::<(), HyperTaskError>::Ok(());
 }
 
 async fn watch_for_changes(cli_args: &CliArgs) -> HyperTaskResult<()> {
+    unimplemented!();
     Ok(())
 }
 
 async fn run_at_interval(cli_args: &CliArgs) -> HyperTaskResult<()> {
+    unimplemented!();
     Ok(())
 }
 
 async fn begin(cli_args: CliArgs) -> HyperTaskResult<()> {
     match (&cli_args.rescan_refresh_rate, &cli_args.watch_for_changes) {
         (Some(_), true) => {
-            try_join!(watch_for_changes(&cli_args), run_at_interval(&cli_args)).await?;
+            try_join!(watch_for_changes(&cli_args), run_at_interval(&cli_args));
             Ok(())
         }
-        (Some(_), false) => watch_for_changes(&cli_args),
-        (None, true) => run_at_interval(&cli_args),
-        (None, false) => run_sync_operation(&cli_args),
+        (Some(_), false) => watch_for_changes(&cli_args).await,
+        (None, true) => run_at_interval(&cli_args).await,
+        (None, false) => run_sync_operation(&cli_args).await,
     }
-    .await
 }
 
 fn main() -> HyperTaskResult<()> {
