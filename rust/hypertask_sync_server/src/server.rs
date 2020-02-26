@@ -164,14 +164,10 @@ fn attach_post_task(app: &mut ServerWithState) {
 pub async fn start(config: CliArgs) -> HyperTaskResult<()> {
     info!("starting http server");
 
-    let hostname = config
-        .hostname
-        .as_ref()
-        .cloned()
-        .unwrap_or_else(|| {
-            info!("no host name provided, falling back to `localhost`");
-            "localhost".to_string()
-        });
+    let hostname = config.hostname.as_ref().cloned().unwrap_or_else(|| {
+        info!("no host name provided, falling back to `localhost`");
+        "localhost".to_string()
+    });
 
     let port = config.port.as_ref().copied().unwrap_or_else(|| {
         info!("no port provided, finding an open port");
@@ -179,14 +175,10 @@ pub async fn start(config: CliArgs) -> HyperTaskResult<()> {
         get_available_port().expect("could not find a port to bind to")
     });
 
-    let secret = config
-        .sync_secret
-        .as_ref()
-        .cloned()
-        .unwrap_or_else(|| {
-            info!("no secret provided, generating a new random secret");
-            sync_secret::generate()
-        });
+    let secret = config.sync_secret.as_ref().cloned().unwrap_or_else(|| {
+        info!("no secret provided, generating a new random secret");
+        sync_secret::generate()
+    });
 
     let mut app = tide::with_state((config, secret.clone()));
 

@@ -5,14 +5,40 @@ extern crate daemonize;
 extern crate hypertask_engine;
 
 mod cli_args;
-mod client;
 
 use crate::clap::Clap;
 use async_std::task;
 use cli_args::CliArgs;
 use daemonize::Daemonize;
+use futures::try_join;
 use hypertask_engine::prelude::*;
 use std::fs::File;
+
+async fn run_sync_operation(cli_args: &CliArgs) -> HyperTaskResult<()> {
+    unimplemented!();
+    Ok(());
+}
+
+async fn watch_for_changes(cli_args: &CliArgs) -> HyperTaskResult<()> {
+    Ok(())
+}
+
+async fn run_at_interval(cli_args: &CliArgs) -> HyperTaskResult<()> {
+    Ok(())
+}
+
+async fn begin(cli_args: CliArgs) -> HyperTaskResult<()> {
+    match (&cli_args.rescan_refresh_rate, &cli_args.watch_for_changes) {
+        (Some(_), true) => {
+            try_join!(watch_for_changes(&cli_args), run_at_interval(&cli_args)).await?;
+            Ok(())
+        }
+        (Some(_), false) => watch_for_changes(&cli_args),
+        (None, true) => run_at_interval(&cli_args),
+        (None, false) => run_sync_operation(&cli_args),
+    }
+    .await
+}
 
 fn main() -> HyperTaskResult<()> {
     env_logger::init();
@@ -52,7 +78,7 @@ fn main() -> HyperTaskResult<()> {
             Ok(_) => {
                 println!("Success, daemonized");
 
-                task::block_on(client::start(cli_args))
+                task::block_on(begin(cli_args))
             }
             Err(e) => {
                 eprintln!("Error, {}", e);
@@ -65,6 +91,6 @@ fn main() -> HyperTaskResult<()> {
             }
         }
     } else {
-        task::block_on(client::start(cli_args))
+        task::block_on(begin(cli_args))
     }
 }
