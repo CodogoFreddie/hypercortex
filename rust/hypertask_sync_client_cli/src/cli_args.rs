@@ -1,4 +1,5 @@
 use clap::Clap;
+use hypertask_engine::prelude::*;
 use std::path::PathBuf;
 
 /// Syncing server to replicate hypertask tasks with clients over HTTP
@@ -49,5 +50,21 @@ pub struct CliArgs {
 impl hypertask_task_io_operations::ProvidesDataDir for CliArgs {
     fn get_task_state_dir(&self) -> &std::path::PathBuf {
         &self.data_dir
+    }
+}
+
+impl hypertask_sync_storage_with_server::ProvidesServerDetails for CliArgs {
+    fn get_server_url(&self) -> HyperTaskResult<&String> {
+        self.server_url.as_ref().ok_or(
+            HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Read)
+                .msg("could not get server url"),
+        )
+    }
+
+    fn get_server_secret_value(&self) -> HyperTaskResult<&String> {
+        self.sync_secret.as_ref().ok_or(
+            HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Read)
+                .msg("could not get sync secret"),
+        )
     }
 }

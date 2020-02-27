@@ -97,6 +97,9 @@ impl HyperTaskError {
     }
 }
 
+unsafe impl std::marker::Sync for HyperTaskError {}
+unsafe impl std::marker::Send for HyperTaskError {}
+
 impl PartialEq for HyperTaskError {
     fn eq(&self, other: &HyperTaskError) -> bool {
         self.domain == other.domain && self.action == other.action
@@ -128,6 +131,13 @@ impl Error for HyperTaskError {
 impl From<HyperTaskError> for String {
     fn from(error: HyperTaskError) -> Self {
         format!("{}", error)
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl Into<wasm_bindgen::JsValue> for HyperTaskError {
+    fn into(self) -> wasm_bindgen::JsValue {
+        wasm_bindgen::JsValue::from_str(&format!("{}", self))
     }
 }
 

@@ -14,11 +14,6 @@ use futures::try_join;
 use hypertask_engine::prelude::*;
 use std::fs::File;
 
-async fn run_sync_operation(cli_args: &CliArgs) -> HyperTaskResult<()> {
-    unimplemented!();
-    Result::<(), HyperTaskError>::Ok(());
-}
-
 async fn watch_for_changes(cli_args: &CliArgs) -> HyperTaskResult<()> {
     unimplemented!();
     Ok(())
@@ -37,7 +32,7 @@ async fn begin(cli_args: CliArgs) -> HyperTaskResult<()> {
         }
         (Some(_), false) => watch_for_changes(&cli_args).await,
         (None, true) => run_at_interval(&cli_args).await,
-        (None, false) => run_sync_operation(&cli_args).await,
+        (None, false) => hypertask_sync_storage_with_server::sync_all_tasks_async(&cli_args).await,
     }
 }
 

@@ -13,6 +13,7 @@ daemonize = "0.4"
 hypertask_config_file_opener={ version = "0.2.0", path="../hypertask_config_file_opener"}
 hypertask_engine={ version = "0.2.0", path= "../hypertask_engine" }
 hypertask_task_io_operations={ version = "0.1.0", path="../hypertask_task_io_operations"}
+hypertask_sync_storage_with_server={ version = "0.1.0", path="../hypertask_sync_storage_with_server" }
 platform-dirs = "0.2"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
