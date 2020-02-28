@@ -13,6 +13,7 @@ time = "0.1"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 futures = "0.3"
+log = "0.4.8"
 
 [dependencies.surf]
 version = "1"

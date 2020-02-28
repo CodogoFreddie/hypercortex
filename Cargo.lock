@@ -998,6 +998,7 @@ dependencies = [
  "hypertask_config_file_opener 0.2.0",
  "hypertask_engine 0.2.0",
  "hypertask_task_io_operations 0.1.0",
+ "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.104 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.44 (registry+https://github.com/rust-lang/crates.io-index)",
  "surf 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
