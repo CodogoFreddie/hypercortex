@@ -2,14 +2,11 @@
 extern crate log;
 extern crate hypertask_engine;
 
-use chrono::prelude::*;
 use hypertask_engine::prelude::*;
 use hypertask_task_io_operations::ProvidesDataDir;
 use hypertask_task_io_operations::{delete_task, get_input_tasks, get_task, put_task};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
-use time::Duration;
-use wasm_bindgen::prelude::*;
 
 type TaskHashes = HashMap<Rc<Id>, u64>;
 

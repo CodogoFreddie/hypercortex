@@ -14,20 +14,18 @@ use futures::try_join;
 use hypertask_engine::prelude::*;
 use std::fs::File;
 
-async fn watch_for_changes(cli_args: &CliArgs) -> HyperTaskResult<()> {
+async fn watch_for_changes(_cli_args: &CliArgs) -> HyperTaskResult<()> {
     unimplemented!();
-    Ok(())
 }
 
-async fn run_at_interval(cli_args: &CliArgs) -> HyperTaskResult<()> {
+async fn run_at_interval(_cli_args: &CliArgs) -> HyperTaskResult<()> {
     unimplemented!();
-    Ok(())
 }
 
 async fn begin(cli_args: CliArgs) -> HyperTaskResult<()> {
     match (&cli_args.rescan_refresh_rate, &cli_args.watch_for_changes) {
         (Some(_), true) => {
-            try_join!(watch_for_changes(&cli_args), run_at_interval(&cli_args));
+            try_join!(watch_for_changes(&cli_args), run_at_interval(&cli_args))?;
             Ok(())
         }
         (Some(_), false) => watch_for_changes(&cli_args).await,

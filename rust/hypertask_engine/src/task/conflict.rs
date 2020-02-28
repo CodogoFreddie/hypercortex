@@ -1,6 +1,5 @@
 use super::Task;
 use crate::error::*;
-use chrono::prelude::*;
 
 impl Task {
     pub fn resolve_task_conflict(
@@ -34,7 +33,9 @@ impl Task {
 mod tests {
     use super::*;
     use crate::id::Id;
+    use chrono::prelude::*;
     use std::rc::Rc;
+
     mod both_none {
         use super::*;
 
