@@ -3,6 +3,7 @@ extern crate log;
 extern crate clap;
 extern crate daemonize;
 extern crate hypertask_engine;
+extern crate notify;
 
 mod cli_args;
 
@@ -13,24 +14,71 @@ use daemonize::Daemonize;
 use futures::try_join;
 use hypertask_engine::prelude::*;
 use std::fs::File;
+use std::time::Duration;
 
-async fn watch_for_changes(_cli_args: &CliArgs) -> HyperTaskResult<()> {
-    unimplemented!();
+use notify::{watcher, RecursiveMode, Watcher};
+use std::sync::mpsc::channel;
+
+async fn watch_for_changes(cli_args: &CliArgs) -> HyperTaskResult<()> {
+    let debounce_seconds = cli_args.watch_debounce.unwrap_or(2);
+
+    info!(
+        "watching {:?} for changes (with a debounce of {} seconds)",
+        &cli_args.data_dir, &debounce_seconds
+    );
+
+    let (tx, rx) = channel();
+
+    let mut watcher = watcher(tx, Duration::from_secs(debounce_seconds)).unwrap();
+
+    watcher
+        .watch(&cli_args.data_dir, RecursiveMode::Recursive)
+        .unwrap();
+
+    loop {
+        match rx.recv() {
+            Ok(event) => {
+                info!("watched folder updated: {:?}", event);
+
+                hypertask_sync_storage_with_server::sync_all_tasks_async(cli_args).await?;
+            }
+            Err(e) => error!("watch error: {:?}", e),
+        }
+    }
 }
 
-async fn run_at_interval(_cli_args: &CliArgs) -> HyperTaskResult<()> {
-    unimplemented!();
+async fn run_at_interval(cli_args: &CliArgs, interval: &u64) -> HyperTaskResult<()> {
+    info!(
+        "starting running with a rescan interval of {} seconds",
+        &interval
+    );
+
+    loop {
+        info!("syncing after interval of {} seconds", &interval);
+        hypertask_sync_storage_with_server::sync_all_tasks_async(cli_args).await?;
+
+        task::sleep(Duration::from_secs(*interval)).await;
+    }
 }
 
 async fn begin(cli_args: CliArgs) -> HyperTaskResult<()> {
+    info!("running sync at least once");
+    hypertask_sync_storage_with_server::sync_all_tasks_async(&cli_args).await?;
+
     match (&cli_args.rescan_refresh_rate, &cli_args.watch_for_changes) {
-        (Some(_), true) => {
-            try_join!(watch_for_changes(&cli_args), run_at_interval(&cli_args))?;
+        (Some(interval), true) => {
+            try_join!(
+                watch_for_changes(&cli_args),
+                run_at_interval(&cli_args, interval)
+            )?;
             Ok(())
         }
-        (Some(_), false) => watch_for_changes(&cli_args).await,
-        (None, true) => run_at_interval(&cli_args).await,
-        (None, false) => hypertask_sync_storage_with_server::sync_all_tasks_async(&cli_args).await,
+        (Some(interval), false) => run_at_interval(&cli_args, interval).await,
+        (None, true) => watch_for_changes(&cli_args).await,
+        (None, false) => {
+            info!("no need to run again");
+            Ok(())
+        }
     }
 }
 

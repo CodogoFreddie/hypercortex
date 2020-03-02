@@ -38,13 +38,13 @@ pub struct CliArgs {
     #[clap(long)]
     pub rescan_refresh_rate: Option<u64>,
 
-    /// Rate at which to resync with the server
-    #[clap(long)]
-    pub recan_time_file: Option<PathBuf>,
-
     /// Should we watch the data-dir for changes and resync when we detect them
     #[clap(long)]
     pub watch_for_changes: bool,
+
+    /// Debounce rate for watching for changes to the file system in seconds
+    #[clap(long)]
+    pub watch_debounce: Option<u64>,
 }
 
 impl hypertask_task_io_operations::ProvidesDataDir for CliArgs {
