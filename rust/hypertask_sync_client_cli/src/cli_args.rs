@@ -55,16 +55,16 @@ impl hypertask_task_io_operations::ProvidesDataDir for CliArgs {
 
 impl hypertask_sync_storage_with_server::ProvidesServerDetails for CliArgs {
     fn get_server_url(&self) -> HyperTaskResult<&String> {
-        self.server_url.as_ref().ok_or(
+        self.server_url.as_ref().ok_or_else(|| {
             HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Read)
-                .msg("could not get server url"),
-        )
+                .msg("could not get server url")
+        })
     }
 
     fn get_server_secret_value(&self) -> HyperTaskResult<&String> {
-        self.sync_secret.as_ref().ok_or(
+        self.sync_secret.as_ref().ok_or_else(|| {
             HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Read)
-                .msg("could not get sync secret"),
-        )
+                .msg("could not get sync secret")
+        })
     }
 }

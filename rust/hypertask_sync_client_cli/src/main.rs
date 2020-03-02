@@ -47,7 +47,7 @@ async fn watch_for_changes(cli_args: &CliArgs) -> HyperTaskResult<()> {
     }
 }
 
-async fn run_at_interval(cli_args: &CliArgs, interval: &u64) -> HyperTaskResult<()> {
+async fn run_at_interval(cli_args: &CliArgs, interval: u64) -> HyperTaskResult<()> {
     info!(
         "starting running with a rescan interval of {} seconds",
         &interval
@@ -57,7 +57,7 @@ async fn run_at_interval(cli_args: &CliArgs, interval: &u64) -> HyperTaskResult<
         info!("syncing after interval of {} seconds", &interval);
         hypertask_sync_storage_with_server::sync_all_tasks_async(cli_args).await?;
 
-        task::sleep(Duration::from_secs(*interval)).await;
+        task::sleep(Duration::from_secs(interval)).await;
     }
 }
 
@@ -69,11 +69,11 @@ async fn begin(cli_args: CliArgs) -> HyperTaskResult<()> {
         (Some(interval), true) => {
             try_join!(
                 watch_for_changes(&cli_args),
-                run_at_interval(&cli_args, interval)
+                run_at_interval(&cli_args, *interval)
             )?;
             Ok(())
         }
-        (Some(interval), false) => run_at_interval(&cli_args, interval).await,
+        (Some(interval), false) => run_at_interval(&cli_args, *interval).await,
         (None, true) => watch_for_changes(&cli_args).await,
         (None, false) => {
             info!("no need to run again");
