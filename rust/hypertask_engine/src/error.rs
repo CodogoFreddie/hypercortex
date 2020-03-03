@@ -146,10 +146,16 @@ pub fn print_error_chain(err: &(dyn Error + 'static)) {
 }
 
 pub fn print_error_chain_recursive(err: &(dyn Error + 'static), i: u32) {
-    println!("Error {}: {}", i, err);
+    error!("Error {}: {}", i, err);
 
     if let Some(boxed_source) = err.source() {
         print_error_chain_recursive(boxed_source, i + 1);
+    }
+}
+
+pub fn run_result_producing_function(r: Result<(), HyperTaskError>) {
+    if let Err(e) = r {
+        print_error_chain(&e);
     }
 }
 

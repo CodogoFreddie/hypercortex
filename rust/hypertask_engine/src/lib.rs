@@ -1,7 +1,10 @@
-extern crate derive_builder;
+#[macro_use]
+extern crate log;
 #[macro_use]
 extern crate serde_derive;
+
 extern crate chrono;
+extern crate derive_builder;
 extern crate serde;
 extern crate time;
 

@@ -47,16 +47,16 @@ fn main() -> HyperTaskResult<()> {
             daemonizer
         };
 
-        daemonizer = daemonizer.exit_action(|| println!("daemonized server"));
+        daemonizer = daemonizer.exit_action(|| info!("daemonized server"));
 
         match daemonizer.start() {
             Ok(_) => {
-                println!("Success, daemonized");
+                info!("Success, daemonized");
 
                 task::block_on(server::start(cli_args))
             }
             Err(e) => {
-                eprintln!("Error, {}", e);
+                error!("Error, {}", e);
 
                 Err(
                     HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)

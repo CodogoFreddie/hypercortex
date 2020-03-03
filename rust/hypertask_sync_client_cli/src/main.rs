@@ -11,13 +11,11 @@ use crate::clap::Clap;
 use async_std::task;
 use cli_args::CliArgs;
 use daemonize::Daemonize;
-use futures::try_join;
 use hypertask_engine::prelude::*;
-use std::fs::File;
-use std::time::Duration;
-
 use notify::{watcher, RecursiveMode, Watcher};
+use std::fs::File;
 use std::sync::mpsc::channel;
+use std::time::Duration;
 
 async fn watch_for_changes(cli_args: &CliArgs) -> HyperTaskResult<()> {
     let debounce_seconds = cli_args.watch_debounce.unwrap_or(2);
@@ -66,15 +64,16 @@ async fn begin(cli_args: CliArgs) -> HyperTaskResult<()> {
     hypertask_sync_storage_with_server::sync_all_tasks_async(&cli_args).await?;
 
     match (&cli_args.rescan_refresh_rate, &cli_args.watch_for_changes) {
-        (Some(interval), true) => {
-            try_join!(
-                watch_for_changes(&cli_args),
-                run_at_interval(&cli_args, *interval)
-            )?;
-            Ok(())
-        }
+        (Some(_), true) => Err(HyperTaskError::new(
+            HyperTaskErrorDomain::Syncing,
+            HyperTaskErrorAction::Run,
+        )
+        .msg("periodic recan and dir watching isn't currently possible at the same time")),
+
         (Some(interval), false) => run_at_interval(&cli_args, *interval).await,
+
         (None, true) => watch_for_changes(&cli_args).await,
+
         (None, false) => {
             info!("no need to run again");
             Ok(())
@@ -82,7 +81,7 @@ async fn begin(cli_args: CliArgs) -> HyperTaskResult<()> {
     }
 }
 
-fn main() -> HyperTaskResult<()> {
+fn run() -> HyperTaskResult<()> {
     env_logger::init();
 
     info!("started hypertask syncing client");
@@ -114,16 +113,16 @@ fn main() -> HyperTaskResult<()> {
             daemonizer
         };
 
-        daemonizer = daemonizer.exit_action(|| println!("daemonized client"));
+        daemonizer = daemonizer.exit_action(|| info!("daemonized client"));
 
         match daemonizer.start() {
             Ok(_) => {
-                println!("Success, daemonized");
+                info!("Success, daemonized");
 
                 task::block_on(begin(cli_args))
             }
             Err(e) => {
-                eprintln!("Error, {}", e);
+                error!("Error, {}", e);
 
                 Err(
                     HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)
@@ -135,4 +134,8 @@ fn main() -> HyperTaskResult<()> {
     } else {
         task::block_on(begin(cli_args))
     }
+}
+
+fn main() {
+    run_result_producing_function(run());
 }
