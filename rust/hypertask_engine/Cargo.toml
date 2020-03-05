@@ -20,6 +20,10 @@ serde_json = "1.0.44"
 blake2 = "0.8"
 log = "0.4.8"
 
+[dependencies.simple_persist_data]
+path = '../../../simple_persist_data'
+features = [ "toml" ]
+
 [target.'cfg(target_arch = "wasm32")'.dependencies.wasm-bindgen]
 version = "0.2"
 

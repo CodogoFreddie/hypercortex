@@ -6,6 +6,7 @@ extern crate hypertask_engine;
 extern crate notify;
 
 mod cli_args;
+mod persist;
 
 use crate::clap::Clap;
 use async_std::task;

@@ -1,21 +1,14 @@
 use crate::render::RenderColumns;
-use hypertask_config_file_opener::ShellExpand;
 use hypertask_engine::prelude::*;
 use hypertask_task_io_operations::ProvidesDataDir;
 use serde::{Deserialize, Serialize};
+use simple_persist_data::prelude::*;
 use std::path::PathBuf;
-
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
-pub struct HooksConfig {
-    pub after: Option<String>,
-    pub on_edit: Option<String>,
-    pub before: Option<String>,
-}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RenderConfig {
-    pub score_precision: u32,
     pub columns: Vec<RenderColumns>,
+    pub score_precision: u32,
 }
 
 impl Default for RenderConfig {
@@ -55,28 +48,41 @@ impl ScoreCalculatorConfig {
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct CliConfig {
-    pub task_state_dir: PathBuf,
-    pub hooks: Option<HooksConfig>,
-    pub render: RenderConfig,
     pub filter_calculator: ScoreCalculatorConfig,
     pub score_calculator: ScoreCalculatorConfig,
+    pub render: RenderConfig,
 }
 
-impl ProvidesDataDir for CliConfig {
-    fn get_task_state_dir(&self) -> &PathBuf {
-        &self.task_state_dir
-    }
-}
+impl PersistableSingle for CliConfig {
+    const APP_INFO: AppInfo = crate::app_info::APP_INFO;
+    const APP_DATA_TYPE: AppDataType = AppDataType::UserConfig;
+    const FORMAT: Format = Format::Toml;
+    const NAME: &'static str = "config";
 
-impl ShellExpand for CliConfig {
-    fn shell_expand(&mut self) {
-        let task_state_dir_str: &str = self
-            .task_state_dir
+    const COMMENT: Option<&'static str> = Some("The config for the hypertask cli client, more documentation can be found by running `$ man task`");
+
+    fn after_save(&self) -> () {
+        let file_path_buf =
+            Self::get_file_path().expect("could not derive file path for config.toml");
+        let file_path = file_path_buf
             .to_str()
-            .expect("could not string from task_state_dir");
+            .expect("could not derive file path for config.toml");
 
-        let expanded_task_state_dir = shellexpand::tilde(task_state_dir_str);
+        println!(
+            "a config file has been saved for you, you can find it at '{}'",
+            file_path
+        );
+    }
 
-        self.task_state_dir = PathBuf::from(expanded_task_state_dir.into_owned());
+    fn before_load() -> bool {
+        let file_path_buf =
+            Self::get_file_path().expect("could not derive file path for config.toml");
+        let file_path = file_path_buf
+            .to_str()
+            .expect("could not derive file path for config.toml");
+
+        info!("loading config from '{}'", file_path);
+
+        true
     }
 }

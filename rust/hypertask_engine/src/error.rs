@@ -134,6 +134,14 @@ impl From<HyperTaskError> for String {
     }
 }
 
+impl std::convert::From<simple_persist_data::prelude::Error> for HyperTaskError {
+    fn from(error: simple_persist_data::prelude::Error) -> Self {
+        HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Run)
+            .msg("error persisting task")
+            .from(error)
+    }
+}
+
 #[cfg(target_arch = "wasm32")]
 impl Into<wasm_bindgen::JsValue> for HyperTaskError {
     fn into(self) -> wasm_bindgen::JsValue {

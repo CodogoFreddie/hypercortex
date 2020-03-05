@@ -1,48 +1,73 @@
 [package]
-name = "hypertask_client_cli"
-version = "0.2.1"
-authors = ["Freddie Ridell <contact@freddieridell.com>"]
-edition = "2018"
-categories = [ "command-line-utilities" ]
-description = "The CLI for hypertask task manager"
-homepage = "https://github.com/FreddieRidell/hypertask"
-keywords = [ "task", "todo", "cli" ]
-license = "MIT"
-repository = "https://github.com/FreddieRidell/hypertask"
+name = 'hypertask_client_cli'
+version = '0.2.1'
+authors = ['Freddie Ridell <contact@freddieridell.com>']
+edition = '2018'
+categories = ['command-line-utilities']
+description = 'The CLI for hypertask task manager'
+homepage = 'https://github.com/FreddieRidell/hypertask'
+keywords = [
+    'task',
+    'todo',
+    'cli',
+]
+license = 'MIT'
+repository = 'https://github.com/FreddieRidell/hypertask'
 
 [[bin]]
-name = "task"
-path = "src/main.rs"
+name = 'task'
+path = 'src/main.rs'
 
 [dependencies]
-ansi_term="0.12"
-chrono = { version = "0.4", features = ["serde"] }
-chrono-english = "0.1"
-hypertask_config_file_opener={ version = "0.2.0", path="../hypertask_config_file_opener"}
-hypertask_engine={ version = "0.2.0", path= "../hypertask_engine" }
-hypertask_task_io_operations={ version = "0.1.0", path="../hypertask_task_io_operations"}
-lazy_static = "1"
-mkdirp = "1"
-platform-dirs = "0.2"
-rand = "0.6" 
-regex = "1"
-render_simple_cli_table={ version = "0.1.0", path ="../render_simple_cli_table"}
-serde = { version = "1", features = ["derive"] }
-serde_json = { version = "1" }
-shellexpand = "1"
-term_size = "1.0.0-beta1" 
-time = "0.1"
-toml = "0.5"   
+ansi_term = '0.12'
+chrono-english = '0.1'
+lazy_static = '1'
+mkdirp = '1'
+platform-dirs = '0.2'
+rand = '0.6'
+regex = '1'
+shellexpand = '1'
+term_size = '1.0.0-beta1'
+time = '0.1'
+toml = '0.5'
+env_logger = "0.7.1"
+log = "0.4.8"
 
+[dependencies.simple_persist_data]
+path = '../../../simple_persist_data'
+features = [ "toml" ]
+
+[dependencies.hypertask_engine]
+version = '0.2.0'
+path = '../hypertask_engine'
+
+[dependencies.chrono]
+version = '0.4'
+features = ['serde']
+
+[dependencies.hypertask_task_io_operations]
+version = '0.1.0'
+path = '../hypertask_task_io_operations'
+
+[dependencies.render_simple_cli_table]
+version = '0.1.0'
+path = '../render_simple_cli_table'
+
+[dependencies.serde]
+version = '1'
+features = ['derive']
+
+[dependencies.serde_json]
+version = '1'
 [dev-dependencies.cargo-husky]
-version = "1"
+version = '1'
 default-features = false
 features = [
-	"run-for-all",
-	"prepush-hook",
-	"precommit-hook",
-	"run-cargo-test",
-	"run-cargo-clippy",
-	"run-cargo-check",
-	"run-cargo-fmt"
+    'run-for-all',
+    'prepush-hook',
+    'precommit-hook',
+    'run-cargo-test',
+    'run-cargo-clippy',
+    'run-cargo-check',
+    'run-cargo-fmt',
 ]

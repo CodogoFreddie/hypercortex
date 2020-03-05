@@ -2,7 +2,6 @@
 members = [
 	"rust/render_simple_cli_table",
 	"rust/hypertask_task_io_operations",
-	"rust/hypertask_config_file_opener",
 	"rust/hypertask_sync_storage_with_server",
 
 	"rust/hypertask_engine",
