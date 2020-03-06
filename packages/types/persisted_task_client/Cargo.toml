@@ -1,0 +1,25 @@
+[package]
+name = "persisted_task_client"
+version = "0.1.0"
+authors = ["Freddie Ridell <contact@freddieridell.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[dependencies.simple_persist_data]
+path = '../../../../simple_persist_data'
+features = [ "json" ]
+
+[dependencies.serde]
+version = '1'
+features = ['derive']
+
+[dependencies.hypertask_engine]
+version = '0.2.0'
+path = '../../lib/engine'
+
+[dependencies.app_info_client]
+version = '0.1.0'
+path = '../app_info_client'

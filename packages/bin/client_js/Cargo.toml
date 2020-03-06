@@ -14,7 +14,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }
-hypertask_engine = { version = "0.2.0", path = "../hypertask_engine" }
+hypertask_engine = { version = "0.2.0", path = "../../lib/engine" }
 js-sys = "0.3"
 lazy_static = "1"
 serde = "1"

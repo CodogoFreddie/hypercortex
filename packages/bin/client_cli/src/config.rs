@@ -52,8 +52,8 @@ pub struct CliConfig {
 }
 
 impl PersistableSingle for CliConfig {
-    const APP_INFO: AppInfo = crate::app_info::APP_INFO;
     const APP_DATA_TYPE: AppDataType = AppDataType::UserConfig;
+    const APP_INFO: AppInfo = app_info_client::APP_INFO;
     const FORMAT: Format = Format::Toml;
     const NAME: &'static str = "config";
 

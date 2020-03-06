@@ -5,14 +5,22 @@ rustflags = [ "target-cpu=native" ]    # custom flags to pass to all compiler in
 
 [workspace]
 members = [
+	# Endpoint executables, create deployable artifacts
 	"packages/bin/client_cli",
 	"packages/bin/client_js",
 	"packages/bin/sync_client",
 	"packages/bin/sync_server",
+
+	# Used by any package, even non-hypertask packages
 	"packages/lib/engine",
 	"packages/lib/render_simple_cli_table",
 	"packages/lib/sync_with_server",
-	"packages/new_type/persisted_task_browser",
-	"packages/new_type/persisted_task_client",
-	"packages/new_type/persisted_task_server",
+
+	# NewType wrappers and const instances, mainly providing persistance
+	"packages/types/app_info_browser",
+	"packages/types/app_info_client",
+	"packages/types/app_info_server",
+	"packages/types/persisted_task_browser",
+	"packages/types/persisted_task_client",
+	"packages/types/persisted_task_server",
 ]

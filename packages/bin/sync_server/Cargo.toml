@@ -12,8 +12,7 @@ path = "src/main.rs"
 
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }
-hypertask_task_io_operations={ version = "0.1.0", path="../hypertask_task_io_operations"}
-hypertask_engine={ version = "0.2.0", path= "../hypertask_engine" }
+hypertask_engine={ version = "0.2.0", path= "../../lib/engine" }
 platform-dirs = "0.2"
 rand = "0.6" 
 time = "0.1"

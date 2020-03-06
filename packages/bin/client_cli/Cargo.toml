@@ -33,25 +33,26 @@ toml = '0.5'
 env_logger = "0.7.1"
 log = "0.4.8"
 
+[dependencies.persisted_task_client]
+version = '0.1.0'
+path = '../../types/persisted_task_client'
+
 [dependencies.simple_persist_data]
-path = '../../../simple_persist_data'
+version = "0.1.0"
+path = '../../../../simple_persist_data'
 features = [ "toml" ]
 
 [dependencies.hypertask_engine]
 version = '0.2.0'
-path = '../hypertask_engine'
+path = '../../lib/engine'
 
 [dependencies.chrono]
 version = '0.4'
 features = ['serde']
 
-[dependencies.hypertask_task_io_operations]
-version = '0.1.0'
-path = '../hypertask_task_io_operations'
-
 [dependencies.render_simple_cli_table]
 version = '0.1.0'
-path = '../render_simple_cli_table'
+path = '../../lib/render_simple_cli_table'
 
 [dependencies.serde]
 version = '1'
@@ -59,15 +60,7 @@ features = ['derive']
 
 [dependencies.serde_json]
 version = '1'
-[dev-dependencies.cargo-husky]
-version = '1'
-default-features = false
-features = [
-    'run-for-all',
-    'prepush-hook',
-    'precommit-hook',
-    'run-cargo-test',
-    'run-cargo-clippy',
-    'run-cargo-check',
-    'run-cargo-fmt',
-]
+
+[dependencies.app_info_client]
+version = '0.1.0'
+path = '../../types/app_info_client'

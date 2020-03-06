@@ -8,8 +8,6 @@ extern crate hypertask_engine;
 extern crate render_simple_cli_table;
 extern crate shellexpand;
 
-mod app_info;
-mod cli_stored_task;
 mod config;
 mod parse_args;
 mod render;
@@ -19,6 +17,7 @@ use crate::parse_args::parse_cli_args;
 use crate::render::render_engine_output;
 use chrono::prelude::*;
 use hypertask_engine::prelude::*;
+use persisted_task_client::PersistedTaskClient;
 use simple_persist_data::prelude::*;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -35,6 +34,17 @@ fn create_stack_machine(now: &DateTime<Utc>, program: Vec<RPNSymbol>) -> StackMa
     StackMachine::new(program, env)
 }
 
+fn get_input_tasks() -> HyperTaskResult<HashMap<Rc<Id>, Rc<Task>>> {
+    let mut hm = HashMap::new();
+
+    for id in PersistedTaskClient::get_all_ids()? {
+        let PersistedTaskClient(task) = PersistedTaskClient::load_from_storage(&id)?;
+        hm.insert(Rc::new(id), Rc::new(task));
+    }
+
+    Ok(hm)
+}
+
 pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
     env_logger::init();
 
@@ -44,7 +54,7 @@ pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
         cli_config.save_to_storage()?;
     }
 
-    let tasks: HashMap<Rc<Id>, Rc<Task>> = cli_stored_task::get_input_tasks()?;
+    let tasks: HashMap<Rc<Id>, Rc<Task>> = get_input_tasks()?;
     let now = Utc::now();
     let score_machine = create_stack_machine(&now, cli_config.score_calculator.to_program());
     let filter_machine = create_stack_machine(&now, cli_config.filter_calculator.to_program());
@@ -60,7 +70,7 @@ pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
 
     if !mutated_tasks.is_empty() {
         for task in mutated_tasks {
-            cli_stored_task::put_output_tasks(task.as_ref().clone())?;
+            PersistedTaskClient(task.as_ref().clone()).save_to_storage()?;
         }
     }
 
