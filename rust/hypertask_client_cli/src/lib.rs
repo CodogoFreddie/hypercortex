@@ -19,7 +19,6 @@ use crate::parse_args::parse_cli_args;
 use crate::render::render_engine_output;
 use chrono::prelude::*;
 use hypertask_engine::prelude::*;
-use hypertask_task_io_operations::{get_input_tasks, put_task};
 use simple_persist_data::prelude::*;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -61,7 +60,7 @@ pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
 
     if !mutated_tasks.is_empty() {
         for task in mutated_tasks {
-            cli_stored_task::put_output_tasks(task.as_ref().clone());
+            cli_stored_task::put_output_tasks(task.as_ref().clone())?;
         }
     }
 

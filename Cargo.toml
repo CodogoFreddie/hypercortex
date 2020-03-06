@@ -1,3 +1,8 @@
+[profile.release]
+lto = "fat"
+codegen-units = 1
+rustflags = ["target-cpu=native", ]    # custom flags to pass to all compiler invocations
+
 [workspace]
 members = [
 	"rust/render_simple_cli_table",

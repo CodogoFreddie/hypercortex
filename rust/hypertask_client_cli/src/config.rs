@@ -1,9 +1,7 @@
 use crate::render::RenderColumns;
 use hypertask_engine::prelude::*;
-use hypertask_task_io_operations::ProvidesDataDir;
 use serde::{Deserialize, Serialize};
 use simple_persist_data::prelude::*;
-use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RenderConfig {
