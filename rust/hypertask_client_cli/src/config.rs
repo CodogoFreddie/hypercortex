@@ -85,4 +85,8 @@ impl PersistableSingle for CliConfig {
 
         true
     }
+
+    fn after_load(&self) -> () {
+        trace!("loaded config: {:?}", self);
+    }
 }

@@ -97,6 +97,9 @@ impl Task {
     pub fn get_id(&self) -> Rc<Id> {
         self.id.clone()
     }
+    pub fn get_id_ref(&self) -> &Id {
+        self.id.as_ref()
+    }
     pub fn get_blocked_by(&self) -> Option<Rc<Id>> {
         self.blocked_by.clone()
     }

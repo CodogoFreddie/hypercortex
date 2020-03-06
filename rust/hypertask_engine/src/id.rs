@@ -41,3 +41,13 @@ impl fmt::Display for Id {
         write!(f, "{}", x)
     }
 }
+
+impl simple_persist_data::prelude::PersistanceId for Id {
+    fn as_path_section(&self) -> &str {
+        self.0.as_str()
+    }
+
+    fn from_path_section(s: &str) -> Self {
+        Id(s.to_owned())
+    }
+}

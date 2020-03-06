@@ -9,6 +9,7 @@ extern crate render_simple_cli_table;
 extern crate shellexpand;
 
 mod app_info;
+mod cli_stored_task;
 mod config;
 mod parse_args;
 mod render;
@@ -44,25 +45,27 @@ pub fn run_cli(args: &[String]) -> HyperTaskResult<()> {
         cli_config.save_to_storage()?;
     }
 
-    //let tasks: HashMap<Rc<Id>, Rc<Task>> = get_input_tasks(&cli_config)?;
-    //let now = Utc::now();
-    //let score_machine = create_stack_machine(&now, cli_config.score_calculator.to_program());
-    //let filter_machine = create_stack_machine(&now, cli_config.filter_calculator.to_program());
+    let tasks: HashMap<Rc<Id>, Rc<Task>> = cli_stored_task::get_input_tasks()?;
+    let now = Utc::now();
+    let score_machine = create_stack_machine(&now, cli_config.score_calculator.to_program());
+    let filter_machine = create_stack_machine(&now, cli_config.filter_calculator.to_program());
 
-    //let mut engine: Engine = Engine::new(tasks, filter_machine, score_machine, now);
+    let mut engine: Engine = Engine::new(tasks, filter_machine, score_machine, now);
 
-    //let EngineOutput {
-    //mutated_tasks,
-    //display_tasks,
-    //} = engine.run(parse_cli_args(args.iter().skip(1))?)?;
+    let EngineOutput {
+        mutated_tasks,
+        display_tasks,
+    } = engine.run(parse_cli_args(args.iter().skip(1))?)?;
 
-    //if !mutated_tasks.is_empty() {
-    //for task in mutated_tasks {
-    //put_task(&cli_config, &task)?;
-    //}
-    //}
+    std::mem::drop(engine);
 
-    //render_engine_output(display_tasks, &cli_config)?;
+    if !mutated_tasks.is_empty() {
+        for task in mutated_tasks {
+            cli_stored_task::put_output_tasks(task.as_ref().clone());
+        }
+    }
+
+    render_engine_output(display_tasks, &cli_config)?;
 
     Ok(())
 }
