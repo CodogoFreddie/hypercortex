@@ -1,19 +1,18 @@
 [profile.release]
 lto = "fat"
 codegen-units = 1
-rustflags = ["target-cpu=native", ]    # custom flags to pass to all compiler invocations
+rustflags = [ "target-cpu=native" ]    # custom flags to pass to all compiler invocations
 
 [workspace]
 members = [
-	"rust/render_simple_cli_table",
-	"rust/hypertask_task_io_operations",
-	"rust/hypertask_sync_storage_with_server",
-
-	"rust/hypertask_engine",
-
-	"rust/hypertask_client_cli",
-	#"rust/hypertask_client_js",
-
-	"rust/hypertask_sync_client_cli",
-	"rust/hypertask_sync_server",
+	"packages/bin/client_cli",
+	"packages/bin/client_js",
+	"packages/bin/sync_client",
+	"packages/bin/sync_server",
+	"packages/lib/engine",
+	"packages/lib/render_simple_cli_table",
+	"packages/lib/sync_with_server",
+	"packages/new_type/persisted_task_browser",
+	"packages/new_type/persisted_task_client",
+	"packages/new_type/persisted_task_server",
 ]
