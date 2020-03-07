@@ -3,35 +3,32 @@ extern crate log;
 extern crate hypertask_engine;
 
 use hypertask_engine::prelude::*;
-use hypertask_task_io_operations::ProvidesDataDir;
-use hypertask_task_io_operations::{delete_task, get_input_tasks, get_task, put_task};
+use persisted_task_client::PersistedTaskClient;
+use simple_persist_data::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
-type TaskHashes = HashMap<Rc<Id>, u64>;
+type TaskHashes<TaskPersister: PersistableMultiple<Task>> = HashMap<Rc<TaskPersister::ID>, u64>;
 
 pub trait ProvidesServerDetails: Sync + Send {
     fn get_server_url(&self) -> HyperTaskResult<&String>;
     fn get_server_secret_value(&self) -> HyperTaskResult<&String>;
 }
 
-pub fn get_local_task_hash_map<Config: ProvidesDataDir>(
-    config: &Config,
-) -> HyperTaskResult<TaskHashes> {
-    let mut task_hashes = TaskHashes::new();
+fn get_local_task_hash_map<TaskPersister: PersistableMultiple<Task>>() -> HyperTaskResult<TaskPersister> {
+    let mut hm = HashMap::new();
 
-    let input_tasks: HashMap<Rc<Id>, Rc<Task>> = get_input_tasks(config)?;
-
-    for (id, task) in input_tasks.iter() {
-        task_hashes.insert(id.clone(), task.calculate_hash());
+    for id in PersistedTaskClient::get_all_ids()? {
+        let PersistedTaskClient(task) = PersistedTaskClient::load_from_storage(&id)?;
+        hm.insert(Rc::new(id), task.calculate_hash());
     }
 
-    Ok(task_hashes)
+    Ok(hm)
 }
 
-pub async fn get_remote_task_hash_map<Config: ProvidesDataDir + ProvidesServerDetails>(
+pub async fn get_remote_task_hash_map<Config: ProvidesServerDetails, TaskPersister: PersistableMultiple<Task>>(
     config: &Config,
-) -> Result<TaskHashes, Box<dyn std::error::Error + Send + Sync + 'static>> {
+) -> Result<TaskHashes<TaskPersister>, Box<dyn std::error::Error + Send + Sync + 'static>> {
     let uri = format!("{}/hashes", config.get_server_url()?);
 
     let mut res = surf::get(&uri)
@@ -54,12 +51,15 @@ pub async fn get_remote_task_hash_map<Config: ProvidesDataDir + ProvidesServerDe
     Ok(task_hashes)
 }
 
-pub async fn get_remote_task_state<Config: ProvidesServerDetails>(
+pub async fn get_remote_task_state<
+    Config: ProvidesServerDetails,
+    TaskPersister: PersistableMultiple<Task>,
+>(
     config: &Config,
-    id: &Id,
+    id: &Rc<TaskPersister::ID>,
     client_task: &Option<Task>,
 ) -> Result<Option<Task>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-    let uri = format!("{}/task/{}", config.get_server_url()?, id);
+    let uri = format!("{}/task/{}", config.get_server_url()?, id.as_ref().as_ref());
 
     let server_task: Option<Task> = surf::post(uri)
         .set_header(
@@ -74,15 +74,19 @@ pub async fn get_remote_task_state<Config: ProvidesServerDetails>(
     Ok(server_task)
 }
 
-async fn sync_task_with_server<Config: ProvidesDataDir + ProvidesServerDetails>(
+async fn sync_task_with_server<
+    Config: ProvidesServerDetails,
+    TaskPersister: PersistableMultiple<Task>,
+>(
     config: &Config,
-    id: &Rc<Id>,
+    id: &Rc<TaskPersister::ID>,
 ) -> HyperTaskResult<()> {
-    let local_task_state: Option<Task> = get_task(config, &*id)?;
+    let local_task_state: Option<Task> =
+        TaskPersister::load_from_storage(id.as_ref())?.map(|task_persister| task_persister.into());
 
     info!("got local task state `{:?}`", &local_task_state);
 
-    let remote_task_state = get_remote_task_state(config, &**id, &local_task_state)
+    let remote_task_state = get_remote_task_state::<Config, TaskPersister>(config, id, &local_task_state)
         .await
         .map_err(|_| {
             HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Write)
@@ -97,27 +101,29 @@ async fn sync_task_with_server<Config: ProvidesDataDir + ProvidesServerDetails>(
     match resolved_task {
         Some(task) => {
             info!("save task");
-            put_task(config, &task)?;
+            TaskPersister::from(task).save_to_storage()?;
         }
         None => {
-            info!("delete task");
-            delete_task(config, id)?;
+            info!("delete task (not yet implemented)");
         }
     };
 
     Ok(())
 }
 
-pub async fn sync_all_tasks_async<Config: ProvidesDataDir + ProvidesServerDetails>(
+pub async fn sync_all_tasks_async<
+    Config: ProvidesServerDetails,
+    TaskPersister: PersistableMultiple<Task>,
+>(
     config: &Config,
 ) -> HyperTaskResult<()> {
     info!("running sync");
 
-    let local_hashes = get_local_task_hash_map(config)?;
+    let local_hashes = get_local_task_hash_map()?;
 
     info!("got local hashes");
 
-    let remote_hashes = get_remote_task_hash_map(config).await.map_err(|e| {
+    let remote_hashes: TaskHashes<TaskPersister> = get_remote_task_hash_map(config).await.map_err(|e| {
         println!("{:?}", e);
 
         HyperTaskError::new(HyperTaskErrorDomain::Syncing, HyperTaskErrorAction::Run)
@@ -126,7 +132,7 @@ pub async fn sync_all_tasks_async<Config: ProvidesDataDir + ProvidesServerDetail
 
     info!("got remote hashes");
 
-    let mut ids: HashSet<Rc<Id>> = HashSet::new();
+    let mut ids: HashSet<Rc<TaskPersister::ID>> = HashSet::new();
 
     for id in local_hashes.keys() {
         ids.insert(id.clone());
@@ -145,7 +151,7 @@ pub async fn sync_all_tasks_async<Config: ProvidesDataDir + ProvidesServerDetail
                 remote_hashes.get(id)
             );
 
-            sync_task_with_server(config, id).await?;
+            sync_task_with_server::<Config, TaskPersister>(config, id).await?;
         }
     }
 

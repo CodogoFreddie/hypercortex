@@ -7,7 +7,19 @@ use std::rc::Rc;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PersistedTaskClient(pub Task);
 
-impl PersistableMultiple for PersistedTaskClient {
+impl std::convert::From<Task> for PersistedTaskClient {
+    fn from(t: Task) -> Self {
+        PersistedTaskClient(t)
+    }
+}
+
+impl std::convert::Into<Task> for PersistedTaskClient {
+    fn into(self) -> Task {
+        self.0
+    }
+}
+
+impl PersistableMultiple<Task> for PersistedTaskClient {
     const APP_DATA_TYPE: AppDataType = AppDataType::UserData;
     const APP_INFO: AppInfo = app_info_client::APP_INFO;
     const FORMAT: simple_persist_data::Format = Format::Json;

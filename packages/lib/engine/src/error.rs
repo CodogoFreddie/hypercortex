@@ -134,8 +134,8 @@ impl From<HyperTaskError> for String {
     }
 }
 
-impl std::convert::From<simple_persist_data::prelude::Error> for HyperTaskError {
-    fn from(error: simple_persist_data::prelude::Error) -> Self {
+impl std::convert::From<simple_persist_data::Error> for HyperTaskError {
+    fn from(error: simple_persist_data::Error) -> Self {
         HyperTaskError::new(HyperTaskErrorDomain::Task, HyperTaskErrorAction::Run)
             .msg("error persisting task")
             .from(error)

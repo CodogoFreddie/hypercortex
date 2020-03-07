@@ -27,3 +27,12 @@ features = ["console"]
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 async-std = "1"
+
+[dependencies.persisted_task_client]
+version = '0.1.0'
+path = '../../types/persisted_task_client'
+
+[dependencies.simple_persist_data]
+version = "0.1.0"
+path = '../../../../simple_persist_data'
+features = [ "json" ]

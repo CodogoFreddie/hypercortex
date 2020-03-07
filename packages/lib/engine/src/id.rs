@@ -35,6 +35,12 @@ impl Id {
     }
 }
 
+impl AsRef<str> for Id {
+    fn as_ref(&self) -> &str {
+        self.0.as_ref()
+    }
+}
+
 impl fmt::Display for Id {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let Id(x) = self;
