@@ -97,6 +97,9 @@ impl HyperTaskError {
     }
 }
 
+unsafe impl std::marker::Sync for HyperTaskError {}
+unsafe impl std::marker::Send for HyperTaskError {}
+
 impl PartialEq for HyperTaskError {
     fn eq(&self, other: &HyperTaskError) -> bool {
         self.domain == other.domain && self.action == other.action
@@ -131,15 +134,28 @@ impl From<HyperTaskError> for String {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
+impl Into<wasm_bindgen::JsValue> for HyperTaskError {
+    fn into(self) -> wasm_bindgen::JsValue {
+        wasm_bindgen::JsValue::from_str(&format!("{}", self))
+    }
+}
+
 pub fn print_error_chain(err: &(dyn Error + 'static)) {
     print_error_chain_recursive(err, 1)
 }
 
 pub fn print_error_chain_recursive(err: &(dyn Error + 'static), i: u32) {
-    println!("Error {}: {}", i, err);
+    error!("Error {}: {}", i, err);
 
     if let Some(boxed_source) = err.source() {
         print_error_chain_recursive(boxed_source, i + 1);
+    }
+}
+
+pub fn run_result_producing_function(r: Result<(), HyperTaskError>) {
+    if let Err(e) = r {
+        print_error_chain(&e);
     }
 }
 

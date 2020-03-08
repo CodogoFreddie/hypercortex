@@ -3,12 +3,13 @@ members = [
 	"rust/render_simple_cli_table",
 	"rust/hypertask_task_io_operations",
 	"rust/hypertask_config_file_opener",
+	"rust/hypertask_sync_storage_with_server",
 
 	"rust/hypertask_engine",
 
 	"rust/hypertask_client_cli",
 	#"rust/hypertask_client_js",
 
-	"rust/hypertask_sync_cli_daemon",
+	"rust/hypertask_sync_client_cli",
 	"rust/hypertask_sync_server",
 ]
